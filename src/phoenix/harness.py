@@ -74,8 +74,10 @@ class Runner:
             self.tok.convert_tokens_to_ids("<|end-latent|>"),
             self.tok.eos_token_id,
         )
-        state = torch.load(checkpoint, map_location="cpu", weights_only=True)
-        self.model.load_state_dict(state)
+        if checkpoint is not None:
+            state = torch.load(checkpoint, map_location="cpu", weights_only=True)
+            self.model.load_state_dict(state)
+        # checkpoint=None keeps the random initialisation: for plumbing tests only
         self.model = self.model.to(self.device)
         self.model.eval()
         self.wte = base.transformer.wte.weight  # (40, 768)

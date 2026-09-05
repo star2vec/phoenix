@@ -11,6 +11,5 @@ tests in `tests/`, figure and number scripts in `scripts/`, literature notes in
 2. Before any prediction, ask what the task structure forces.
 3. A threshold is allowed only if it names the claim it protects.
 4. Sensitivity controls must be on-manifold.
-5. Nothing is fixed the same day it is conceived.
-6. Numbers in prose always point to a results file.
-7. Plain English everywhere.
+5. Numbers in prose always point to a results file.
+6. Plain English everywhere.

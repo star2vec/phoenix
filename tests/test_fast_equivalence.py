@@ -87,6 +87,25 @@ def main():
     print(f"forward: OK (loss {out_s.loss.item():.6f} identical; "
           f"max logit diff {(out_s.logits - out_f.logits).abs().max():.2e})")
 
+    # --- hooks importable and inactive: still bit-exact ----------------------
+    from phoenix.attn_hooks import AttnHooks, ResidualHooks
+
+    with AttnHooks(fast.base_causallm), ResidualHooks(fast.base_causallm):
+        out_h = fast(**batch)
+    assert torch.equal(out_h.logits, out_f.logits), "inactive hooks broke bit-exactness"
+    assert torch.equal(out_h.inputs_embeds, out_f.inputs_embeds)
+    print("hooks off: OK (installed-but-inactive hooks are bit-exact)")
+
+    # --- eager attention path (used by the hooks): rounding-level only -------
+    # (pad positions carry no labels and the two paths treat fully masked
+    # query rows differently, so compare attended positions and the loss)
+    out_e = fast(**batch, attn_eager=True)
+    attended = batch["attention_mask"].bool()
+    diff_e = (out_e.logits - out_f.logits).abs().amax(-1)[attended].max().item()
+    assert diff_e < 1e-4, f"eager path diverges at attended positions: {diff_e}"
+    assert torch.equal(out_e.loss, out_f.loss) or (out_e.loss - out_f.loss).abs() < 1e-6
+    print(f"eager path: OK (max logit diff vs SDPA at attended positions {diff_e:.2e}; loss equal)")
+
     out_s.loss.backward()
     out_f.loss.backward()
     for (n1, p1), (n2, p2) in zip(slow.named_parameters(), fast.named_parameters()):

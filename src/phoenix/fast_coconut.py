@@ -47,6 +47,7 @@ class FastCoconut(Coconut):
         labels,
         position_ids,
         thought_edit=None,
+        attn_eager=False,
         **kwargs,
     ):
         """thought_edit: optional callable (pass_idx, vec) -> vec applied to
@@ -54,8 +55,14 @@ class FastCoconut(Coconut):
         thought step t corresponds to pass_idx == t-1). None (default)
         reproduces vendor behavior bit-exactly. The edited vector propagates
         to all subsequent passes — this is the point where every thought
-        intervention in this project is applied."""
+        intervention in this project is applied.
+
+        attn_eager: when True, every base-model call requests attention
+        weights, which makes the SDPA attention class take the eager path
+        (the one attn_hooks.AttnHooks wraps). False (default) adds nothing to
+        the call and is the bit-exact path."""
         logits = []
+        base_kw = {"output_attentions": True} if attn_eager else {}
 
         latent_indices = (input_ids == self.latent_token_id).nonzero()
         # one host transfer instead of per-element .item() (each forces a
@@ -86,6 +93,7 @@ class FastCoconut(Coconut):
                         :, next_compute_range[0] : next_compute_range[1]
                     ],
                     output_hidden_states=True,
+                    **base_kw,
                 )
                 hidden_states_offset = 0
             else:
@@ -106,6 +114,7 @@ class FastCoconut(Coconut):
                     ],
                     past_key_values=past_key_values,
                     output_hidden_states=True,
+                    **base_kw,
                 )
                 hidden_states_offset = next_compute_range[0]
 
@@ -158,6 +167,7 @@ class FastCoconut(Coconut):
                 else None
             ),
             output_hidden_states=True,
+            **base_kw,
         )
         logits.append(outputs.logits)
 

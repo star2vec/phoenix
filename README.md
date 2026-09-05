@@ -44,4 +44,12 @@ CPU after any change to `src/phoenix/fast_coconut.py` and before training:
 ```bash
 .venv/bin/python tests/test_fast_equivalence.py     # must print EQUIVALENCE: PASS
 .venv/bin/python tests/test_minimal_pairs.py        # must print MINIMAL_PAIRS: PASS
+.venv/bin/python tests/test_prompts.py              # must print PROMPTS: PASS
+.venv/bin/python tests/test_attn_hooks.py           # must print HOOKS: PASS
+.venv/bin/python tests/test_drivers_smoke.py        # must print SMOKE: PASS (random weights)
 ```
+
+The experiment drivers (`necessity.py`, `heads.py`, `counterfactuals.py`,
+`tracing.py`, `cache_patch.py`, `baseline.py` in `src/phoenix/`) take
+`--run-name`, `--device`, and `--mode pilot|n100`; each stops with a message
+if `ckpts/<run>/best.pt` is missing. Plan and predictions live in `NOTES.md`.

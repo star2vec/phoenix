@@ -113,6 +113,10 @@ def main():
     # epochs there); per-stage patience-3 starved it.
     p.add_argument("--full-task-patience", type=int, default=10)
     p.add_argument("--min-full-epochs", type=int, default=40)
+    # periodic checkpoints for the training-trajectory analysis: every
+    # curriculum-stage end, the first full-task epoch, and every N full-task
+    # epochs after that (0 disables; best.pt and latest_state.pt are unaffected)
+    p.add_argument("--save-every", type=int, default=10)
     # run stages 0-3 on the paper's fixed 25-epoch schedule (no early
     # stopping); with patience-3 an early run's readout was broken at exactly
     # the depths stages 1-2 teach
@@ -286,6 +290,12 @@ def main():
             },
             state_path,
         )
+
+        if args.save_every > 0:
+            stage_end = (not is_full_task) and (epoch + 1) % args.epochs_per_stage == 0
+            periodic = is_full_task and (full_epochs == 0 or (full_epochs + 1) % args.save_every == 0)
+            if stage_end or periodic:
+                torch.save(model.state_dict(), ckpt_dir / f"epoch_{epoch:03d}.pt")
 
         if is_full_task:
             # single continuous full-task phase; stop only on
