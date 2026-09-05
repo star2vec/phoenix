@@ -1,0 +1,7 @@
+vendor/
+.venv/
+.claude/
+ckpts/
+__pycache__/
+*.pyc
+results/*/train.out
