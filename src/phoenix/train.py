@@ -117,6 +117,9 @@ def main():
     # curriculum-stage end, the first full-task epoch, and every N full-task
     # epochs after that (0 disables; best.pt and latest_state.pt are unaffected)
     p.add_argument("--save-every", type=int, default=10)
+    # Amendment 1: train on a relabeled copy of the data (same file names)
+    p.add_argument("--data-dir", default=str(VENDOR / "data"),
+                   help="directory holding prosqa_{train,valid}_graph_4_coconut.json")
     # run stages 0-3 on the paper's fixed 25-epoch schedule (no early
     # stopping); with patience-3 an early run's readout was broken at exactly
     # the depths stages 1-2 teach
@@ -126,7 +129,7 @@ def main():
     args = p.parse_args()
 
     run_name = args.run_name or f"seed{args.seed}"
-    ckpt_dir = ROOT / "ckpts" / run_name
+    ckpt_dir = ROOT / "ckpts" / run_name  # run_name may contain a subdirectory, e.g. seed0/relabel
     results_dir = ROOT / "results" / run_name
     ckpt_dir.mkdir(parents=True, exist_ok=True)
     results_dir.mkdir(parents=True, exist_ok=True)
@@ -157,8 +160,8 @@ def main():
         {
             "debug": False,
             "uniform_prob": args.uniform_prob,
-            "train_path": str(VENDOR / "data/prosqa_train_graph_4_coconut.json"),
-            "val_path": str(VENDOR / "data/prosqa_valid_graph_4_coconut.json"),
+            "train_path": str(Path(args.data_dir) / "prosqa_train_graph_4_coconut.json"),
+            "val_path": str(Path(args.data_dir) / "prosqa_valid_graph_4_coconut.json"),
         }
     )
 

@@ -62,6 +62,8 @@ def main():
     p.add_argument("--serialization-seed", type=int, default=None)
     p.add_argument("--out-name", default=None,
                    help="default: evaluation.json, or evaluation_ser<seed>.json when seeded")
+    p.add_argument("--data-dir", default=str(VENDOR / "data"),
+                   help="directory holding prosqa_test_graph_4_coconut.json (Amendment 1 uses data/relabel)")
     args = p.parse_args()
 
     device = torch.device(args.device)
@@ -87,7 +89,7 @@ def main():
     model = model.to(device)
     model.eval()
 
-    test_data = json.load(open(VENDOR / "data/prosqa_test_graph_4_coconut.json"))
+    test_data = json.load(open(Path(args.data_dir) / "prosqa_test_graph_4_coconut.json"))
     collator = MyCollator(tokenizer, latent_id=latent_id, label_pad_token_id=-100)
     wte = base.transformer.wte.weight  # (40, 768); node tokens are ids 0..30
 
@@ -125,23 +127,28 @@ def main():
         # thoughts: recycled embeddings at latent positions (in order)
         latent_pos = [j for j, t in enumerate(ids) if t == latent_id]
         depth = bfs_depths(sample["edges"], sample["root"])
-        n_nodes = len(sample["idx_to_symbol"])
-        node_embs = wte[:n_nodes]  # (n_nodes, 768)
+        # readout over the node tokens present in the graph. On the original
+        # data these are exactly tokens 0..n-1 (checked on all splits), the
+        # range the paper's evaluation used; on relabeled data (Amendment 1)
+        # the present labels are scattered over 0..30.
+        present = sorted({sample["root"], sample["target"], sample["neg_target"]}
+                         | {v for e in sample["edges"] for v in e})
+        node_embs = wte[present]  # (n_present, 768)
 
         for i, pos in enumerate(latent_pos, start=1):
             thought = inputs_embeds[0, pos]  # (768,)
             sims = (node_embs @ thought).float().cpu().tolist()
             optimal = set(sample["neighbor_k"].get(str(i), []))
-            for v in range(n_nodes):
+            for idx, v in enumerate(present):
                 d = depth.get(v, None)
                 if d is None or d > i:
-                    acc_readout[i]["NotReachable"].append(sims[v])
+                    acc_readout[i]["NotReachable"].append(sims[idx])
                 else:
-                    acc_readout[i]["Reachable"].append(sims[v])
+                    acc_readout[i]["Reachable"].append(sims[idx])
                     if d == i:
-                        acc_readout[i]["Frontier"].append(sims[v])
+                        acc_readout[i]["Frontier"].append(sims[idx])
                         if v in optimal:
-                            acc_readout[i]["Optimal"].append(sims[v])
+                            acc_readout[i]["Optimal"].append(sims[idx])
 
     accuracy = cor / total
     readout = {}
@@ -165,6 +172,7 @@ def main():
 
     result = {
         "checkpoint": str(ckpt),
+        "data_dir": str(args.data_dir),
         "serialization_seed": args.serialization_seed,
         "test_accuracy": round(accuracy, 6),
         "test_cor": cor,

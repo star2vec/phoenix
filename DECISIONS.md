@@ -5,8 +5,31 @@ added below each entry afterwards, never edited into the prediction.
 
 ## Amendment 1 (2026-09-06): shuffled-label retrain
 
-**Status:** written; approved for writing only. Nothing regenerated, nothing
-trained, no code touched yet.
+**Status (2026-09-06, evening):** approved. Data regenerated and code
+written; training not started (it runs on the laptop). Waiting at gate 1.
+
+- Data: `src/phoenix/relabel.py --seed 20260906` wrote the three splits to
+  `data/relabel/` with `manifest.json` (seed, source and output sha256, and
+  the mean depth by label). The relabeled training set's mean depth by label
+  runs 2.04 to 2.08 across all 31 tokens (original: 0.00 to 3.23); roots
+  fall on all 31 labels. The training file is not committed (30 MB); the
+  laptop regenerates it with the same command, and the manifest's sha256
+  (`c9225aaba90b3892...`) verifies the bytes. `tests/test_relabel.py` passes.
+- Evaluation comparability: the present-labels readout rescored the original
+  seed 0 under serialization seed 0 to exactly the stored numbers (396 of
+  419; every readout mean and count identical;
+  `results/seed0/evaluation_ser0_presentlabels_check.json`).
+- Training command, per seed, on the laptop:
+
+      python -u src/phoenix/train.py --seed 0 --run-name seed0/relabel \
+        --device cuda --data-dir data/relabel --fixed-early-stages \
+        --full-task-patience 15 --save-every 10
+
+  and the same with `--seed 1 --run-name seed1/relabel`. Checkpoints land in
+  `ckpts/seed{0,1}/relabel/best.pt`; copy those here. Gate 1 then runs
+  `evaluate.py --run-name seed0/relabel --data-dir data/relabel
+  --serialization-seed {0,1,2,3}` on both seeds, and nothing else until
+  the accuracy numbers are reported.
 
 ### Motivation
 
@@ -51,8 +74,12 @@ hyperparameter unchanged, and rerun the blocked cells on the retrained model.
   `ckpts/seed{0,1}/relabel/`. Claude does not launch training.
 - **Evaluation.** `evaluate.py` on the relabeled test split under
   serialization seeds 0 to 3, as for the original model. The inner-product
-  readout counts only the node tokens present in the graph (with random
-  labels the unused tokens are no longer the top of the id range).
+  readout counts the node tokens present in the graph. This is the same
+  definition the original model was scored under: its readout counted
+  tokens 0..n-1, and in every original graph those are exactly the present
+  labels (checked on all three splits, 2026-09-06). Accuracy is the argmax
+  token against the target and is unaffected either way. So gate 1 compares
+  identical metrics across the two models.
 - **Cells rerun on the retrained model.** Sample size: n=100 graphs on each
   of the two seeds (recipients = test graphs 0-99 of the relabeled split),
   after a pilot on test graphs 400-409 of seed 0. Cells: labels renamed

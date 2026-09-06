@@ -8,7 +8,21 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 Dated amendments live in `DECISIONS.md`. Amendment 1 (2026-09-06): retrain
 on a dataset with labels assigned uniformly at random per graph, so the two
-blocked label-based cells of experiment 3 can run; written, not started.
+blocked label-based cells of experiment 3 can run. Data regenerated
+(`data/relabel/`, seed 20260906, manifest with hashes), `--data-dir` added to
+`train.py` and `evaluate.py`; training waits for the laptop; the amendment
+stops at its gate 1 (accuracy parity) before any cell runs.
+
+Comparability of the evaluation across the original and retrained models
+(checked 2026-09-06): the accuracy is the argmax token against the target
+and does not depend on which tokens the readout counts. The inner-product
+readout of `evaluate.py` counted tokens 0..n-1 with n the graph's symbol
+count; in every original graph (14,785 train, 257 validation, 419 test)
+those are exactly the labels present in the graph. The readout is now
+written as "labels present in the graph", which is the identical definition
+on the original data and the right one when labels are random over 0..30.
+The readouts are therefore identical across the comparison; no rescoring of
+the original checkpoints is needed.
 
 ## Status
 
