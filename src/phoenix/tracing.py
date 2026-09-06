@@ -158,9 +158,19 @@ def aggregate(rows, corruption):
     return out
 
 
-def run(runner, recips, base_seed=0, granularity="token", corruptions=CORRUPTIONS):
-    rows = []
+def run(runner, recips, base_seed=0, granularity="token", corruptions=CORRUPTIONS, rows_path=None):
+    """rows_path: optional JSONL file; finished graphs are appended as they
+    complete and skipped on a rerun, so an interrupted run resumes."""
+    import json
+    rows, done = [], {}
+    if rows_path is not None and Path(rows_path).exists():
+        for line in open(rows_path):
+            r = json.loads(line)
+            done[r["gi"]] = r
     for gi, sample, pr in recips:
+        if gi in done:
+            rows.append(done[gi])
+            continue
         rng = graph_rng(base_seed, gi)
         traces = {}
         for name in corruptions:
@@ -173,7 +183,13 @@ def run(runner, recips, base_seed=0, granularity="token", corruptions=CORRUPTION
             t = traces[name]
             print(f"graph {gi} {name}: clean T {t['clean']['T']:.1f} corrupted T {t['corrupted']['T']:.1f} "
                   f"(changed slots {t['differing_slots']})")
-        rows.append({"gi": gi, "K": pr.K, "layout": pr.layout(), "cov": covariates(pr), "traces": traces})
+        row = {"gi": gi, "K": pr.K, "layout": pr.layout(), "cov": covariates(pr), "traces": traces}
+        rows.append(row)
+        if rows_path is not None:
+            from sets import _default
+            with open(rows_path, "a") as f:
+                f.write(json.dumps(row, default=_default) + "\n")
+    rows.sort(key=lambda r: r["gi"])
     summary = {name: aggregate(rows, name) for name in corruptions}
     summary["n_skipped"] = {name: sum(1 for r in rows if r["traces"].get(name, {}).get("skipped")) for name in corruptions}
     return {"rows": rows, "summary": summary, "granularity": granularity, "min_gap": MIN_GAP}
@@ -185,8 +201,10 @@ def main():
     args = p.parse_args()
     runner = load_runner(args)
     recips = recipient_prompts(args.mode, args.seed)
+    from sets import results_dir
+    rows_path = results_dir(args.run_name) / f"tracing_{args.mode}_rows.jsonl"
     result = header(args, "tracing", granularity=args.granularity)
-    result.update(run(runner, recips, args.seed, args.granularity))
+    result.update(run(runner, recips, args.seed, args.granularity, rows_path=rows_path))
     finish(args, "tracing", result)
 
 

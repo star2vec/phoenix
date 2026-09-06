@@ -6,9 +6,9 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 ## Status
 
-- Experiments 0, 1 and 2 are complete at n=100 on both seeds (see their
-  blocks). Experiments 3 and 4 are piloted on seed 0 (three runs for 3, one
-  each for 4a and 4b); their n=100 runs wait for the go-ahead.
+- Experiments 0, 1 and 2 are complete at n=100 on both seeds. Experiments 3
+  and 4b are at n=100 on seed 0; seed 1 and both tracing runs are in
+  progress (tracing is resumable per graph after a memory kill).
 - Finding worth its own line: ProsQA assigns concept ids in breadth-first
   order and the model uses label id as a depth cue, so consistent
   relabelings are off-distribution for it (experiment 3 block). This is why
@@ -573,6 +573,75 @@ Two additions to the query-key cell, predictions first:
   reference; skipped on graphs where some step has no such edge).
   A per-head every-step version is run as well, read like the per-head
   last-step cells.
+
+n=100 outcome, experiment 3, seed 0 (`results/seed0/counterfactuals_n100.json`;
+seed 1 pending):
+- Controls: reserialized and self-transplant exactly zero on all 100. Random
+  donor at intermediates -8.4 (30 percent flipped, 66 escaped), at all K
+  -16.4 with e 1.00. Same-answer donor 19 percent flipped at intermediates,
+  none at all K.
+- Edges reordered: no effect in any variant (flips 0 to 3 percent, no
+  escapes; moves beyond the free twin -0.03 [-0.07, 0.00]). The
+  unreachable-only reorder likewise. The position story's primary
+  prediction fails at n=100.
+- Decoy swap and non-candidate swap: no effect in any variant; p_watch
+  0.000 on all 100 graphs. The position story's final-thought prediction
+  fails at n=100.
+- Last-hop rewrite (68 constructible): all K fixed keeps the old answer on
+  68 of 68; thoughts free follow the edit on 29 percent, intermediates fixed
+  on 34 percent (+0.04 [0.00, +0.10] beyond the free twin). Depth-1 and
+  depth-2 rewrites are followed on 54 and 52 percent with thoughts free and
+  on 0 percent with intermediates fixed, as both stories said.
+- Labels renamed (exploration; the free twin fails by the label cue, 49
+  percent flipped, 49 escaped). Read against its free twin, fixing the
+  thoughts adds escape, not flips: moves beyond the free twin +0.17 [+0.08,
+  +0.26] at intermediates and +0.32 [+0.23, +0.41] at all K, escape rising
+  from 49 to 74 and 95 percent. A thought that names stale labels makes the
+  model name other nodes; the position story predicted nothing beyond the
+  free twin. Suggestive for the identity story, but not a clean cell.
+- Query-key subtraction, last step, all heads: the answer edge's attention
+  (summed over the eight layer-2 heads) falls from 1.79 to 0.31 (drop 1.47
+  [1.30, 1.67]); the control edge is unchanged (1.11 to 1.13); matched
+  random directions leave both (1.79 to 1.77); the non-answer edge's
+  directions cut that edge to 0.13 and the answer edge to 1.68. The answer
+  does not move beyond the fallback rate: median -0.2, 17 percent flipped,
+  -0.02 [-0.11, +0.07] beyond the same-answer reference. The pilot's 4 of 10
+  was a small sample. Per head: the head-drops track the coefficients (head
+  4: 0.49, head 3: 0.39, head 0: 0.18, head 7: 0.22; heads 1, 2, 5 below
+  0.05) and no single head flips beyond the reference.
+- Query-key subtraction at every intermediate step, all heads: the
+  answer-path edge's attention is removed at every step (mean per-step drop
+  1.60 of about 1.8; at the last step 1.79 to 0.13); the answer flips on 19
+  percent, 0.00 [-0.08, +0.08] beyond the reference. Random directions at
+  every step: no drop, no flips. The off-path control cuts its own edge to
+  0.10 and, by overlap of directions, the path edge to 1.14, with 8 percent
+  flips (below the reference). Per head: path drops 0.17 to 1.19, flips at
+  most 12 percent, none beyond the reference.
+  Reading: the linear geometry that drives the thought's layer-2 attention
+  onto the answer path is real and removable, and removing it does not
+  change the answer beyond fallback. The paper's "rewrite" null replicates
+  in the right coordinates. The answer must be recovered elsewhere: layer 1
+  also reads edges (experiment 2), and the answer position has its own
+  content heads. Where it is recovered is the next question, not answered
+  here.
+- Splits: none of the story cells split (all at 0 or near 0); the query-key
+  cells' flipped graphs are not distinguished by depth, branches, or the
+  answer edge's slot (split tables in the file).
+
+n=100 outcome, experiment 4b, seed 0 (`results/seed0/cache_patch_n100.json`;
+seed 1 pending): consistent patches from the reordered graph (keys and
+values together in layer 1, layer 2 or both; every latent-position slice) do
+nothing (flips 0 to 3 percent). Inconsistent ones break: layer-2 keys only
+-21.2, 40 percent flipped, +0.21 [+0.10, +0.32] beyond the reference;
+layer-2 values only -28.1, 40 percent, +0.21 [+0.09, +0.33]; values in both
+layers 6 percent (consistent again through the separator copy). The position
+story's keys-only prediction (no effect) fails; the identity story's (breaks)
+holds, as does its consistency reading. Random-graph cache: edge slots break
+in every variant (34 to 47 percent flipped, +0.15 to +0.29 beyond the
+reference); layer-1 values at all latents -35.5 with e 1.00 (43 percent
+flipped, 81 escaped) while layer-2 values at the latents and every
+intermediate-latent slice do nothing. Only the final latent's layer-1 values
+carry the answer to the answer position. Self patch exactly zero.
 
 Availability (from `tests/test_prompts.py` on training graphs 0-299, so the
 n=100 cells will have skips): reorder, rename, unreachable-only reorder,
