@@ -5,6 +5,13 @@ Cells (each run three ways: thoughts free; intermediates fixed, passes
 0..K-2; all K fixed):
   reordered              random permutation of edge slots
   renamed                one consistent relabeling of every node token
+                         (exploration only: the model relies on the id-depth
+                         convention of ProsQA labels, so this prompt fails
+                         with thoughts free; see NOTES.md)
+  parent_swap_km2        the target's parent trades labels with a depth K-2
+                         node (separating; two labels move)
+  parent_swap_same_depth the parent trades labels with another depth K-1
+                         node (control: the frontier is unchanged as a set)
   unreachable_reordered  only edges with an unreachable source move
   decoy_swap             the edge(s) into the target and edge(s) into the
                          decoy trade slots; the graph is unchanged
@@ -42,8 +49,8 @@ from common import (  # noqa: E402
 )
 from measure import all_passes, capture, fixed, intermediates, measure  # noqa: E402
 from prompts import (  # noqa: E402
-    decoy_swap, noncandidate_swap, rename, reorder, reorder_unreachable,
-    rewrite_at_depth,
+    decoy_swap, noncandidate_swap, parent_swap, rename, reorder,
+    reorder_unreachable, rewrite_at_depth,
 )
 from qk_cells import qk_attention_summary, qk_cells  # noqa: E402
 from sets import test_pin  # noqa: E402
@@ -57,6 +64,8 @@ def counterfactual_set(pr, rng):
     out = [
         ("reordered", *reorder(pr, rng)),
         ("renamed", *rename(pr, rng)),
+        ("parent_swap_km2", *parent_swap(pr, rng, -1)),
+        ("parent_swap_same_depth", *parent_swap(pr, rng, 0)),
         ("unreachable_reordered", *reorder_unreachable(pr, rng)),
         ("decoy_swap", *decoy_swap(pr)),
         ("noncandidate_swap", *noncandidate_swap(pr)),
@@ -121,7 +130,7 @@ def run(runner, recips, train, base_seed=0):
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base,
                      "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None,
                      "meta": metas, "cells": cells})
-        show = ["reordered/intermediates", "renamed/intermediates", "unreachable_reordered/intermediates",
+        show = ["reordered/intermediates", "parent_swap_km2/intermediates", "parent_swap_same_depth/intermediates",
                 "decoy_swap/all", "noncandidate_swap/all", "rewrite_last/all", "random_donor/intermediates",
                 "same_answer_donor/intermediates", "qk_subtract/answer_edge/all_heads"]
         print(f"graph {gi}: base T {base['T']:.1f}  " + "  ".join(
@@ -137,7 +146,37 @@ def run(runner, recips, train, base_seed=0):
             "partial": summarize_rows([c for c in comp if not c["complete"]]),
         }
     summary["qk_attention"] = qk_attention_summary(rows, cell_names)
+    summary["beyond_free_twin"] = beyond_free_twin(rows, cell_names)
     return {"rows": rows, "summary": summary, "cells": cell_names}
+
+
+def beyond_free_twin(rows, cell_names):
+    """For every changed prompt run three ways, the paired excess of the fixed
+    variants over the free twin: flips and moves (flip or escape) per graph.
+    This is the effect of holding the thought fixed, net of what the changed
+    prompt does to the model on its own."""
+    import numpy as np
+    from stats import bootstrap, FLIP_CUT, ESCAPE_CUT
+    out = {}
+    bases = sorted({c.rsplit("/", 1)[0] for c in cell_names if c.endswith("/free")})
+    for b in bases:
+        for v in ("intermediates", "all"):
+            pairs = []
+            for r in rows:
+                f, x = r["cells"].get(f"{b}/free"), r["cells"].get(f"{b}/{v}")
+                if not f or not x or f.get("skipped") or x.get("skipped"):
+                    continue
+                fl = lambda c: float(c["dT"] <= FLIP_CUT)
+                mv = lambda c: float(c["dT"] <= FLIP_CUT or c["e"] >= ESCAPE_CUT)
+                pairs.append((fl(x) - fl(f), mv(x) - mv(f), x["dT"] - f["dT"]))
+            if pairs:
+                out[f"{b}/{v}"] = {
+                    "n": len(pairs),
+                    "flips_beyond_free": bootstrap([a for a, _, _ in pairs], np.mean),
+                    "moves_beyond_free": bootstrap([m for _, m, _ in pairs], np.mean),
+                    "dT_beyond_free_median": bootstrap([d for _, _, d in pairs], np.median),
+                }
+    return out
 
 
 def summarize_rows(rs):

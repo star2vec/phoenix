@@ -7,7 +7,13 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 ## Status
 
 - Experiments 0, 1 and 2 are complete at n=100 on both seeds (see their
-  blocks). Experiments 3 and 4: pilots on seed 0 in progress.
+  blocks). Experiments 3 and 4 are piloted on seed 0 (three runs for 3, one
+  each for 4a and 4b); their n=100 runs wait for the go-ahead.
+- Finding worth its own line: ProsQA assigns concept ids in breadth-first
+  order and the model uses label id as a depth cue, so consistent
+  relabelings are off-distribution for it (experiment 3 block). This is why
+  the paper's label-swap donors computed the opposite answer on only 79
+  percent of their own prompts.
 - Code for experiments 0-4 is written and tested (`tests/`: bit-exact
   equivalence with hooks idle, prompt renderer byte-identical to the vendor
   builder, hook plumbing, and every driver end to end on random weights; the
@@ -459,6 +465,86 @@ Pre-pilot note (2026-09-06): the predictions above and in experiment 4 stand
 as written; the same-answer donor is a standing control, and the
 non-candidate swap and query-key cells are included in the first pilot.
 
+Added after the first two pilot runs of experiment 3 (2026-09-06, before the
+third run; see "What the pilot changed" below for why): the "labels renamed"
+cell cannot be run on this substrate, because the model relies on ProsQA's
+id-depth convention and fails a fully relabeled prompt with thoughts free.
+Two replacement cells that move only two labels, each run three ways and
+read against its own free twin (paired per graph: flips and moves of the
+fixed variant minus the free variant, `beyond_free_twin`):
+- Parent swap, one level up: the target's depth-(K-1) parent trades labels
+  with a depth K-2 node. Identity story, intermediates fixed: breaks beyond
+  the free twin (thought K-1 names the parent by a token that now denotes a
+  node one level up, whose edges do not reach the target). Position story:
+  nothing beyond the free twin. All K fixed: both stories nothing beyond the
+  free twin (thought K names the target, whose label is untouched).
+- Parent swap, same depth: the parent trades labels with another depth K-1
+  node. Identity story: nothing beyond the free twin (the depth K-1 frontier
+  is the same set of labels, so thought K-1 still names it). Position story:
+  nothing. Control for the cell above.
+The free twins themselves are expected below baseline (a two-label swap cost
+6 to 14 points of accuracy on 50 test graphs in the check that motivated
+this), which is why the reading is paired against them.
+
+Pilot outcome, experiment 3 (seed 0, test graphs 400-409; three runs, all
+kept: `results/seed0/counterfactuals_pilot_v1_root_relabeled.json`,
+`counterfactuals_pilot_v2_full_rename.json`, `counterfactuals_pilot.json`):
+- Controls: reserialized and self-transplant exactly zero; random donor at
+  intermediate passes -25.1 (4 flipped, 7 escaped), at all K -75.9 with e
+  1.00; same-answer donor 2 of 10 flipped at intermediates, none at all K.
+- Edges reordered: no effect in any variant (free, intermediates, all K:
+  medians -0.0, no flips, no escapes, on all 10 graphs); the unreachable-only
+  reorder likewise. The position story's primary prediction fails.
+- Decoy swap and non-candidate swap with all K fixed: no effect on any
+  graph; p_watch 0.00 on all 10. The position story's prediction for the
+  final thought fails. Intermediates fixed: no effect, as both stories said.
+- Last-hop rewrite, all K fixed: the old answer is kept on 7 of 7 (identity
+  story's prediction; the position story's fails). Thoughts free, the model
+  follows the edit on only 3 of 7 (median -14.8); intermediates fixed, 4 of
+  7 follow. Rewrites at depths 1, 2, 3 with thoughts free are followed on 2
+  of 4, 3 of 5, 1 of 3; with intermediates fixed the old answer stays on all,
+  as both stories said. Following an edit is itself unreliable in this model.
+- Labels renamed: not runnable as a thought test. Run 1 gave the root a
+  concept label and its free twin failed (e 1.00 on 6 of 10). Run 2 swapped
+  the two name tokens and deranged the concepts; its free twin still failed,
+  6 of 10 answering the decoy with e near 0. Cause, checked in the data:
+  ProsQA assigns concept ids in breadth-first order, so label 2 is always at
+  depth 1 and the mean depth rises monotonically to 3.0 at label 25; the
+  model learned that cue. Accuracy with thoughts free on 50 test graphs:
+  original 44; concepts deranged into 2..30, 13; the graph's own labels
+  permuted, 22; only the two names swapped, 44; two-label swaps 23-39 of
+  31-50 (74-82 percent); the paper's target-decoy swap 40 (the paper: 79
+  percent). The renamed cell stays in the driver as exploration only.
+- Replacement (run 3): parent swap one level up, free twin breaks on 4 of 10
+  (competence loss), intermediates fixed adds nothing beyond it (flips beyond
+  the free twin -0.10 [-0.40, +0.20]; moves the same), all K nothing beyond.
+  Same-depth parent swap: nothing in any variant, as both stories said. The
+  identity story's prediction for the one-level-up swap is not confirmed at
+  n=10; power is low because the free twin itself breaks on 4 graphs.
+- Query-key subtraction (`qk_subtract/*` cells): removing the span of the
+  eight directions from thought K-1 cuts the answer edge's attention, summed
+  over the eight layer-2 heads, from 2.10 to 0.38 (drop 1.71 [1.10, 2.36])
+  and leaves the control edge at 1.40 to 1.42; the answer flips on 4 of 10
+  with e near 0 (median -8.7; flips beyond the same-answer reference +0.20
+  [0.00, +0.50]). Matched random directions: attention 2.10 to 2.08, no
+  flips. Non-answer edge's directions: that edge's attention 1.40 to 0.17,
+  the answer edge's 2.10 to 1.90 (interval spans zero), no flips. Per head:
+  heads 3 and 4 carry the most (drops 0.89 and 0.99; coefficients 0.25 and
+  0.28 of the thought norm); single-head removals rarely flip (head 4: 2 of
+  10). The eight directions are nearly orthogonal to each other (mean
+  absolute cosine 0.20) and to the input embeddings of the edge's source
+  (about 0.05) and of the target (about 0.1). This is the first linear edit
+  of a thought with a causal effect; the paper's per-branch nulls were in
+  bases these directions do not lie in.
+What the pilot changed: the renamed cell was fixed (name convention) and
+then demoted to exploration; the two parent-swap cells were added with
+predictions before run 3; every changed prompt is now also read against its
+free twin, paired per graph (`beyond_free_twin`). Nothing else.
+Reading of the mirror pair: "reordered does not break" is established at
+pilot level with no exception in 10 graphs; the renamed half cannot be run on
+this substrate. The identity story's positive support therefore rests on
+experiment 2 (n=100, both seeds), the query-key cell, and experiment 4.
+
 Availability (from `tests/test_prompts.py` on training graphs 0-299, so the
 n=100 cells will have skips): reorder, rename, unreachable-only reorder,
 decoy swap and candidate swap are constructible on every graph; the last-hop
@@ -551,9 +637,48 @@ slice with the same slice from a random graph's run breaks the recipient.
 Plus the self-patch (recipient's own cache back into itself), which must be
 exactly zero.
 
-Pilot outcome: (not run)
-What the pilot changed: (not run)
-n=100 outcome: (not run)
+Pilot outcome, 4a (seed 0, test graphs 400-409, token granularity;
+`results/seed0/tracing_pilot.json`; candidate swap on 10, last-hop rewrite
+on 7). Mean recovery by position class and level:
+- Final latent, level 0 (the final recycled thought plus its position
+  embedding): 0.98 and 0.99. Its levels 1 and 2: 0.00. So the final thought
+  acts through the layer-1 keys and values written at the final latent
+  position, which the answer position reads.
+- Intermediate latents: levels 0 and 1 about 0 (slightly negative under the
+  rewrite, -0.13); level 2 (the output that becomes the next thought) 0.38
+  and 0.30, which is latent K-1's output, that is thought K, doing the work.
+- Changed edge slots: the target token at level 0 recovers 0.26 (candidate
+  swap; several slots change) and 1.00 (rewrite; one slot changes); the
+  separator at level 1 recovers 0.24 and 0.98; the source token 0.00.
+  Candidates, root, and unchanged slots: 0.00. The edge's identity enters at
+  its target token and is copied to the separator by layer 1, where layer 2
+  reads it; the same separator finding as experiment 2.
+No story-separating prediction was made for this map; it is consistent with
+the identity story's mechanism and it names the carriers for 4b.
+
+Pilot outcome, 4b (`results/seed0/cache_patch_pilot.json`):
+- From the reordered donor: keys and values together, in layer 1, layer 2 or
+  both, at the edge slots: no effect (no flips). Every patch of the latent
+  positions (intermediate or all, keys, values or both): no effect. Under
+  the position story the layer-2 cache of the reordered graph should have
+  sent the pointers to other edges; it did not.
+- Inconsistent patches break: layer-2 keys only, median -4.0, 3 of 10
+  flipped (+0.10 beyond the reference, interval spanning zero); layer-2
+  values only, -62.6, 6 of 10 flipped. Values in both layers: no effect,
+  because the separator's layer-1 copy then reads the donor's edge and the
+  layer-2 keys become consistent with the values again. Reading: a
+  consistent reordered cache is read correctly by content; only a cache
+  whose keys and values disagree breaks the search. The keys-only prediction
+  (identity: breaks; position: nothing) came out partial and cannot be
+  called at n=10.
+- Random-graph cache (Ding's necessity): edge slots, layer-1 values or keys
+  and values, -95 to -97 with 6 of 10 flipped; layer-2 keys, 4 of 10; all
+  latents, layer-1 values -50 (5 flipped, 8 escaped) while layer-2 values at
+  the latents and every intermediate-latent slice do nothing. Only the final
+  latent's layer-1 values carry the answer to the answer position, matching
+  4a. Self patch exactly zero; same-answer donor 2 of 10.
+What the pilot changed: nothing in the design of 4a or 4b.
+n=100 outcome: (not run; waiting for the go-ahead)
 
 ## Experiment 5: later, only if 1-4 favor one story
 

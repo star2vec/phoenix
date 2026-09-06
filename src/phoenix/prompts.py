@@ -201,17 +201,28 @@ def reorder_unreachable(prompt, rng):
     return out, {"perm": perm, "moved": moved, "n_unreachable_edges": len(idx)}
 
 
+NAME_TOKENS = (0, 1)  # ProsQA: the root is always one of these; concepts are 2..30
+
+
 def rename(prompt, rng):
-    """One consistent relabeling of every node token, edge order kept. No node
-    present in the graph keeps its label. meta['sigma'][old] = new."""
+    """One consistent relabeling of every node token, edge order kept, that
+    respects the ProsQA label convention: the two name tokens (0 and 1; the
+    root is always one of them) are swapped with each other, and the concept
+    tokens 2..30 are permuted among themselves so that no concept present in
+    the graph keeps its label. A relabeling that gave the root a concept
+    label was off-distribution for the model (experiment 3 pilot, 2026-09-06).
+    meta['sigma'][old] = new."""
     present = prompt.nodes()
-    sigma = list(range(N_NODE_TOKENS))
+    concepts = list(range(2, N_NODE_TOKENS))
     for _ in range(1000):
-        rng.shuffle(sigma)
-        if all(sigma[v] != v for v in present):
+        perm = list(concepts)
+        rng.shuffle(perm)
+        cand = dict(zip(concepts, perm))
+        if all(cand[v] != v for v in present if v >= 2):
             break
     else:
         return None, {"reason": "no_derangement_found"}
+    sigma = [1, 0] + [cand[v] for v in concepts]
     new = Prompt(
         edges=[[sigma[s], sigma[t]] for s, t in prompt.edges],
         cands=(sigma[prompt.cands[0]], sigma[prompt.cands[1]]),
@@ -220,7 +231,7 @@ def rename(prompt, rng):
         target=sigma[prompt.target],
         decoy=sigma[prompt.decoy],
     )
-    return new, {"sigma": sigma}
+    return new, {"sigma": sigma, "convention": "names swapped, concepts deranged"}
 
 
 def decoy_swap(prompt):
@@ -350,6 +361,35 @@ def rewrite_at_depth(prompt, depth, rng):
                 "slot": j, "depth": depth, "old_edge": [s, t], "new_edge": [s, bp],
             }
     return None, {"reason": "no_valid_rewrite_at_depth", "depth": depth}
+
+
+def parent_swap(prompt, rng, depth_offset):
+    """The target's depth-(K-1) parent (lowest label if several) trades labels
+    with a random node at depth K-1+depth_offset (offset -1: a depth K-2
+    node, never the root; offset 0: another depth K-1 node). Two labels move,
+    so the id-depth convention the model relies on is nearly kept. With
+    offset -1 the last intermediate thought's name for the parent now denotes
+    a node one level up (separating); with offset 0 the depth-(K-1) frontier
+    is unchanged as a set (control)."""
+    d = prompt.depths()
+    K = prompt.K
+    parents = sorted(s_ for s_, t in prompt.edges if t == prompt.target and d.get(s_) == K - 1)
+    if not parents:
+        return None, {"reason": "no_parent_edge_at_depth_K-1"}
+    p_node = parents[0]
+    pool = sorted(v for v, dv in d.items()
+                  if dv == K - 1 + depth_offset and v != p_node and v >= 2
+                  and v not in (prompt.target, prompt.decoy))
+    if not pool:
+        return None, {"reason": f"no_node_at_depth_{K - 1 + depth_offset}"}
+    q_node = rng.choice(pool)
+    out, meta = swap_labels(prompt, p_node, q_node)
+    if out is None:
+        return None, meta
+    dn = out.depths()
+    assert dn.get(prompt.target) == K and prompt.decoy not in dn
+    return out, {"parent": p_node, "other": q_node, "depth_other": K - 1 + depth_offset,
+                 "n_parent_edges": len(parents)}
 
 
 def swap_labels(prompt, a, b):

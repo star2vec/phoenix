@@ -63,6 +63,8 @@ def main():
         assert f"reordered/{v}" in res["cells"] and f"renamed/{v}" in res["cells"]
         assert f"noncandidate_swap/{v}" in res["cells"]
     assert "same_answer_donor/intermediates" in res["cells"]
+    assert "parent_swap_km2/intermediates" in res["cells"] and "parent_swap_same_depth/free" in res["cells"]
+    assert "beyond_free_twin" in res["summary"]
     r0 = res["rows"][0]["cells"]
     assert r0["self_transplant"]["dT"] == 0.0
     assert "qk_subtract/answer_edge/all_heads" in res["cells"] and "qk_subtract/random_matched/head0" in res["cells"]

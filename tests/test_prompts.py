@@ -98,6 +98,8 @@ def main():
         assert n.cands == (sig[pr.cands[0]], sig[pr.cands[1]]) and n.root == sig[pr.root]
         assert n.target == sig[pr.target] and n.reachable_candidate() == n.target
         assert n.layout() == pr.layout()
+        assert n.root in (0, 1) and n.root != pr.root, "renamed root must be the other name token"
+        assert all(2 <= sig[v] <= 30 for v in pr.nodes() if v >= 2), "concepts stay concepts"
 
         # decoy swap: graph unchanged, swapped slots hold each other's edges
         ds, m = P.decoy_swap(pr)
@@ -126,6 +128,19 @@ def main():
                 assert w not in d0 and w not in (pr.target, pr.decoy)
         else:
             avail["noncandidate_swap:" + m["reason"]] += 1
+
+        # parent swaps: two labels move, target depth kept, decoy unreachable
+        for off, key in ((-1, "parent_swap_km2"), (0, "parent_swap_same_depth")):
+            ps_, m = P.parent_swap(pr, rng, off)
+            if ps_ is None:
+                avail[key + ":" + m["reason"]] += 1
+                continue
+            avail[key] += 1
+            dn = ps_.depths()
+            assert dn[pr.target] == pr.K and pr.decoy not in dn
+            assert d0[m["parent"]] == pr.K - 1 and d0[m["other"]] == m["depth_other"]
+            changed = [j for j in range(E) if ps_.edges[j] != pr.edges[j]]
+            assert all(m["parent"] in pr.edges[j] or m["other"] in pr.edges[j] for j in changed)
 
         # unique answer branch (subtraction set): counted, sibling is another root child
         ab = P.unique_answer_branch(pr)
