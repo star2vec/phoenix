@@ -6,8 +6,11 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 ## Status
 
-- Experiments 0, 1, 2, 3 and 4b are complete at n=100 on both seeds; 4a is
-  complete on seed 0 and running on seed 1 (resumable per graph).
+- Experiments 0 to 4 are complete at n=100 on both seeds (2026-09-06).
+  Experiment 5 is not designed yet; the open question left by 3 is where the
+  answer is recovered when the thoughts' attention onto the answer path is
+  removed (candidates: layer-1 edge reading, and the answer position's own
+  content heads).
 - Finding worth its own line: ProsQA assigns concept ids in breadth-first
   order and the model uses label id as a depth cue, so consistent
   relabelings are off-distribution for it (experiment 3 block). This is why
@@ -812,7 +815,16 @@ Changed edge slots: target token at level 0, 0.34 (several slots change
 under the candidate swap) and 1.00 (one slot under the rewrite); separator at
 level 1, 0.31 and 0.96; source token 0.00. Candidates, root, unchanged
 slots: 0.00 (root at level 2 under the swap 0.03). The pilot's map holds at
-n=100. Seed 1: TRACING_SEED1_PLACEHOLDER
+n=100. Seed 1 (`results/seed1/tracing_n100.json`) replicates: final latent
+at level 0, 1.02 [0.96, 1.09] and 1.00; its levels 1 and 2, 0.00;
+intermediate latents at level 2, 0.44 and 0.35, at levels 0 and 1, 0.03 and
+-0.04; changed slot's target token at level 0, 0.30 and 1.00; its separator
+at level 1, 0.27 and 0.95; source token, candidates, root and unchanged slots
+0.00. Both seeds: the final thought does its work through the layer-1 keys
+and values written at the final latent position; an edge's identity enters
+at its target token and is copied to the separator by layer 1, where layer 2
+reads it; the intermediate latents matter only through the thought they
+emit.
 n=100 outcome, 4b: see the experiment 3 block's neighbour above and the
 seed-0 block ("n=100 outcome, experiment 4b, seed 0").
 
