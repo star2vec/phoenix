@@ -69,7 +69,7 @@ hyperparameter unchanged, and rerun the blocked cells on the retrained model.
   prompt is a uniformly random derangement of every present node over the
   31 tokens (no name convention to respect). The derangement is drawn so
   that the target's old label does not become the new decoy, so the
-  signature in prediction 2b below is not confounded with a flip.
+  signature in prediction 4 below is not confounded with a flip.
 
 ### Predictions, written before anything is run
 
