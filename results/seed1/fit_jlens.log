@@ -1,0 +1,38 @@
+fit graphs 500:2500, 28 node tokens, K=4
+  200/2000
+  400/2000
+  600/2000
+  800/2000
+  1000/2000
+  1200/2000
+  1400/2000
+  1600/2000
+  1800/2000
+  2000/2000
+{
+  "0": {
+    "n_graphs": 2000,
+    "median_concentration": 0.4957,
+    "median_abs_cos_wte": 0.5046,
+    "median_abs_cos_probe": 0.0708
+  },
+  "1": {
+    "n_graphs": 2000,
+    "median_concentration": 0.5147,
+    "median_abs_cos_wte": 0.5937,
+    "median_abs_cos_probe": 0.1112
+  },
+  "2": {
+    "n_graphs": 2000,
+    "median_concentration": 0.7054,
+    "median_abs_cos_wte": 0.8037,
+    "median_abs_cos_probe": 0.1722
+  },
+  "3": {
+    "n_graphs": 1062,
+    "median_concentration": 0.9226,
+    "median_abs_cos_wte": 0.8045,
+    "median_abs_cos_probe": 0.175
+  }
+}
+written: /Users/ecaterina/Developer/phoenix/results/seed1/jlens_basis.pt

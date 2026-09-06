@@ -6,9 +6,9 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 ## Status
 
-- Experiment 0 pilot on seed 0 is done (see its block); n=100 waits for the
-  go-ahead. Two open decisions: the subtraction set, and whether to add the
-  same-answer donor to every driver's standing controls.
+- Experiment 0 is complete at n=100 on both seeds (see its block).
+  Experiments 1 and 2 are piloted on seed 0 (see their blocks); their n=100
+  runs wait for the go-ahead. Experiments 3 and 4 are not yet piloted.
 - Code for experiments 0-4 is written and tested (`tests/`: bit-exact
   equivalence with hooks idle, prompt renderer byte-identical to the vendor
   builder, hook plumbing, and every driver end to end on random weights; the
@@ -229,7 +229,23 @@ n=100 outcome, seed 0 (files in `results/seed0/`):
 n=100 outcome, seed 1: evaluation done (unseeded 402 of 419, 95.9; seeds
 0-3: 95.5, 96.7, 95.7, 95.5; the paper's 95.7 is inside; ordering correct at
 every step). Probes, Jacobian basis, transplant, swap and subtraction:
-SEED1_PLACEHOLDER
+done on CPU (files in
+`results/seed1/`). Probes: 23 nodes, median held-out AUC 0.9919, minimum
+0.68. Causal-Jacobian concentration by step 0.50, 0.51, 0.71, 0.92 (seed 0:
+0.50, 0.49, 0.71, 0.93). Transplants on training graphs 0-99: matched donor
+at intermediate steps -94.9 [-98.9, -63.0], 61 percent flipped, e near 0,
++0.29 [+0.16, +0.43] beyond the same-answer reference (31 percent); first
+step only -1.4; final step only -99.9 (94 percent flipped); all steps -99.9;
+label swap -0.0 (1 percent flipped); placebo 0.0; interior swap -0.3 (22
+percent flipped, below the reference); random donor -33.0 with e 0.77.
+Final-step swap -100.0 (98 percent flipped); intermediate swaps -0.0.
+Subtraction on 68 natural test graphs: medians -0.01, -0.00, +0.00, +0.00
+for the input-embedding basis, probe basis, random control and sibling.
+Reserialized and self-transplant exactly zero on all 100.
+
+Experiment 0 is complete on both seeds. Every paper measurement reproduces
+on both, with one addition: the same-answer donor's fallback rate (28 and 31
+percent) is the reference against which redirection is counted.
 
 ## Experiment 1: necessity, done properly
 

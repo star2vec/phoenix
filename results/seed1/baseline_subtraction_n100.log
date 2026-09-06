@@ -1,0 +1,69 @@
+test graph 3: base T 22.2  subtract_answer/input_embedding -8.42  subtract_answer/random_matched -8.97  subtract_answer/probe -7.81
+test graph 5: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00
+test graph 6: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched -0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding +0.00
+test graph 8: base T 100.0  subtract_answer/input_embedding -0.04  subtract_answer/random_matched -0.03  subtract_answer/probe -0.12  subtract_sibling/input_embedding +0.01
+test graph 11: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.00
+test graph 13: base T 99.9  subtract_answer/input_embedding -3.91  subtract_answer/random_matched -0.17  subtract_answer/probe -0.04
+test graph 14: base T 81.3  subtract_answer/input_embedding +15.82  subtract_answer/random_matched +3.74  subtract_answer/probe +17.82  subtract_sibling/input_embedding +5.91
+test graph 15: base T 100.0  subtract_answer/input_embedding -0.05  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.01
+test graph 16: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 17: base T 100.0  subtract_answer/input_embedding +0.01  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.00
+test graph 18: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 19: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00
+test graph 20: base T 100.0  subtract_answer/input_embedding -0.08  subtract_answer/random_matched -0.01  subtract_answer/probe -0.11  subtract_sibling/input_embedding +0.01
+test graph 23: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 24: base T 0.0  subtract_answer/input_embedding +0.01  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 25: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.03  subtract_sibling/input_embedding +0.00
+test graph 27: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 28: base T 99.9  subtract_answer/input_embedding -0.02  subtract_answer/random_matched +0.00  subtract_answer/probe -0.05  subtract_sibling/input_embedding +0.00
+test graph 29: base T 99.1  subtract_answer/input_embedding -43.53  subtract_answer/random_matched -1.05  subtract_answer/probe -82.58  subtract_sibling/input_embedding +0.31
+test graph 30: base T 99.9  subtract_answer/input_embedding -0.05  subtract_answer/random_matched +0.01  subtract_answer/probe -0.05  subtract_sibling/input_embedding +0.04
+test graph 31: base T 99.6  subtract_answer/input_embedding -1.75  subtract_answer/random_matched -0.12  subtract_answer/probe -0.17
+test graph 32: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00
+test graph 34: base T 100.0  subtract_answer/input_embedding -3.10  subtract_answer/random_matched -0.11  subtract_answer/probe -1.57  subtract_sibling/input_embedding -0.01
+test graph 35: base T 94.3  subtract_answer/input_embedding -86.82  subtract_answer/random_matched +3.65  subtract_answer/probe -2.16  subtract_sibling/input_embedding +2.50
+test graph 36: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.00
+test graph 37: base T 98.0  subtract_answer/input_embedding -82.86  subtract_answer/random_matched -9.16  subtract_answer/probe -32.31  subtract_sibling/input_embedding -0.31
+test graph 38: base T 100.0  subtract_answer/input_embedding -2.10  subtract_answer/random_matched +0.02  subtract_answer/probe -0.05  subtract_sibling/input_embedding -0.05
+test graph 39: base T 80.5  subtract_answer/input_embedding -70.58  subtract_answer/random_matched +2.86  subtract_answer/probe -3.98  subtract_sibling/input_embedding +1.31
+test graph 40: base T 99.4  subtract_answer/input_embedding -0.09  subtract_answer/random_matched -0.12  subtract_answer/probe -0.74  subtract_sibling/input_embedding +0.07
+test graph 41: base T 97.3  subtract_answer/input_embedding -39.43  subtract_answer/random_matched +0.12  subtract_answer/probe -6.10  subtract_sibling/input_embedding -1.17
+test graph 43: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 44: base T 99.5  subtract_answer/input_embedding +0.25  subtract_answer/random_matched +0.08  subtract_answer/probe +0.39  subtract_sibling/input_embedding -0.17
+test graph 45: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched -0.00  subtract_answer/probe -0.02  subtract_sibling/input_embedding +0.00
+test graph 46: base T 99.5  subtract_answer/input_embedding -3.50  subtract_answer/random_matched +0.17  subtract_answer/probe -23.63  subtract_sibling/input_embedding +0.26
+test graph 47: base T 99.2  subtract_answer/input_embedding -0.63  subtract_answer/random_matched +0.22  subtract_answer/probe -0.09  subtract_sibling/input_embedding +0.12
+test graph 48: base T 93.0  subtract_answer/input_embedding +1.53  subtract_answer/random_matched -0.77  subtract_answer/probe +2.36  subtract_sibling/input_embedding -0.11
+test graph 49: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding +0.00
+test graph 51: base T 100.0  subtract_answer/input_embedding -0.15  subtract_answer/random_matched +0.02  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.02
+test graph 53: base T 99.8  subtract_answer/input_embedding +0.03  subtract_answer/random_matched -0.02  subtract_answer/probe +0.03  subtract_sibling/input_embedding -0.25
+test graph 54: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.00
+test graph 56: base T 99.3  subtract_answer/input_embedding -0.54  subtract_answer/random_matched +0.07  subtract_answer/probe -0.07  subtract_sibling/input_embedding -0.67
+test graph 57: base T 100.0  subtract_answer/input_embedding -0.21  subtract_answer/random_matched +0.00  subtract_answer/probe -0.12  subtract_sibling/input_embedding -0.01
+test graph 58: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched -0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+test graph 59: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+test graph 60: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding +0.00
+test graph 61: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.01  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.00
+test graph 62: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+test graph 63: base T 100.0  subtract_answer/input_embedding -0.03  subtract_answer/random_matched +0.01  subtract_answer/probe -0.01  subtract_sibling/input_embedding -0.00
+test graph 64: base T 100.0  subtract_answer/input_embedding -0.02  subtract_answer/random_matched -0.01  subtract_answer/probe -0.02  subtract_sibling/input_embedding +0.00
+test graph 66: base T 0.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding +0.00
+test graph 67: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+test graph 69: base T 100.0  subtract_answer/input_embedding -0.02  subtract_answer/random_matched -0.00  subtract_answer/probe -0.01  subtract_sibling/input_embedding +0.00
+test graph 70: base T 99.9  subtract_answer/input_embedding -0.20  subtract_answer/random_matched -0.05  subtract_answer/probe +0.05  subtract_sibling/input_embedding -0.16
+test graph 72: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+test graph 73: base T 100.0  subtract_answer/input_embedding -0.13  subtract_answer/random_matched -0.00  subtract_answer/probe -0.03  subtract_sibling/input_embedding +0.00
+test graph 75: base T 99.4  subtract_answer/input_embedding -1.85  subtract_answer/random_matched -0.39  subtract_answer/probe -16.62  subtract_sibling/input_embedding +0.61
+test graph 76: base T 100.0  subtract_answer/input_embedding -25.68  subtract_answer/random_matched -0.01  subtract_answer/probe -60.81  subtract_sibling/input_embedding -0.04
+test graph 78: base T 100.0  subtract_answer/input_embedding -0.02  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.00
+test graph 80: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00
+test graph 83: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched -0.00  subtract_answer/probe -0.01
+test graph 84: base T 94.3  subtract_answer/input_embedding -12.24  subtract_answer/random_matched -2.48  subtract_answer/probe -11.28  subtract_sibling/input_embedding -3.92
+test graph 87: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 89: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+test graph 91: base T 11.3  subtract_answer/input_embedding -10.61  subtract_answer/random_matched -9.82  subtract_answer/probe -10.52  subtract_sibling/input_embedding +88.64
+test graph 92: base T 100.0  subtract_answer/input_embedding -1.90  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.01
+test graph 93: base T 99.8  subtract_answer/input_embedding -0.34  subtract_answer/random_matched +0.16  subtract_answer/probe +0.03  subtract_sibling/input_embedding -0.17
+test graph 94: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding -0.00
+test graph 99: base T 100.0  subtract_answer/input_embedding -0.01  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+written: /Users/ecaterina/Developer/phoenix/results/seed1/baseline_subtraction_n100.json
