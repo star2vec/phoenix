@@ -18,6 +18,7 @@ reported alongside the group means.
 
 import argparse
 import json
+import random
 import sys
 from collections import deque
 from pathlib import Path
@@ -55,6 +56,12 @@ def main():
     p.add_argument("--run-name", default="seed0")
     p.add_argument("--checkpoint", default=None, help="default: ckpts/<run>/best.pt")
     p.add_argument("--device", default="mps")
+    # the vendor builder draws each graph's edge order and candidate order from
+    # the unseeded global RNG, so two runs never see the same prompts; this pins
+    # graph gi to ((gi + 1000000) << 16) ^ seed, the namespace sets.test_pin uses
+    p.add_argument("--serialization-seed", type=int, default=None)
+    p.add_argument("--out-name", default=None,
+                   help="default: evaluation.json, or evaluation_ser<seed>.json when seeded")
     args = p.parse_args()
 
     device = torch.device(args.device)
@@ -90,8 +97,10 @@ def main():
     groups = ["NotReachable", "Reachable", "Frontier", "Optimal"]
     acc_readout = {i: {g: [] for g in groups} for i in range(1, 5)}
 
-    for sample in test_data:
+    for gi, sample in enumerate(test_data):
         max_steps = len(sample["steps"])
+        if args.serialization_seed is not None:
+            random.seed(((gi + 1_000_000) << 16) ^ args.serialization_seed)
         question, _ = expand_data(sample, max_steps + 1, max_steps, neg_sampling=False)
         ids = tokenizer.encode(question, add_special_tokens=False)
         batch = collator(
@@ -156,6 +165,7 @@ def main():
 
     result = {
         "checkpoint": str(ckpt),
+        "serialization_seed": args.serialization_seed,
         "test_accuracy": round(accuracy, 6),
         "test_cor": cor,
         "test_total": total,
@@ -163,7 +173,9 @@ def main():
         "readout_ordering_ok_by_step": ordering_ok,
         "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3",
     }
-    out = results_dir / "evaluation.json"
+    out = results_dir / (args.out_name or (
+        "evaluation.json" if args.serialization_seed is None
+        else f"evaluation_ser{args.serialization_seed}.json"))
     with open(out, "w") as f:
         json.dump(result, f, indent=2)
 

@@ -1,0 +1,104 @@
+{
+  "checkpoint": "/Users/ecaterina/Developer/phoenix/ckpts/seed0/best.pt",
+  "serialization_seed": 2,
+  "test_accuracy": 0.930788,
+  "test_cor": 390,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": -0.211,
+        "std": 1.728,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 3.024,
+        "std": 3.052,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 4.285,
+        "std": 2.435,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 5.572,
+        "std": 1.616,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": -0.04,
+        "std": 1.507,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 1.212,
+        "std": 2.376,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 2.492,
+        "std": 2.35,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 4.062,
+        "std": 1.678,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 0.196,
+        "std": 1.8,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.545,
+        "std": 2.448,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 2.91,
+        "std": 2.777,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 5.363,
+        "std": 2.65,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.082,
+        "std": 1.769,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.402,
+        "std": 2.756,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 5.132,
+        "std": 3.74,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 8.301,
+        "std": 1.918,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": true,
+    "3": true,
+    "4": true
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

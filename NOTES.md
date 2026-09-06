@@ -76,7 +76,14 @@ read through attention.
   order, nothing fixed: the noise floor for "the prompt changed and the
   thought recomputed"), random donor (a random training graph's thoughts of
   the same step count: what breaking looks like on a vector the model
-  actually produced). No zero vectors as sensitivity anchors.
+  actually produced), and the same-answer donor (a training graph with the
+  same two candidates, the same correct answer and the same step count,
+  transplanted at the intermediate passes and at all K). The same-answer
+  donor can only move the answer by breaking the search, so in every cell a
+  flip counts as redirection only if the same graph did not flip under it;
+  each summary carries the cell's flip rate, the reference rate, and their
+  paired difference with an interval (`common.summarize`, key
+  "redirection"). No zero vectors as sensitivity anchors.
 - Every cell reported, nulls included. Numbers in prose point to a results
   file.
 - For any cell where graphs split (some flipped or escaped, others not),
@@ -92,9 +99,13 @@ read through attention.
   graph with seed `((gi + 1000000) << 16) ^ base_seed`; reserialized
   baseline adds 0xABCDEF (same formula as `thoughts.pin_serialization`).
 - Donors, averages, probe and Jacobian fits: training graphs.
-- Experiment 0 keeps the paper's sets: `data/eval_graphs.json` graphs 0-99
-  for the per-branch subtraction, training graphs 0-99 for transplants and
-  the final-step swap.
+- Experiment 0 keeps the paper's sets for transplants and the final-step
+  swap (training graphs 0-99). The per-branch subtraction moved off the
+  paper's synthetic set (off-distribution for this model, see the experiment
+  0 block) to the natural recipients whose target has exactly one depth-1
+  ancestor along shortest paths; that ancestor is the answer branch, another
+  child of the root is the sibling. About 70 percent of graphs qualify (210
+  of 300 training graphs in `tests/test_prompts.py`); skips are listed.
 - T = 100 x p(target) / (p(target) + p(decoy)) at the answer position;
   change in T is relative to the same graph's pinned baseline; e = 1 -
   p(target) - p(decoy). Every cell also reports where the probability went:
@@ -169,11 +180,16 @@ What the pilot changed:
   no in-edges; the generator shuffles all labels. Relabeling the root to a
   name token lifts accuracy on the file from 119 to 179 of 500 only, so other
   conventions matter too (in ProsQA the unreachable component hangs off the
-  second name token). Decision pending: either rebuild the generator to
-  follow the ProsQA conventions and re-pilot, or run the subtraction on
-  natural test graphs where the target's depth-1 ancestor is unique.
+  second name token). Decided (user, 2026-09-06): no generator rebuild; the
+  subtraction runs on natural test graphs where the target's depth-1
+  ancestor is unique. Its pilot is run before its n=100.
+- Accuracy gap (92.4 here vs 94.5 in the paper, same checkpoint and split):
+  the vendor evaluation draws each graph's edge order from the unseeded
+  global RNG, so every run sees different prompts. Evaluated under pinned
+  serialization seeds 0-3 (`evaluate.py --serialization-seed`, files
+  `evaluation_ser<seed>.json`): ACCURACY_SPREAD_PLACEHOLDER
 
-n=100 outcome: (not run; waiting for the go-ahead)
+n=100 outcome: (see below)
 
 ## Experiment 1: necessity, done properly
 
@@ -248,6 +264,18 @@ Cells and predictions:
   story: no effect. Separating for the final thought.
 - Decoy swap, intermediates fixed. Position story: no effect (the last hop is
   re-read from the prompt). Identity story: no effect. Consistency.
+- Non-candidate swap (as the decoy swap, but the swapped-in edge leads to an
+  unreachable node that is not a candidate; the graph is unchanged), all K
+  fixed. The cell reports p_watch, the probability the answer puts on that
+  node. Position story: the final step dereferences the target's old slot
+  and names that node, so p_watch is high (cutoff 0.5 protects "the model
+  named the swapped-in node"); T may fall by fallback, but only p_watch is
+  the signature, because a broken search cannot put mass on a node it has no
+  way to select (the same-answer and random donors give the reference
+  level of p_watch). Identity story: no effect, p_watch near zero.
+  Separating for the final thought, and immune to the fallback ambiguity.
+- Non-candidate swap, intermediates fixed. Both stories: no effect.
+  Consistency.
 - Last-hop rewrite (the cut edge into the target now points to the decoy,
   same slot; BFS confirms the target is unreachable and the decoy is at depth
   K), all K fixed. Position story: follows the edit (T falls to 0). Identity

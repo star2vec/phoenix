@@ -8,11 +8,17 @@ Cells (each run three ways: thoughts free; intermediates fixed, passes
   unreachable_reordered  only edges with an unreachable source move
   decoy_swap             the edge(s) into the target and edge(s) into the
                          decoy trade slots; the graph is unchanged
+  noncandidate_swap      as decoy_swap, but the swapped-in edge leads to an
+                         unreachable node that is not a candidate; p_watch is
+                         the probability the answer puts on that node, which
+                         a broken search cannot produce
   rewrite_last           the cut edge into the target now points to the decoy
   rewrite_d<d>           a cut edge at depth d redirected so the decoy sits at
                          depth K (availability-limited; skips are counted)
 Controls per graph: reserialized baseline, self-transplant (must be exactly
-zero), random donor at intermediates and at all K.
+zero), random donor and same-answer donor at intermediates and at all K. A
+flip counts as redirection only if the same graph did not flip under the
+same-answer donor (summary key "redirection").
 
 The change in T is against the graph's pinned baseline. For a renamed prompt
 "target" is the renamed label; for a rewritten prompt it stays the original
@@ -28,12 +34,13 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from common import (  # noqa: E402
     Prompt, covariates, donor_run, finish, graph_rng, header, load_runner,
-    load_train, make_parser, random_donor, recipient_prompts, summarize,
-    with_delta,
+    load_train, make_parser, random_donor, recipient_prompts, same_answer_donor,
+    summarize, with_delta,
 )
 from measure import all_passes, capture, fixed, intermediates, measure  # noqa: E402
 from prompts import (  # noqa: E402
-    decoy_swap, rename, reorder, reorder_unreachable, rewrite_at_depth,
+    decoy_swap, noncandidate_swap, rename, reorder, reorder_unreachable,
+    rewrite_at_depth,
 )
 from sets import test_pin  # noqa: E402
 
@@ -47,6 +54,7 @@ def counterfactual_set(pr, rng):
         ("renamed", *rename(pr, rng)),
         ("unreachable_reordered", *reorder_unreachable(pr, rng)),
         ("decoy_swap", *decoy_swap(pr)),
+        ("noncandidate_swap", *noncandidate_swap(pr)),
         ("rewrite_last", *rewrite_at_depth(pr, pr.K, rng)),
     ]
     for d in range(1, pr.K):
@@ -76,6 +84,14 @@ def run(runner, recips, train, base_seed=0):
         _, donor = donor_run(runner, train, d_gi, base_seed)
         cell("random_donor/intermediates", measure(runner, pr, fixed(donor, intermediates(K))))
         cell("random_donor/all", measure(runner, pr, fixed(donor, all_passes(K))))
+        sad = same_answer_donor(train, pr.target, pr.decoy, K)
+        for v, passes in (("intermediates", intermediates(K)), ("all", all_passes(K))):
+            if sad is None:
+                cells[f"same_answer_donor/{v}"] = {"skipped": True, "reason": "no_same_answer_donor"}
+                if f"same_answer_donor/{v}" not in cell_names:
+                    cell_names.append(f"same_answer_donor/{v}")
+            else:
+                cell(f"same_answer_donor/{v}", measure(runner, pr, fixed(donor_run(runner, train, sad[0], base_seed)[1], passes)))
 
         for name, cf, meta in counterfactual_set(pr, rng):
             metas[name] = meta
@@ -87,23 +103,26 @@ def run(runner, recips, train, base_seed=0):
                 continue
             edits = {"free": None, "intermediates": fixed(own, intermediates(K)), "all": fixed(own, all_passes(K))}
             for v in VARIANTS:
-                cell(f"{name}/{v}", measure(runner, cf, edits[v]))
+                cell(f"{name}/{v}", measure(runner, cf, edits[v], watch=meta.get("watch")))
 
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base,
-                     "random_donor_gi": d_gi, "meta": metas, "cells": cells})
+                     "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None,
+                     "meta": metas, "cells": cells})
         show = ["reordered/intermediates", "renamed/intermediates", "unreachable_reordered/intermediates",
-                "decoy_swap/all", "rewrite_last/all", "random_donor/intermediates"]
+                "decoy_swap/all", "noncandidate_swap/all", "rewrite_last/all", "random_donor/intermediates",
+                "same_answer_donor/intermediates"]
         print(f"graph {gi}: base T {base['T']:.1f}  " + "  ".join(
             f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in show if not cells[n].get("skipped")))
 
     summary = summarize(rows, cell_names)
-    # the decoy swap can be partial: split its all-K cell by completeness
-    comp = [dict(r["cells"]["decoy_swap/all"], complete=r["meta"]["decoy_swap"].get("complete"))
-            for r in rows if not r["cells"].get("decoy_swap/all", {}).get("skipped")]
-    summary["decoy_swap/all/by_completeness"] = {
-        "complete": summarize_rows([c for c in comp if c["complete"]]),
-        "partial": summarize_rows([c for c in comp if not c["complete"]]),
-    }
+    # the two swaps can be partial: split their all-K cells by completeness
+    for sw in ("decoy_swap", "noncandidate_swap"):
+        comp = [dict(r["cells"][f"{sw}/all"], complete=r["meta"][sw].get("complete"))
+                for r in rows if not r["cells"].get(f"{sw}/all", {}).get("skipped")]
+        summary[f"{sw}/all/by_completeness"] = {
+            "complete": summarize_rows([c for c in comp if c["complete"]]),
+            "partial": summarize_rows([c for c in comp if not c["complete"]]),
+        }
     return {"rows": rows, "summary": summary, "cells": cell_names}
 
 

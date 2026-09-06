@@ -11,6 +11,7 @@ import numpy as np
 
 FLIP_CUT = -50.0
 ESCAPE_CUT = 0.5
+WATCH_CUT = 0.5
 N_BOOT = 2000
 
 
@@ -44,7 +45,37 @@ def summarize_cell(rows, flip_cut=FLIP_CUT, escape_cut=ESCAPE_CUT):
     for key in ("p_target", "p_decoy", "p_other_node", "p_other_token"):
         if key in rows[0]:
             out["mean_" + key] = bootstrap([r[key] for r in rows], np.mean)
+    if "p_watch" in rows[0]:
+        # WATCH_CUT protects "the model named the swapped-in node"
+        out["mean_p_watch"] = bootstrap([r["p_watch"] for r in rows], np.mean)
+        out["frac_watch_named"] = bootstrap([float(r["p_watch"] >= WATCH_CUT) for r in rows], np.mean)
+        out["cutoffs"]["watch_p"] = WATCH_CUT
     return out
+
+
+def redirection(rows, ref_rows):
+    """Per graph, a flip counts as redirection only when the same graph did
+    not flip under the reference (same-answer donor). rows and ref_rows are
+    aligned by 'gi'. Adds the paired flip-rate difference with its interval."""
+    ref = {r["gi"]: r for r in ref_rows}
+    paired = []
+    for r in rows:
+        rr = ref.get(r["gi"])
+        if rr is None:
+            r["redirected"] = None
+            continue
+        rf = bool(rr["dT"] <= FLIP_CUT)
+        r["redirected"] = bool(r.get("flipped")) and not rf
+        paired.append(float(r.get("flipped")) - float(rf))
+    red = [r for r in rows if r.get("redirected") is not None]
+    if not red:
+        return {"n_with_reference": 0}
+    return {
+        "n_with_reference": len(red),
+        "frac_redirected": bootstrap([float(r["redirected"]) for r in red], np.mean),
+        "reference_frac_flipped": bootstrap([float(ref[r["gi"]]["dT"] <= FLIP_CUT) for r in red], np.mean),
+        "flips_beyond_reference": bootstrap(paired, np.mean),
+    }
 
 
 def flag_rows(rows, flip_cut=FLIP_CUT, escape_cut=ESCAPE_CUT):

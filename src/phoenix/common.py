@@ -21,7 +21,8 @@ from sets import (  # noqa: E402
     MODES, load_train, recipients, require_checkpoint, results_file,
     test_pin, train_pin, write_json,
 )
-from stats import flag_rows, is_split, split_by_flag, summarize_cell  # noqa: E402
+from stats import flag_rows, is_split, redirection, split_by_flag, summarize_cell  # noqa: E402
+from thoughts import find_donor  # noqa: E402
 
 SPLIT_COVARIATES = ["K", "n_branches", "first_parent_slot", "first_parent_slot_frac",
                     "n_parent_edges", "n_edges", "target_first"]
@@ -70,6 +71,18 @@ def random_donor(train, K, rng, E=None, exclude=()):
     raise RuntimeError(f"no training graph with K={K}, E={E}")
 
 
+def same_answer_donor(train, target, decoy, K, exclude=()):
+    """A training graph with the same two candidates, the same correct answer
+    and the same solution length: the standing reference for flips that come
+    from a broken search rather than a redirected one. (gi, sample) or None."""
+    for j, d in enumerate(train):
+        if j in exclude:
+            continue
+        if d["target"] == target and d["neg_target"] == decoy and len(d["steps"]) == K:
+            return j, d
+    return None
+
+
 def donor_run(runner, train, gi, base_seed, attn_eager=False):
     """The training graph gi rendered under its own pinned serialization and
     its recycled thoughts."""
@@ -83,25 +96,45 @@ def with_delta(split, base_T):
     return out
 
 
+REFERENCE = {"all": "same_answer_donor/all", "default": "same_answer_donor/intermediates"}
+
+
+def reference_for(name):
+    """Standing reference cell for redirection: the same-answer donor at all K
+    for all-K cells, at the intermediate passes for everything else."""
+    return REFERENCE["all"] if name.endswith("/all") else REFERENCE["default"]
+
+
+def cell_rows_of(rows, name):
+    out = []
+    for r in rows:
+        c = r["cells"].get(name)
+        if c is None or c.get("skipped"):
+            continue
+        cr = dict(c)
+        cr["gi"] = r["gi"]
+        cr["cov"] = r["cov"]
+        out.append(cr)
+    return out
+
+
 def summarize(rows, cell_names, covariate_names=SPLIT_COVARIATES):
-    """Per-cell summaries over graphs; the split analysis wherever a cell's
-    graphs divide into moved and unmoved."""
+    """Per-cell summaries over graphs; redirection counted against the
+    same-answer donor's flips on the same graphs; the split analysis wherever
+    a cell's graphs divide into moved and unmoved."""
     out = {}
     for name in cell_names:
-        cell_rows = []
-        for r in rows:
-            c = r["cells"].get(name)
-            if c is None or c.get("skipped"):
-                continue
-            cr = dict(c)
-            cr["cov"] = r["cov"]
-            cell_rows.append(cr)
+        cell_rows = cell_rows_of(rows, name)
         summ = summarize_cell(cell_rows)
         summ["n_skipped"] = sum(1 for r in rows if r["cells"].get(name, {}).get("skipped"))
         if cell_rows:
             flag_rows(cell_rows)
+            ref = reference_for(name)
+            if ref in cell_names and not name.startswith("same_answer_donor"):
+                ref_rows = flag_rows(cell_rows_of(rows, ref))
+                summ["redirection"] = dict(redirection(cell_rows, ref_rows), reference=ref)
             summ["split"] = {}
-            for flag in ("flipped", "escaped", "moved"):
+            for flag in ("flipped", "escaped", "moved", "redirected"):
                 if is_split(cell_rows, flag):
                     summ["split"][flag] = split_by_flag(cell_rows, flag, covariate_names)
         out[name] = summ
@@ -124,6 +157,6 @@ def finish(args, name, result):
 
 __all__ = [
     "make_parser", "load_runner", "header", "recipient_prompts", "random_donor",
-    "donor_run", "with_delta", "summarize", "graph_rng", "graph_gen", "finish",
+    "same_answer_donor", "donor_run", "reference_for", "with_delta", "summarize", "graph_rng", "graph_gen", "finish",
     "load_train", "covariates", "Prompt", "SPLIT_COVARIATES",
 ]

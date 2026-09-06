@@ -249,6 +249,48 @@ def decoy_swap(prompt):
     }
 
 
+def noncandidate_swap(prompt):
+    """The edge(s) into the target from depth K-1 trade slots with edge(s)
+    into an unreachable node that is not a candidate. The graph is unchanged.
+    Under the position story the final step dereferences the target's old
+    slot and finds that node, so probability should land on it; a broken
+    search cannot put mass there. meta['watch'] lists the swapped-in nodes."""
+    d = prompt.depths()
+    parents = prompt.parent_slots()
+    if not parents:
+        return None, {"reason": "no_parent_edge_at_depth_K-1"}
+    into = {}
+    for j, (s_, t) in enumerate(prompt.edges):
+        if t not in d and t not in (prompt.target, prompt.decoy):
+            into.setdefault(t, []).append(j)
+    if not into:
+        return None, {"reason": "no_unreachable_noncandidate_with_in_edge"}
+    order = sorted(into, key=lambda v: (-len(into[v]), v))  # fewest distinct nodes first
+    avail = [j for v in order for j in into[v]]
+    n = min(len(parents), len(avail))
+    pairs = list(zip(parents[:n], avail[:n]))
+    new = [list(e) for e in prompt.edges]
+    for j, m in pairs:
+        new[j], new[m] = list(prompt.edges[m]), list(prompt.edges[j])
+    out = prompt.with_edges(new)
+    assert out.depths() == d, "non-candidate swap changed the graph"
+    watch = sorted({prompt.edges[m][1] for _, m in pairs})
+    return out, {"pairs": pairs, "watch": watch, "n_parent_edges": len(parents),
+                 "n_swapped": n, "complete": n == len(parents)}
+
+
+def unique_answer_branch(prompt):
+    """(answer-branch root, sibling root child) when the target has exactly one
+    depth-1 ancestor along shortest paths; else None. The sibling is the
+    lowest-labelled other child of the root (None if the root has one child)."""
+    on = on_path_nodes(prompt)
+    anc = sorted(v for v, dep in on.items() if dep == 1)
+    if len(anc) != 1:
+        return None
+    others = sorted(t for s_, t in prompt.edges if s_ == prompt.root and t != anc[0])
+    return anc[0], (others[0] if others else None)
+
+
 def on_path_nodes(prompt):
     """Nodes on some shortest root->target path, with their depths."""
     d = prompt.depths()

@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "src" / "phoenix"))
 import torch  # noqa: E402
 
 from harness import Runner  # noqa: E402
-from sets import load_eval_graphs, load_train, load_test, test_pin, _default  # noqa: E402
+from sets import load_train, load_test, test_pin, _default  # noqa: E402
 from prompts import Prompt  # noqa: E402
 import necessity, heads, counterfactuals, tracing, cache_patch, baseline  # noqa: E402
 
@@ -45,7 +45,8 @@ def main():
     res = necessity.run(runner, recips, train, means)
     assert all(res["rows"][i]["cells"]["self_transplant"]["dT"] == 0.0 for i in range(2))
     assert {"average/all", "noise/intermediates", "zero/all", "random_donor/all", "removed",
-            "removed_length_kept", "reserialized"} <= set(res["cells"])
+            "removed_length_kept", "reserialized", "same_answer_donor/intermediates",
+            "same_answer_donor/all"} <= set(res["cells"])
     assert res["summary"]["zero/all"]["n"] == 2
     dump("necessity", res)
 
@@ -60,8 +61,14 @@ def main():
     res = counterfactuals.run(runner, recips, train)
     for v in ("free", "intermediates", "all"):
         assert f"reordered/{v}" in res["cells"] and f"renamed/{v}" in res["cells"]
+        assert f"noncandidate_swap/{v}" in res["cells"]
+    assert "same_answer_donor/intermediates" in res["cells"]
     r0 = res["rows"][0]["cells"]
     assert r0["self_transplant"]["dT"] == 0.0
+    nc = [r["cells"]["noncandidate_swap/all"] for r in res["rows"] if not r["cells"]["noncandidate_swap/all"].get("skipped")]
+    assert nc and "p_watch" in nc[0] and 0.0 <= nc[0]["p_watch"] <= 1.0
+    if res["summary"]["reordered/intermediates"].get("redirection"):
+        assert "frac_redirected" in res["summary"]["reordered/intermediates"]["redirection"]
     # a renamed prompt with thoughts free is a valid new problem: its own target field is used
     assert "T" in r0["renamed/free"]
     dump("counterfactuals", res)
@@ -84,12 +91,13 @@ def main():
     dump("cache_patch", res)
 
     print("baseline (random bases)")
-    ev = list(enumerate(load_eval_graphs()))[:2]
     probe = torch.randn(40, 768)
-    res = baseline.run_subtraction(runner, ev, probe)
-    assert "subtract_answer/input_embedding" in res["cells"]
+    res = baseline.run_subtraction(runner, recips, train, probe)
+    assert "subtract_answer/input_embedding" in res["cells"] or res["skipped_no_unique_ancestor"]
+    assert "same_answer_donor/intermediates" in res["cells"] or res["skipped_no_unique_ancestor"]
     res = baseline.run_transplant(runner, list(enumerate(train))[:2], train)
     assert "matched_donor/intermediates" in res["cells"] and "label_swap/intermediates" in res["cells"]
+    assert "same_answer_donor/intermediates" in res["cells"]
     jb = torch.randn(4, 40, 768)
     res = baseline.run_swap(runner, list(enumerate(train))[:2], jb)
     assert "swap_final" in res["cells"]

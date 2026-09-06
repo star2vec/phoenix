@@ -1,0 +1,6 @@
+test accuracy: 396/419 = 0.9451
+step 1: NotReachable -0.21 | Reachable +3.04 | Frontier +4.30 | Optimal +5.58  ordering_ok=True
+step 2: NotReachable -0.05 | Reachable +1.21 | Frontier +2.50 | Optimal +4.05  ordering_ok=True
+step 3: NotReachable +0.20 | Reachable +0.55 | Frontier +2.92 | Optimal +5.34  ordering_ok=True
+step 4: NotReachable +0.08 | Reachable +0.41 | Frontier +5.15 | Optimal +8.33  ordering_ok=True
+written: /Users/ecaterina/Developer/phoenix/results/seed0/evaluation_ser0.json

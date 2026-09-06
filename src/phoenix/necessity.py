@@ -9,6 +9,9 @@ intermediate passes only:
   zero               the paper's condition (off-manifold)
   random_donor       a random training graph's thoughts, same K (on-manifold
                      uninformative; the standing matched-random control)
+  same_answer_donor  a training graph with the same candidates and the same
+                     correct answer (the standing reference for flips that come
+                     from a broken search)
 and once each:
   removed            latent tokens deleted; the prompt ends `[R] root [A]`
   removed_length_kept  latent tokens replaced by the pad token (attended)
@@ -30,7 +33,7 @@ import torch  # noqa: E402
 from common import (  # noqa: E402
     Prompt, covariates, donor_run, finish, graph_gen, graph_rng, header,
     load_runner, load_train, make_parser, random_donor, recipient_prompts,
-    summarize, with_delta,
+    same_answer_donor, summarize, with_delta,
 )
 from measure import (  # noqa: E402
     all_passes, at_passes, capture, fixed, intermediates, measure,
@@ -78,7 +81,18 @@ def run(runner, recips, train, means, base_seed=0):
             if name not in cell_names:
                 cell_names.append(name)
 
+        def skip(name, reason):
+            cells[name] = {"skipped": True, "reason": reason}
+            if name not in cell_names:
+                cell_names.append(name)
+
+        sad = same_answer_donor(train, pr.target, pr.decoy, K)
+        sth = donor_run(runner, train, sad[0], base_seed)[1] if sad else None
         for vname, passes in (("all", all_passes(K)), ("intermediates", intermediates(K))):
+            if sth is None:
+                skip(f"same_answer_donor/{vname}", "no_same_answer_donor")
+            else:
+                cell(f"same_answer_donor/{vname}", measure(runner, pr, fixed(sth, passes)))
             cell(f"average/{vname}", measure(runner, pr, at_passes(lambda k, t: means[k].to(t), passes)))
 
             def noise(k, t, gen=gen):
@@ -95,7 +109,7 @@ def run(runner, recips, train, means, base_seed=0):
 
         rows.append({
             "gi": gi, "K": K, "cov": covariates(pr), "baseline": base,
-            "random_donor_gi": d_gi, "thought_norms": {k: float(v.norm()) for k, v in own.items()},
+            "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None, "thought_norms": {k: float(v.norm()) for k, v in own.items()},
             "cells": cells,
         })
         print(f"graph {gi}: base T {base['T']:.1f}  " + "  ".join(

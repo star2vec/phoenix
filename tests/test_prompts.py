@@ -113,6 +113,28 @@ def main():
         else:
             avail["decoy_swap:" + m["reason"]] += 1
 
+        # non-candidate swap: graph unchanged; watched nodes unreachable non-candidates
+        ns, m = P.noncandidate_swap(pr)
+        if ns is not None:
+            avail["noncandidate_swap"] += 1
+            assert ns.depths() == d0 and m["n_swapped"] >= 1
+            for j, k in m["pairs"]:
+                assert ns.edges[j] == pr.edges[k] and ns.edges[k] == pr.edges[j]
+                assert pr.edges[j][1] == pr.target
+                assert pr.edges[k][1] in m["watch"]
+            for w in m["watch"]:
+                assert w not in d0 and w not in (pr.target, pr.decoy)
+        else:
+            avail["noncandidate_swap:" + m["reason"]] += 1
+
+        # unique answer branch (subtraction set): counted, sibling is another root child
+        ab = P.unique_answer_branch(pr)
+        if ab is not None:
+            avail["unique_answer_branch"] += 1
+            v, sib = ab
+            assert d0[v] == 1 and [pr.root, v] in pr.edges
+            assert sib is None or (d0[sib] == 1 and sib != v)
+
         # rewrite at each depth: target unreachable, decoy at depth K, one slot changed
         for depth in range(1, pr.K + 1):
             rw, m = P.rewrite_at_depth(pr, depth, rng)
@@ -147,6 +169,7 @@ def main():
     for k in sorted(avail):
         print(f"  {k:40s} {avail[k]}")
     assert avail["decoy_swap"] >= 250, "decoy swap should be available on most graphs"
+    assert avail["noncandidate_swap"] >= 250
     assert avail["rewrite_d%d_last" % 3] + avail["rewrite_d%d_last" % 4] >= 150
     print("PROMPTS: PASS")
 

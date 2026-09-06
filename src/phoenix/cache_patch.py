@@ -10,9 +10,11 @@ Slices:
   latents_all          all K latent positions
 Cells: for each slice, keys only / values only / both, in layer 1, layer 2,
 and both layers. Controls: self patch (recipient's own cache back into
-itself; must be zero), and the same slices from a random training graph with
-the same number of edges and steps (the on-manifold corruption for Ding's
-necessity check). Baseline T here is measured on the eager attention path,
+itself; must be zero), the same slices from a random training graph with the
+same number of edges and steps (the on-manifold corruption for Ding's
+necessity check), and the thought-level random donor and same-answer donor
+at intermediate passes (the standing references for breaking and for
+fallback flips). Baseline T here is measured on the eager attention path,
 the same path the patched runs use.
 
     python src/phoenix/cache_patch.py --run-name seed0 --device mps --mode pilot
@@ -25,10 +27,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from attn_hooks import AttnHooks  # noqa: E402
 from common import (  # noqa: E402
-    Prompt, covariates, finish, graph_rng, header, load_runner, load_train,
-    make_parser, random_donor, recipient_prompts, summarize, with_delta,
+    Prompt, covariates, donor_run, finish, graph_rng, header, load_runner,
+    load_train, make_parser, random_donor, recipient_prompts, same_answer_donor,
+    summarize, with_delta,
 )
-from measure import answer_split, run_ids  # noqa: E402
+from measure import answer_split, fixed, intermediates, measure, run_ids  # noqa: E402
 from prompts import reorder  # noqa: E402
 from sets import train_pin  # noqa: E402
 
@@ -89,6 +92,17 @@ def run(runner, recips, train, base_seed=0):
             cells[name] = with_delta(split, base["T"])
             if name not in cell_names:
                 cell_names.append(name)
+
+        # standing thought-level references (eager path, same baseline)
+        r_gi2, _ = random_donor(train, K, rng)
+        cell("random_donor/intermediates", measure(runner, pr, fixed(donor_run(runner, train, r_gi2, base_seed)[1], intermediates(K)), attn_eager=True))
+        sad = same_answer_donor(train, pr.target, pr.decoy, K)
+        if sad is None:
+            cells["same_answer_donor/intermediates"] = {"skipped": True, "reason": "no_same_answer_donor"}
+            if "same_answer_donor/intermediates" not in cell_names:
+                cell_names.append("same_answer_donor/intermediates")
+        else:
+            cell("same_answer_donor/intermediates", measure(runner, pr, fixed(donor_run(runner, train, sad[0], base_seed)[1], intermediates(K)), attn_eager=True))
 
         S = slices(L, K)
         cell("self_patch/edges/kv/both", patched_T(runner, ids, own_kv, layer_sets["both"], ("k", "v"), S["edges"], pr))

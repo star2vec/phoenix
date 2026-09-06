@@ -2,10 +2,13 @@
 
 Three parts, on the paper's own sets so the numbers are comparable:
 
-  subtraction  eval_graphs.json: at step 1, subtract the answer-branch root's
-               direction (input-embedding basis; probe basis) with the
-               matched random-direction control, and the sibling-branch
-               subtraction, norm-preserving as in the paper.
+  subtraction  natural test graphs (the recipients of this mode) whose target
+               has a unique depth-1 ancestor: at step 1, subtract that
+               answer-branch root's direction (input-embedding basis; probe
+               basis) with the matched random-direction control, and the
+               sibling-branch subtraction, norm-preserving as in the paper.
+               (The paper's synthetic set is off-distribution for this model;
+               see NOTES.md, experiment 0.)
   transplant   training graphs 0-99: matched donor (same two candidates and
                solution length, different graph, correct answer = the
                recipient's decoy) at intermediate steps, first step only,
@@ -33,15 +36,15 @@ import torch  # noqa: E402
 
 from common import (  # noqa: E402
     Prompt, covariates, donor_run, finish, graph_gen, graph_rng, header,
-    load_runner, load_train, make_parser, random_donor, summarize, with_delta,
+    load_runner, load_train, make_parser, random_donor, recipient_prompts,
+    same_answer_donor, summarize, with_delta,
 )
 from edits import swap_edit  # noqa: E402
 from measure import all_passes, at_passes, capture, fixed, intermediates, measure  # noqa: E402
-from prompts import bfs_depths, candidate_swap, pin_seed, swap_labels  # noqa: E402
-from sets import ROOT, load_eval_graphs, require_file, train_pin  # noqa: E402
+from prompts import bfs_depths, candidate_swap, pin_seed, swap_labels, unique_answer_branch  # noqa: E402
+from sets import ROOT, require_file, test_pin, train_pin  # noqa: E402
 from thoughts import find_donor  # noqa: E402
 
-EVAL_OFFSET = 2_000_000
 PARTS = ("subtraction", "transplant", "swap")
 
 
@@ -60,15 +63,24 @@ def subtract_edit(u, r=None):
     return at_passes(f, [0])
 
 
-def run_subtraction(runner, graphs, probe_basis, base_seed=0):
+def run_subtraction(runner, recips, train, probe_basis, base_seed=0):
+    """Natural test graphs whose target has exactly one depth-1 ancestor along
+    shortest paths (the answer branch); the sibling is another child of the
+    root. Graphs without a unique ancestor are skipped and counted."""
     wte = runner.wte.detach()
     rows, names = [], []
-    for gi, s in graphs:
-        pr = Prompt.from_sample(s, pin_seed(gi + EVAL_OFFSET, base_seed))
-        meta = s["meta"]
-        v, sib = meta["answer_branch_root"], meta["sibling_branch_roots"][0]
+    skipped = []
+    for gi, sample, pr in recips:
+        ab = unique_answer_branch(pr)
+        if ab is None:
+            skipped.append(gi)
+            continue
+        v, sib = ab
+        K = pr.K
+        own = capture(runner, pr.ids(runner.tok))
         base = measure(runner, pr)
         gen = graph_gen(base_seed, gi)
+        rng = graph_rng(base_seed, gi)
         r = unit(torch.randn(wte.shape[1], generator=gen)).to(runner.device)
         cells = {}
 
@@ -77,17 +89,40 @@ def run_subtraction(runner, graphs, probe_basis, base_seed=0):
             if name not in names:
                 names.append(name)
 
+        def skip(name, reason):
+            cells[name] = {"skipped": True, "reason": reason}
+            if name not in names:
+                names.append(name)
+
+        cell("reserialized", measure(runner, Prompt.from_sample(sample, test_pin(gi, base_seed, reserial=True))))
+        cell("self_transplant", measure(runner, pr, fixed(own, all_passes(K))))
+        assert cells["self_transplant"]["dT"] == 0.0
+        sad = same_answer_donor(train, pr.target, pr.decoy, K)
+        if sad is None:
+            skip("same_answer_donor/intermediates", "no_same_answer_donor")
+        else:
+            _, sth = donor_run(runner, train, sad[0], base_seed)
+            cell("same_answer_donor/intermediates", measure(runner, pr, fixed(sth, intermediates(K))))
+        r_gi, _ = random_donor(train, K, rng)
+        _, rth = donor_run(runner, train, r_gi, base_seed)
+        cell("random_donor/intermediates", measure(runner, pr, fixed(rth, intermediates(K))))
+
         cell("subtract_answer/input_embedding", measure(runner, pr, subtract_edit(unit(wte[v]))))
         cell("subtract_answer/random_matched", measure(runner, pr, subtract_edit(unit(wte[v]), r)))
-        cell("subtract_sibling/input_embedding", measure(runner, pr, subtract_edit(unit(wte[sib]))))
         if probe_basis is not None and probe_basis[v].norm() > 0:
             cell("subtract_answer/probe", measure(runner, pr, subtract_edit(unit(probe_basis[v]))))
         else:
-            cells["subtract_answer/probe"] = {"skipped": True, "reason": "no_probe_direction"}
-        rows.append({"gi": gi, "K": pr.K, "cov": covariates(pr), "baseline": base, "cells": cells})
-        print(f"eval graph {gi}: base T {base['T']:.1f}  " + "  ".join(
-            f"{n} {cells[n]['dT']:+.2f}" for n in names if not cells[n].get("skipped")))
-    return {"rows": rows, "summary": summarize(rows, names), "cells": names}
+            skip("subtract_answer/probe", "no_probe_direction")
+        if sib is not None:
+            cell("subtract_sibling/input_embedding", measure(runner, pr, subtract_edit(unit(wte[sib]))))
+        else:
+            skip("subtract_sibling/input_embedding", "root_has_one_child")
+        rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base,
+                     "answer_branch_root": v, "sibling_root": sib, "cells": cells})
+        print(f"test graph {gi}: base T {base['T']:.1f}  " + "  ".join(
+            f"{n} {cells[n]['dT']:+.2f}" for n in names if n.startswith("subtract") and not cells[n].get("skipped")))
+    return {"rows": rows, "summary": summarize(rows, names), "cells": names,
+            "skipped_no_unique_ancestor": skipped}
 
 
 def placebo_pair(pr):
@@ -224,8 +259,7 @@ def main():
         result = header(args, f"baseline_{part}")
         if part == "subtraction":
             probe = torch.load(require_file(rdir / "probe_basis.pt", "fit_probes.py"), map_location="cpu", weights_only=True)
-            graphs = list(enumerate(load_eval_graphs()))[:n]
-            result.update(run_subtraction(runner, graphs, probe, args.seed))
+            result.update(run_subtraction(runner, recipient_prompts(args.mode, args.seed), load_train(), probe, args.seed))
         elif part == "transplant":
             train = load_train()
             result.update(run_transplant(runner, list(enumerate(train))[:n], train, args.seed))

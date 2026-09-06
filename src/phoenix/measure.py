@@ -34,13 +34,14 @@ def run_ids(runner, ids, thought_edit=None, attn_eager=False):
     return out.logits[0, -1].float()
 
 
-def answer_split(logits, target, decoy):
-    """T, e, and where the answer probability went."""
+def answer_split(logits, target, decoy, watch=None):
+    """T, e, and where the answer probability went. watch: optional list of
+    node tokens whose summed probability is reported as p_watch."""
     p = F.softmax(logits, dim=-1)
     pt, pd = float(p[target]), float(p[decoy])
     T = 100.0 * pt / (pt + pd) if pt + pd > 0 else 50.0
     node_mass = float(p[:N_NODE_TOKENS].sum())
-    return {
+    out = {
         "T": T,
         "e": 1.0 - (pt + pd),
         "p_target": pt,
@@ -49,13 +50,17 @@ def answer_split(logits, target, decoy):
         "p_other_token": 1.0 - node_mass,
         "argmax": int(p.argmax()),
     }
+    if watch is not None:
+        out["p_watch"] = float(sum(float(p[v]) for v in watch))
+        out["watch"] = list(watch)
+    return out
 
 
-def measure(runner, prompt, thought_edit=None, attn_eager=False, **text_kw):
+def measure(runner, prompt, thought_edit=None, attn_eager=False, watch=None, **text_kw):
     """Render, run, split. text_kw is passed to Prompt.text (e.g. K=0)."""
     ids = prompt.ids(runner.tok, **text_kw)
     logits = run_ids(runner, ids, thought_edit, attn_eager)
-    return answer_split(logits, prompt.target, prompt.decoy)
+    return answer_split(logits, prompt.target, prompt.decoy, watch)
 
 
 @torch.no_grad()
