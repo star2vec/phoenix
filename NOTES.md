@@ -226,8 +226,10 @@ n=100 outcome, seed 0 (files in `results/seed0/`):
   bases come from 3-4 low-confidence graphs (11 of 68 have base T below 90).
   The paper's null reproduces.
 
-n=100 outcome, seed 1: chain running (evaluation under seeds 0-3, probes,
-Jacobian basis, transplant, swap; then subtraction).
+n=100 outcome, seed 1: evaluation done (unseeded 402 of 419, 95.9; seeds
+0-3: 95.5, 96.7, 95.7, 95.5; the paper's 95.7 is inside; ordering correct at
+every step). Probes, Jacobian basis, transplant, swap and subtraction:
+SEED1_PLACEHOLDER
 
 ## Experiment 1: necessity, done properly
 
@@ -245,8 +247,30 @@ uninformative substitute breaks the answer (the thought is informative, not
 a scaffold as in Kshirsagar's chess model). The two removal conditions are
 prompts the model never saw in training; they are reported as such.
 
-Pilot outcome: (not run)
-What the pilot changed: (not run)
+Pre-pilot note (2026-09-06, before the pilot ran): the same-answer donor is
+now a cell here too and is the reference for fallback flips (28 percent on
+training graphs in experiment 0). Substitutes that carry no candidate
+(average thought, noise, zero) are expected to break mostly by escape or by
+fallback flips at about that rate; a cell whose flips exceed the reference
+would be surprising and would need the probability split to explain it.
+
+Pilot outcome (seed 0, test graphs 400-409, `results/seed0/necessity_pilot.json`):
+every uninformative substitute breaks, as expected. At all K passes: average
+thought median -27.2 [-69.4, -5.4] with e 0.94 and 10 of 10 escaped (the
+mass, 0.91, lands on other node tokens: the model names nodes from the
+blurred thought); random donor -75.9 with e 1.00, 10 of 10 escaped; noise
+-5.3 but bimodal (4 flipped with e near 0, 3 escaped); zero -22.7 (3
+flipped, 4 escaped; the paper's -42.9 was a median over 100 training
+graphs). Removing the latent tokens gives -87.4 with 7 of 10 flipped and e
+near 0: without thoughts the model answers the decoy, not chance. Pad tokens
+in place of the latents: -15.8, 4 flipped, 3 escaped. Same-answer donor:
+at intermediate passes -1.1 with 2 of 10 flipped (the fallback reference);
+at all K exactly no flips (the donor's final thought carries the shared
+answer). Self-transplant and reserialized exactly zero.
+What the pilot changed: nothing in the design. Two observations to carry:
+substitutes that contain node content (average, random donor) break by
+escape onto other nodes, substitutes without it (noise, zero) break by
+fallback flips; and "thought removed" is a systematic decoy answer.
 n=100 outcome: (not run)
 
 ## Experiment 2: which heads look by position and which by content
@@ -268,8 +292,34 @@ heads at edge tokens attend within their own slot (Zhu et al.'s copy). A
 split between intermediate latents and the last latent or answer position is
 the hybrid signature.
 
-Pilot outcome: (not run)
-What the pilot changed: (not run)
+Pre-pilot note (2026-09-06, before the pilot ran): scores are computed on
+the per-slot attention mass (sum over an edge's tokens). A head is read as
+an edge-reading head at a query class only if its mean slot mass there is at
+least 0.2 (the cutoff protects "this head attends to edges at all"); heads
+below it are reported but not classified.
+
+Pilot outcome (seed 0, test graphs 400-409, `results/seed0/heads_pilot.json`):
+- Intermediate latents (thoughts 1..K-1 as queries): all 8 layer-2 heads put
+  0.89-0.97 of their attention on edge slots and follow the edges after the
+  reorder: content scores 0.88-0.93, position scores -0.02 to +0.09. The
+  identity story's prediction for this cell; the position story's is
+  rejected on all 10 graphs for every layer-2 head. The same holds at the
+  root query, the last latent and the answer position (content 0.62-1.00).
+- Layer 1 at the intermediate latents: the four edge-reading heads (mass
+  0.76-0.93) are mixed, content 0.49-0.67 and position 0.27-0.40; the heads
+  with high position scores there carry almost no slot mass (0.01-0.12) and
+  are not classified.
+- The method does find positional heads: at the answer position layer-1 head
+  2 has slot mass 0.99 with position score 0.99 and content 0.07, and heads 5
+  and 6 are mostly positional (0.78 and 0.64). Where they look is recorded
+  from n=100 on (first-slot and last-slot mass).
+- Edge-token queries keep only 0.06-0.10 of their attention inside their own
+  slot in both layers, so the layer-1 copy of Zhu et al.'s construction is
+  not at the edge's target token in this model.
+What the pilot changed: the heads driver now also measures separator-token
+queries (the "|" token can see both endpoints of its edge) and reports each
+head's mass on the first and last slot, so positional heads can be located.
+Scores and cutoffs unchanged.
 n=100 outcome: (not run)
 
 ## Experiment 3: the counterfactual set (thought fixed, one thing changed)
@@ -429,14 +479,17 @@ Designs and predictions to be written after 1-4 report.
 
 ## Next run
 
-When `ckpts/seed0/best.pt` is present (device `cuda` on the laptop, `mps`
-here):
+Device on this Mac: `cpu` (measured 2026-09-06: 25 ms per batch-one forward
+on CPU vs 178 ms on MPS, and MPS memory grew 750 MB in 60 forwards; the
+seed-1 chain on MPS was killed for memory at 14,000 of 14,785 probe graphs).
+Seed 0's experiment-0 files were produced on MPS before this was known; the
+two paths differ at rounding level only (`tests/test_fast_equivalence.py`).
 
 ```
-.venv/bin/python src/phoenix/evaluate.py --run-name seed0 --device mps
-.venv/bin/python src/phoenix/fit_probes.py --run-name seed0 --device mps
-.venv/bin/python src/phoenix/fit_jlens.py --run-name seed0 --device mps
-.venv/bin/python src/phoenix/baseline.py --run-name seed0 --device mps --mode pilot
+.venv/bin/python src/phoenix/evaluate.py --run-name seed0 --device cpu --serialization-seed 0
+.venv/bin/python src/phoenix/fit_probes.py --run-name seed0 --device cpu
+.venv/bin/python src/phoenix/fit_jlens.py --run-name seed0 --device cpu
+.venv/bin/python src/phoenix/baseline.py --run-name seed0 --device cpu --mode pilot
 ```
 
 Then, each after the user says so and after its predictions above are

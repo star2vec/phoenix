@@ -53,3 +53,8 @@ The experiment drivers (`necessity.py`, `heads.py`, `counterfactuals.py`,
 `tracing.py`, `cache_patch.py`, `baseline.py` in `src/phoenix/`) take
 `--run-name`, `--device`, and `--mode pilot|n100`; each stops with a message
 if `ckpts/<run>/best.pt` is missing. Plan and predictions live in `NOTES.md`.
+
+On the Mac use `--device cpu` for all analysis runs: batch-one forwards on
+this model take about 25 ms on CPU and 180 ms on MPS, and the MPS allocator
+grows by hundreds of MB per few dozen forwards (a long run was killed for
+memory). MPS pays off only for batched training.

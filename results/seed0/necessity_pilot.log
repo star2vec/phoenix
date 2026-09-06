@@ -1,0 +1,11 @@
+graph 400: base T 100.0  average/all -98.9/e0.89  noise/all -0.6/e0.00  zero/all -3.2/e0.00  random_donor/all -81.9/e1.00  removed -92.4/e0.00
+graph 401: base T 97.0  average/all -40.0/e0.90  noise/all -1.2/e0.85  zero/all -30.0/e0.78  random_donor/all -0.0/e1.00  removed -18.4/e0.98
+graph 402: base T 100.0  average/all -5.4/e0.97  noise/all -100.0/e0.00  zero/all -99.9/e0.03  random_donor/all -76.1/e1.00  removed -99.8/e0.05
+graph 403: base T 100.0  average/all -39.7/e0.95  noise/all -99.9/e0.00  zero/all -99.9/e0.00  random_donor/all -90.5/e1.00  removed -99.9/e0.00
+graph 404: base T 88.4  average/all -40.0/e0.98  noise/all +3.2/e1.00  zero/all +5.2/e0.94  random_donor/all -56.5/e1.00  removed -45.1/e1.00
+graph 405: base T 100.0  average/all -0.0/e0.93  noise/all -9.4/e0.61  zero/all -15.3/e0.85  random_donor/all -1.6/e1.00  removed -99.8/e0.01
+graph 406: base T 100.0  average/all -99.6/e0.60  noise/all +0.0/e0.00  zero/all -0.2/e0.00  random_donor/all -18.8/e1.00  removed +0.0/e0.00
+graph 407: base T 100.0  average/all -10.0/e0.95  noise/all -0.7/e0.01  zero/all -5.4/e0.30  random_donor/all -78.7/e1.00  removed -82.5/e0.03
+graph 408: base T 81.1  average/all -14.6/e0.94  noise/all -81.1/e0.00  zero/all -81.1/e0.00  random_donor/all -77.4/e1.00  removed -81.1/e0.00
+graph 409: base T 100.0  average/all -3.1/e0.97  noise/all -95.5/e0.02  zero/all -40.4/e0.88  random_donor/all -75.7/e1.00  removed -95.7/e0.00
+written: /Users/ecaterina/Developer/phoenix/results/seed0/necessity_pilot.json
