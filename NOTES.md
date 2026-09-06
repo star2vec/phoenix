@@ -6,15 +6,18 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 ## Status
 
+- Experiment 0 pilot on seed 0 is done (see its block); n=100 waits for the
+  go-ahead. Two open decisions: the subtraction set, and whether to add the
+  same-answer donor to every driver's standing controls.
 - Code for experiments 0-4 is written and tested (`tests/`: bit-exact
   equivalence with hooks idle, prompt renderer byte-identical to the vendor
   builder, hook plumbing, and every driver end to end on random weights; the
   smoke test writes to a scratch directory, not to `results/`). No
   experiment has run. `scripts/make_numbers.py` macros get registered once
-  result files exist. No trained checkpoint is on this
-  machine: `ckpts/seed0/best.pt` and `ckpts/seed1/best.pt` come from the
-  laptop. Every driver checks for its checkpoint and stops with a message if
-  it is missing.
+  result files exist. No trained checkpoint was on this
+  machine until 2026-09-06 02:17; `ckpts/seed0/best.pt` and
+  `ckpts/seed1/best.pt` now come from the laptop. Every driver checks for its
+  checkpoint and stops with a message if it is missing.
 - Retraining with periodic checkpoints (`train.py --save-every`) happens on
   the laptop when the user says so. Claude never launches training or a
   pilot.
@@ -121,9 +124,56 @@ a large negative change in T with low e, label-swap near zero, random donor
 with high e, final-step swap near -100 and intermediate swaps near zero.
 Position story: all of the above. Identity story: all of the above.
 
-Pilot outcome: (not run)
-What the pilot changed: (not run)
-n=100 outcome: (not run)
+Pilot outcome (seed 0, 2026-09-06; files in `results/seed0/`):
+- Accuracy 92.4 (387 of 419; paper 94.5), ordering correct at all four steps
+  (`evaluation.json`).
+- Probes: 23 nodes, median held-out AUC 0.9972, minimum 0.63 (paper 0.9979
+  and 0.63; `probe_basis_report.json`).
+- Causal-Jacobian basis: cross-graph concentration by step 0.50, 0.49, 0.71,
+  0.93 and cosine to token embeddings 0.41, 0.55, 0.77, 0.78, the same as the
+  paper's Table 14 to two decimals (`jlens_basis_report.json`).
+- Final-step swap: median -100.0 on 10 of 10; swaps at each intermediate step
+  within 0.2 of zero (`baseline_swap_pilot.json`; paper -99.97 and ~0).
+- Transplants on training graphs 0-9 (`baseline_transplant_pilot.json`):
+  matched donor at intermediate steps median -98.4, interval [-99.7, -25.8],
+  7 of 10 flipped, median e 0.001, and 2 graphs escaped (e 0.85, 0.93)
+  instead of flipping (paper -91.7, e 0.002); first step only -7.2 (paper
+  -2.9); final step only -99.8 (paper -99.95); all steps -99.9 (paper
+  -99.97); label swap -0.0 with 1 of 10 flipped (paper -0.0, 2 percent);
+  placebo 0.0; interior swap median -0.0 with 2 of 10 flipped (paper -0.08);
+  random donor median -99.3 with median e 0.58, 6 of 10 flipped, 5 of 10
+  escaped (paper -30.4, e 0.98). Reserialized baseline and self-transplant
+  exactly zero.
+- Subtraction on `data/eval_graphs.json` graphs 0-9: not interpretable. The
+  model answers the decoy or a non-candidate on most of these graphs (119 of
+  500 correct over the whole file; the renderer matches the vendor path
+  exactly, so this is the model, not the code). Where baseline T is high the
+  subtraction is 0.0 in both bases (`baseline_subtraction_pilot.json`).
+
+What the pilot changed:
+- The matched donor was mis-specified as a graph with the same correct
+  answer; the paper's matched donor is a graph with the same two candidates
+  whose correct answer is the recipient's decoy. Fixed in `baseline.py`; the
+  same-answer donor is kept as a control (see the next point).
+- New observation on this model: a clean flip with low escape is not by
+  itself redirection. The same-answer donor, which can only break the search,
+  flips 4 of 10 graphs with e near 0 (median -25.6), and the random donor
+  flips 4 graphs with e below 0.3. When the search does not find the target,
+  this model often answers the other candidate. Consequence for experiment
+  3's reading: a cell "breaks" if it moves T or e; whether a flip is a
+  redirection or a fallback is decided by comparing, per graph, with the
+  same-answer donor and the random donor. The four-outcome reading below is
+  amended accordingly.
+- The synthetic eval set is off-distribution for this model. Every ProsQA
+  root is token 0 or 1, candidates are never 0 or 1, and the name tokens have
+  no in-edges; the generator shuffles all labels. Relabeling the root to a
+  name token lifts accuracy on the file from 119 to 179 of 500 only, so other
+  conventions matter too (in ProsQA the unreachable component hangs off the
+  second name token). Decision pending: either rebuild the generator to
+  follow the ProsQA conventions and re-pilot, or run the subtraction on
+  natural test graphs where the target's depth-1 ancestor is unique.
+
+n=100 outcome: (not run; waiting for the go-ahead)
 
 ## Experiment 1: necessity, done properly
 
@@ -235,6 +285,13 @@ Reading of the four outcomes of the mirror pair (written before the pilot):
    rather than to 0, and the unreachable-edges reorder stays at the
    reserialized baseline. If both cells destroy but the unreachable-edges
    reorder does not, the code is mixed and both cues are load-bearing.
+Amendment after the experiment-0 pilot: on this model a broken search often
+ends in a clean flip to the other candidate (same-answer donor: 4 of 10 flip
+with e near 0). So "breaks" means T or e moved; a flip counts as
+redirection only if the same graph does not also flip under the same-answer
+donor. The escape-level comparison in reading 3 uses the random donor's e
+and the same-answer donor's outcome as the two references, per graph.
+
 4. Neither breaks. The fixed intermediate thoughts are not what the final
    steps consume, at least not slot-wise or name-wise. Check the random
    donor at intermediates first: if it breaks (as in the paper) while

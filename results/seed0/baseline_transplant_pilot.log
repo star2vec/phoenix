@@ -1,0 +1,11 @@
+train graph 0: base T 100.0  matched_donor/intermediates -99.6/e0.00  matched_donor/final -100.0/e0.00  same_answer_donor/intermediates -98.3/e0.00  label_swap/intermediates -98.6/e0.00  random_donor/intermediates -99.2/e0.47
+train graph 1: base T 99.9  matched_donor/intermediates -99.9/e0.00  matched_donor/final -99.9/e0.00  same_answer_donor/intermediates -95.6/e0.00  label_swap/intermediates -0.0/e0.00  random_donor/intermediates -99.7/e1.00
+train graph 2: base T 100.0  matched_donor/intermediates -25.8/e0.01  matched_donor/final -99.9/e0.00  same_answer_donor/intermediates -45.0/e0.03  label_swap/intermediates -0.0/e0.00  random_donor/intermediates -0.0/e0.86
+train graph 3: base T 100.0  matched_donor/intermediates -3.8/e0.85  matched_donor/final -95.6/e0.00  same_answer_donor/intermediates -0.0/e0.00  label_swap/intermediates -0.0/e0.00  random_donor/intermediates -0.3/e1.00
+train graph 4: base T 100.0  matched_donor/intermediates -98.5/e0.00  matched_donor/final -99.7/e0.00  same_answer_donor/intermediates -0.0/e0.00  label_swap/intermediates -0.0/e0.00  random_donor/intermediates +0.0/e0.68
+train graph 5: base T 99.8  matched_donor/intermediates -99.7/e0.01  matched_donor/final -99.3/e0.28  same_answer_donor/intermediates -80.4/e0.07  label_swap/intermediates +0.1/e0.00  random_donor/intermediates -99.8/e0.26
+train graph 6: base T 100.0  matched_donor/intermediates -100.0/e0.00  matched_donor/final -100.0/e0.00  same_answer_donor/intermediates -91.8/e0.07  label_swap/intermediates -0.0/e0.00  random_donor/intermediates -100.0/e0.18
+train graph 7: base T 100.0  matched_donor/intermediates -0.6/e0.93  matched_donor/final -97.9/e0.00  same_answer_donor/intermediates -6.3/e0.00  label_swap/intermediates -0.0/e0.00  random_donor/intermediates -22.5/e1.00
+train graph 8: base T 99.9  matched_donor/intermediates -98.3/e0.00  matched_donor/final -99.8/e0.00  same_answer_donor/intermediates +0.1/e0.00  label_swap/intermediates +0.0/e0.00  random_donor/intermediates -99.5/e0.01
+train graph 9: base T 100.0  matched_donor/intermediates -84.1/e0.00  matched_donor/final -99.8/e0.00  same_answer_donor/intermediates -1.2/e0.03  label_swap/intermediates -0.0/e0.00  random_donor/intermediates -99.6/e0.06
+written: /Users/ecaterina/Developer/phoenix/results/seed0/baseline_transplant_pilot.json

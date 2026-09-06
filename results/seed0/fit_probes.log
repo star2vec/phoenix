@@ -1,0 +1,35 @@
+extracting step-1 thoughts from 14785 training graphs ...
+  2000/14785
+  4000/14785
+  6000/14785
+  8000/14785
+  10000/14785
+  12000/14785
+  14000/14785
+node   2: n_fit  14285 pos  8071 holdout AUC 1.0000
+node   3: n_fit  14285 pos  6683 holdout AUC 0.9996
+node   4: n_fit  14285 pos  5398 holdout AUC 0.9999
+node   5: n_fit  14285 pos  4226 holdout AUC 1.0000
+node   6: n_fit  14285 pos  3529 holdout AUC 1.0000
+node   7: n_fit  14285 pos  2772 holdout AUC 1.0000
+node   8: n_fit  14285 pos  2265 holdout AUC 1.0000
+node   9: n_fit  14285 pos  1817 holdout AUC 1.0000
+node  10: n_fit  14285 pos  1493 holdout AUC 0.9998
+node  11: n_fit  14285 pos  1205 holdout AUC 0.9995
+node  12: n_fit  14285 pos  1043 holdout AUC 0.9996
+node  13: n_fit  14285 pos   871 holdout AUC 0.9972
+node  14: n_fit  14282 pos   775 holdout AUC 0.9664
+node  15: n_fit  14276 pos   654 holdout AUC 0.9740
+node  16: n_fit  14246 pos   566 holdout AUC 0.9045
+node  17: n_fit  14177 pos   547 holdout AUC 0.9748
+node  18: n_fit  13935 pos   472 holdout AUC 0.8015
+node  19: n_fit  13391 pos   395 holdout AUC 0.8812
+node  20: n_fit  12314 pos   329 holdout AUC 0.8514
+node  21: n_fit  10549 pos   265 holdout AUC 0.7258
+node  22: n_fit   8158 pos   171 holdout AUC 0.6312
+node  23: n_fit   5469 pos   121 holdout AUC 0.7419
+node  24: n_fit   2941 pos    70 holdout AUC 0.7845
+
+probed 23 nodes; median holdout AUC 0.9972, min 0.6312
+written: /Users/ecaterina/Developer/phoenix/results/seed0/probe_basis.pt
+exit 0

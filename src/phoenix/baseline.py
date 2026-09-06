@@ -6,9 +6,11 @@ Three parts, on the paper's own sets so the numbers are comparable:
                direction (input-embedding basis; probe basis) with the
                matched random-direction control, and the sibling-branch
                subtraction, norm-preserving as in the paper.
-  transplant   training graphs 0-99: matched donor (same candidates and
-               solution length, different graph) at intermediate steps, first
-               step only, final step only, all steps; label-swap donor;
+  transplant   training graphs 0-99: matched donor (same two candidates and
+               solution length, different graph, correct answer = the
+               recipient's decoy) at intermediate steps, first step only,
+               final step only, all steps; same-answer donor (control: can
+               only break, not redirect); label-swap donor;
                placebo swap; interior swap; random donor; self-transplant;
                reserialized baseline.
   swap         training graphs 0-99: swap the target and decoy directions of
@@ -121,20 +123,27 @@ def run_transplant(runner, graphs, train, base_seed=0):
         cell("self_transplant", measure(runner, pr, fixed(own, all_passes(K))))
         assert cells["self_transplant"]["dT"] == 0.0
 
-        # matched donor: same candidates and solution length, a different graph
+        # matched donor (the paper's): a different graph with the same two
+        # candidates and solution length whose correct answer is the
+        # recipient's decoy, so a transplant that carries the donor's search
+        # switches the answer. The same-answer donor (correct answer = the
+        # recipient's target) is kept as a control: it can only move the
+        # answer by breaking the search, never by redirecting it.
         pool = [d for j, d in enumerate(train) if j != gi]
-        donor = find_donor(pool, s["target"], s["neg_target"], K)
-        if donor is None:
-            for v in ("intermediates", "first", "final", "all"):
-                cells[f"matched_donor/{v}"] = {"skipped": True, "reason": "no_matched_donor"}
-        else:
+        for name, tgt, dec in (("matched_donor", s["neg_target"], s["target"]),
+                               ("same_answer_donor", s["target"], s["neg_target"])):
+            donor = find_donor(pool, tgt, dec, K)
+            variants = ("intermediates", "first", "final", "all") if name == "matched_donor" else ("intermediates",)
+            if donor is None:
+                for v in variants:
+                    cells[f"{name}/{v}"] = {"skipped": True, "reason": f"no_{name}"}
+                continue
             d_gi = train.index(donor)
             _, dth = donor_run(runner, train, d_gi, base_seed)
-            info["matched_donor_gi"] = d_gi
-            cell("matched_donor/intermediates", measure(runner, pr, fixed(dth, intermediates(K))))
-            cell("matched_donor/first", measure(runner, pr, fixed(dth, [0])))
-            cell("matched_donor/final", measure(runner, pr, fixed(dth, [K - 1])))
-            cell("matched_donor/all", measure(runner, pr, fixed(dth, all_passes(K))))
+            info[f"{name}_gi"] = d_gi
+            passes = {"intermediates": intermediates(K), "first": [0], "final": [K - 1], "all": all_passes(K)}
+            for v in variants:
+                cell(f"{name}/{v}", measure(runner, pr, fixed(dth, passes[v])))
 
         # label-surgery donors under the same pinned serialization
         for name, pair_fn in (("label_swap", lambda: (pr.target, pr.decoy)),
@@ -158,7 +167,8 @@ def run_transplant(runner, graphs, train, base_seed=0):
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base, "info": info, "cells": cells})
         print(f"train graph {gi}: base T {base['T']:.1f}  " + "  ".join(
             f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in
-            ("matched_donor/intermediates", "label_swap/intermediates", "random_donor/intermediates")
+            ("matched_donor/intermediates", "matched_donor/final", "same_answer_donor/intermediates",
+             "label_swap/intermediates", "random_donor/intermediates")
             if not cells.get(n, {}).get("skipped")))
     return {"rows": rows, "summary": summarize(rows, names), "cells": names}
 
