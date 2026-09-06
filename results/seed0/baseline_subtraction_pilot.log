@@ -1,0 +1,10 @@
+test graph 400: base T 100.0  subtract_answer/input_embedding -0.27  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding +0.00
+test graph 402: base T 100.0  subtract_answer/input_embedding -0.00  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00
+test graph 403: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.02  subtract_answer/probe -0.02
+test graph 404: base T 88.4  subtract_answer/input_embedding +0.86  subtract_answer/random_matched -0.43  subtract_answer/probe -0.22  subtract_sibling/input_embedding -1.48
+test graph 405: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe +0.00  subtract_sibling/input_embedding +0.00
+test graph 406: base T 100.0  subtract_answer/input_embedding -0.01  subtract_answer/random_matched -0.00  subtract_answer/probe -0.00
+test graph 407: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched -0.00  subtract_answer/probe +0.00
+test graph 408: base T 81.1  subtract_answer/input_embedding -10.08  subtract_answer/random_matched +8.70  subtract_answer/probe +3.72  subtract_sibling/input_embedding +0.89
+test graph 409: base T 100.0  subtract_answer/input_embedding +0.00  subtract_answer/random_matched +0.00  subtract_answer/probe -0.00  subtract_sibling/input_embedding -0.00
+written: /Users/ecaterina/Developer/phoenix/results/seed0/baseline_subtraction_pilot.json

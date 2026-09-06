@@ -187,9 +187,47 @@ What the pilot changed:
   the vendor evaluation draws each graph's edge order from the unseeded
   global RNG, so every run sees different prompts. Evaluated under pinned
   serialization seeds 0-3 (`evaluate.py --serialization-seed`, files
-  `evaluation_ser<seed>.json`): ACCURACY_SPREAD_PLACEHOLDER
+  `evaluation_ser<seed>.json`): 396, 393, 390 and 388
+  of 419, that is 94.51, 93.79, 93.08 and 92.60, ordering correct at every
+  step under every seed; the unseeded run gave 387 (92.36). The paper's 94.5
+  is inside this spread (it equals the seed-0 value), so the gap is
+  serialization variance, not a different model. Go-ahead for n=100 on both
+  seeds for everything that reproduced (2026-09-06).
 
-n=100 outcome: (see below)
+Subtraction pilot under the new design (seed 0, test graphs 400-409, 9 with
+a unique ancestor; `baseline_subtraction_pilot.json`): median change 0.0 in
+the input-embedding and probe bases and under the random-direction control;
+one low-confidence graph (base T 81) moved by about 10 in both the real and
+the random cell. Same pattern as the paper; nothing changed after this pilot.
+
+n=100 outcome, seed 0 (files in `results/seed0/`):
+- Transplants, training graphs 0-99 (`baseline_transplant_n100.json`):
+  matched donor at intermediate steps median -95.1 [-98.2, -75.0], 61
+  percent flipped [52, 71], median e 0.002 (paper -91.7, e 0.002); first
+  step only -1.2 (paper -2.9); final step only -99.9, 97 percent flipped
+  (paper -99.95); all steps -100.0 (paper -99.97); label swap -0.0, 1 percent
+  flipped (paper -0.0, 2 percent); placebo 0.0; interior swap -0.1, 16
+  percent flipped (paper -0.08); random donor -20.4, median e 0.92, 64
+  percent escaped (paper -30.4, e 0.98). Reserialized and self-transplant
+  exactly zero on all 100.
+- Same-answer donor at intermediate steps (the new standing reference):
+  median -0.7, 28 percent flipped [19, 37] with e near 0. Against that
+  rate the matched donor's flips exceed the reference by +0.33 [+0.20,
+  +0.44] (39 percent redirected), the final-step transplant by +0.68 [+0.59,
+  +0.78], while the first-step transplant (+0.04 [-0.08, +0.17]) and the
+  interior swap (-0.11) do not exceed it: their flips are fallback, not
+  redirection.
+- Final-step swap (`baseline_swap_n100.json`): median -100.0, 98 percent
+  flipped (paper -99.97); swaps at each intermediate step median -0.0.
+- Subtraction on natural test graphs 0-99, 68 with a unique ancestor
+  (`baseline_subtraction_n100.json`): median change -0.00 [-0.00, -0.00] in
+  the input-embedding basis, the probe basis, the random-direction control
+  and the sibling subtraction; means -4.7 and -3.6 for the two answer-branch
+  bases come from 3-4 low-confidence graphs (11 of 68 have base T below 90).
+  The paper's null reproduces.
+
+n=100 outcome, seed 1: chain running (evaluation under seeds 0-3, probes,
+Jacobian basis, transplant, swap; then subtraction).
 
 ## Experiment 1: necessity, done properly
 
