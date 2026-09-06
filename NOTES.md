@@ -4,6 +4,12 @@ Running notes for the position-vs-identity study. A fresh session should be
 able to pick up from this file alone. Literature is in `lit/NOTES.md`; the
 preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
+## Amendments
+
+Dated amendments live in `DECISIONS.md`. Amendment 1 (2026-09-06): retrain
+on a dataset with labels assigned uniformly at random per graph, so the two
+blocked label-based cells of experiment 3 can run; written, not started.
+
 ## Status
 
 - Experiments 0 to 4 are complete at n=100 on both seeds (2026-09-06).
