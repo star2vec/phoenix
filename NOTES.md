@@ -6,9 +6,8 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 ## Status
 
-- Experiment 0 is complete at n=100 on both seeds (see its block).
-  Experiments 1 and 2 are piloted on seed 0 (see their blocks); their n=100
-  runs wait for the go-ahead. Experiments 3 and 4 are not yet piloted.
+- Experiments 0, 1 and 2 are complete at n=100 on both seeds (see their
+  blocks). Experiments 3 and 4: pilots on seed 0 in progress.
 - Code for experiments 0-4 is written and tested (`tests/`: bit-exact
   equivalence with hooks idle, prompt renderer byte-identical to the vendor
   builder, hook plumbing, and every driver end to end on random weights; the
@@ -287,7 +286,22 @@ What the pilot changed: nothing in the design. Two observations to carry:
 substitutes that contain node content (average, random donor) break by
 escape onto other nodes, substitutes without it (noise, zero) break by
 fallback flips; and "thought removed" is a systematic decoy answer.
-n=100 outcome: (not run)
+n=100 outcome (both seeds; `results/seed0/necessity_n100.json`,
+`results/seed1/necessity_n100.json`): every substitute breaks on both seeds.
+At all K passes, medians on seed 0 / seed 1: average thought -14.0 / -22.1,
+noise -13.6 / -11.7, zero -25.4 / -19.1, random donor -16.4 / -37.3; flip
+rates 34-43 percent, escape 29-90 percent. The same-answer donor at all K
+flips nothing on either seed (its final thought carries the shared answer),
+so all of those flips exceed the all-K reference (+0.35 to +0.44). At the
+intermediate passes the same-answer donor flips 19 / 26 percent and the
+substitutes exceed it by +0.11 to +0.27. Removing the latent tokens: -15.7 /
+-23.6 with 40 / 42 percent flipped; the pilot's "decoy on 7 of 10" was the
+small sample (decoy mass 0.22 / 0.27 at n=100). Pad tokens in place of the
+latents: -13.2 / -9.2. Where the mass goes replicates: node-bearing
+substitutes put 0.58-0.79 of the probability on other node tokens on both
+seeds; noise puts 0.30-0.43 there. Self-transplant and reserialized exactly
+zero on all 200 runs. Conclusion: the thought is necessary and informative
+on both seeds, as the paper found; no story-separating content here.
 
 ## Experiment 2: which heads look by position and which by content
 
@@ -336,7 +350,29 @@ What the pilot changed: the heads driver now also measures separator-token
 queries (the "|" token can see both endpoints of its edge) and reports each
 head's mass on the first and last slot, so positional heads can be located.
 Scores and cutoffs unchanged.
-n=100 outcome: (not run)
+n=100 outcome (both seeds; `results/seed0/heads_n100.json`,
+`results/seed1/heads_n100.json`):
+- Intermediate latents, layer 2: all 8 heads on both seeds carry 0.89-0.98 of
+  their attention on edge slots and follow the edges. Content scores 0.85-0.90
+  (seed 0; intervals within [0.82, 0.92]) and 0.91-0.94 (seed 1; within
+  [0.88, 0.96]); position scores between -0.02 and +0.03 on both. The identity
+  story's prediction holds for every layer-2 head on both seeds; the position
+  story's is rejected. The same holds at the last latent and, for the
+  edge-reading layer-2 heads, at the answer position.
+- Layer 1 at the intermediate latents: edge-reading heads mixed (content
+  0.47-0.71, position 0.23-0.42); the heads with position scores above 0.6
+  carry 0.02-0.36 slot mass.
+- Zhu et al.'s layer-1 copy is at the separator token: from the "|" token,
+  seven of eight layer-1 heads on seed 0 (0.90-0.94) and all eight on seed 1
+  (0.95-0.96) put their attention inside the edge's own slot; from the
+  edge's target token only 0.05-0.11. Layer 2 does not copy (0.03-0.08).
+- A purely positional layer-1 head sits at the answer position on both seeds
+  (seed 0 head 2: mass 0.99, position 0.99, content 0.00; seed 1 head 0:
+  mass 0.97, position 0.87, content 0.05); it attends neither to the first
+  nor the last slot in particular (0.06 and 0.00 of its mass), so it spreads
+  over slots by position. What it does is an open item for experiment 4.
+Conclusion: the layer-2 query built from a mid-search thought matches edges
+by content, not by slot, on both seeds.
 
 ## Experiment 3: the counterfactual set (thought fixed, one thing changed)
 

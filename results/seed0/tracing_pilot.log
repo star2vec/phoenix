@@ -1,0 +1,3 @@
+graph 400 candidate_swap: clean T 100.0 corrupted T 0.0 (changed slots [3, 5, 12, 26, 30])
+graph 401 candidate_swap: clean T 97.0 corrupted T 0.5 (changed slots [3, 9, 29])
+graph 402 candidate_swap: clean T 100.0 corrupted T 0.1 (changed slots [12, 19, 22])
