@@ -53,17 +53,18 @@ hyperparameter unchanged, and rerun the blocked cells on the retrained model.
   serialization seeds 0 to 3, as for the original model. The inner-product
   readout counts only the node tokens present in the graph (with random
   labels the unused tokens are no longer the top of the id range).
-- **Cells rerun on the retrained model, n=100, both seeds, recipients = test
-  graphs 0-99 of the relabeled split, pilot on test graphs 400-409 first:**
-  labels renamed (free, intermediates fixed, all K fixed); edges reordered
-  (three variants) and the decoy swap (three variants) as sanity
-  replications. Standing controls as in experiment 3: reserialized baseline
-  and self-transplant (must be zero), random donor (breaking reference),
-  same-answer donor (fallback reference for flips), and matched random
-  directions for any cell that removes directions. Results under
-  `results/seed{0,1}/relabel/`; the driver checkpoints each graph to a
-  rows file and resumes, as tracing does. Existing results directories and
-  the experiment 5 hooks are not touched.
+- **Cells rerun on the retrained model.** Sample size: n=100 graphs on each
+  of the two seeds (recipients = test graphs 0-99 of the relabeled split),
+  after a pilot on test graphs 400-409 of seed 0. Cells: labels renamed
+  (free, intermediates fixed, all K fixed); edges reordered (three variants)
+  and the decoy swap (three variants) as sanity replications. Standing
+  controls for this rerun: reserialized baseline and self-transplant (must
+  be zero), random donor (breaking reference), same-answer donor (fallback
+  reference for flips). No cell in this rerun removes directions, so the
+  matched-random-direction control of experiment 3 does not apply and is
+  not listed. Results under `results/seed{0,1}/relabel/`; the driver
+  checkpoints each graph to a rows file and resumes, as tracing does.
+  Existing results directories and the experiment 5 hooks are not touched.
 - **Relabeling used inside the cells.** On the retrained model the renamed
   prompt is a uniformly random derangement of every present node over the
   31 tokens (no name convention to respect). The derangement is drawn so
@@ -72,9 +73,10 @@ hyperparameter unchanged, and rerun the blocked cells on the retrained model.
 
 ### Predictions, written before anything is run
 
-The position story is already refuted (experiments 2, 3 and 4, n=100, both
-seeds) and predicts nothing here. Lines below are the identity story's, plus
-what confirms or refutes the label-depth explanation itself.
+All cell predictions below are for n=100 graphs on each of the two retrained
+seeds. The position story is already refuted (experiments 2, 3 and 4, n=100,
+both seeds) and predicts nothing here. Lines below are the identity story's,
+plus what confirms or refutes the label-depth explanation itself.
 
 1. **Clean accuracy.** The retrained model reaches held-out accuracy within
    the original model's serialization spread, 92.6 to 96.7, and the readout
@@ -120,6 +122,19 @@ test and the amendment stops there.
 Two retrains on the laptop (about 6 to 10 hours each at the earlier
 estimate), one regenerated dataset, then about 30 minutes of CPU per seed
 for the evaluation and the cells.
+
+### Earmarked, not part of this amendment
+
+Query-key replication on the retrained model. It answers a different
+question (is the query-key result, attention removable but answer unmoved,
+an artifact of breadth-first labeling?) and needs every per-head direction
+re-derived on the new model, so it is not bundled with the gated cells
+above. Sequencing: run this amendment as written; if predictions 2 to 4
+hold and the write-up will claim the query-key finding generalizes beyond
+the original labeling, add a single-seed query-key replication afterwards
+as its own small logged entry here, with its matched-random-direction
+control. Worth doing if wall time is cheap; it is insurance for that
+headline result.
 
 ### Outcome
 
