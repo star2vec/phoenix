@@ -6,9 +6,8 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 ## Status
 
-- Experiments 0, 1 and 2 are complete at n=100 on both seeds. Experiments 3
-  and 4b are at n=100 on seed 0; seed 1 and both tracing runs are in
-  progress (tracing is resumable per graph after a memory kill).
+- Experiments 0, 1, 2, 3 and 4b are complete at n=100 on both seeds; 4a is
+  complete on seed 0 and running on seed 1 (resumable per graph).
 - Finding worth its own line: ProsQA assigns concept ids in breadth-first
   order and the model uses label id as a depth cue, so consistent
   relabelings are off-distribution for it (experiment 3 block). This is why
@@ -643,6 +642,32 @@ flipped, 81 escaped) while layer-2 values at the latents and every
 intermediate-latent slice do nothing. Only the final latent's layer-1 values
 carry the answer to the answer position. Self patch exactly zero.
 
+n=100 outcome, experiment 3, seed 1 (`results/seed1/counterfactuals_n100.json`):
+replicates seed 0 on every cell. Reordered, unreachable-only reorder, decoy
+swap and non-candidate swap: no effect in any variant (p_watch 0.000 on all
+100). Last-hop rewrite with all K fixed keeps the old answer on 68 of 68;
+with thoughts free this model follows the edit on 53 percent (seed 0: 29).
+Renamed (exploration): fixing the thoughts again adds escape beyond the free
+twin, +0.19 [+0.11, +0.27] moves at intermediates and +0.28 [+0.20, +0.37]
+at all K, flips unchanged. Query-key subtraction, last step: the answer
+edge's attention falls 2.54 to 0.37 (drop 2.17 [1.95, 2.39]), controls flat;
+the answer -3.2 median, 15 percent flipped, -0.10 [-0.19, 0.00] beyond the
+same-answer reference (26 percent). Every step: attention 2.54 to 0.13, mean
+per-step path drop 1.99; answer -3.9, 22 percent flipped, -0.03 [-0.15,
++0.09] beyond the reference. No single head flips beyond the reference on
+either seed. Same-answer donor at all K: no flips. Reserialized and
+self-transplant exactly zero.
+
+n=100 outcome, experiment 4b, seed 1 (`results/seed1/cache_patch_n100.json`):
+replicates seed 0. Consistent patches from the reordered graph: no effect
+(edges, any layer, keys and values together: 1 to 3 percent flipped; latent
+slices 0 to 1). Layer-2 keys only -34.0, 43 percent flipped, +0.18 [+0.05,
++0.32] beyond the reference; layer-2 values only -19.4, 35 percent, +0.10
+[-0.03, +0.22]. Random-graph cache at the edge slots breaks (40 to 44
+percent flipped); layer-1 values at all latents -61.8 with e 1.00 (52
+percent flipped, 81 escaped); layer-2 values at the latents and every
+intermediate-latent slice do nothing. Self patch exactly zero.
+
 Availability (from `tests/test_prompts.py` on training graphs 0-299, so the
 n=100 cells will have skips): reorder, rename, unreachable-only reorder,
 decoy swap and candidate swap are constructible on every graph; the last-hop
@@ -775,8 +800,21 @@ Pilot outcome, 4b (`results/seed0/cache_patch_pilot.json`):
   the latents and every intermediate-latent slice do nothing. Only the final
   latent's layer-1 values carry the answer to the answer position, matching
   4a. Self patch exactly zero; same-answer donor 2 of 10.
-What the pilot changed: nothing in the design of 4a or 4b.
-n=100 outcome: (not run; waiting for the go-ahead)
+What the pilot changed: nothing in the design of 4a or 4b. After a memory
+kill lost a near-complete run, tracing now saves each graph as it finishes
+and resumes (`tracing_<mode>_rows.jsonl`).
+n=100 outcome, 4a, seed 0 (`results/seed0/tracing_n100.json`; candidate swap
+on 100 graphs, last-hop rewrite on 68). Mean recovery: final latent at level
+0 (the final thought plus its position embedding) 0.98 [0.96, 0.99] and 0.95;
+its levels 1 and 2, 0.00. Intermediate latents: levels 0 and 1, 0.08 and
+-0.04; level 2 (the output that becomes the next thought), 0.47 and 0.34.
+Changed edge slots: target token at level 0, 0.34 (several slots change
+under the candidate swap) and 1.00 (one slot under the rewrite); separator at
+level 1, 0.31 and 0.96; source token 0.00. Candidates, root, unchanged
+slots: 0.00 (root at level 2 under the swap 0.03). The pilot's map holds at
+n=100. Seed 1: TRACING_SEED1_PLACEHOLDER
+n=100 outcome, 4b: see the experiment 3 block's neighbour above and the
+seed-0 block ("n=100 outcome, experiment 4b, seed 0").
 
 ## Experiment 5: later, only if 1-4 favor one story
 
