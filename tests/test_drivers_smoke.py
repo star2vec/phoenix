@@ -65,6 +65,13 @@ def main():
     assert "same_answer_donor/intermediates" in res["cells"]
     r0 = res["rows"][0]["cells"]
     assert r0["self_transplant"]["dT"] == 0.0
+    assert "qk_subtract/answer_edge/all_heads" in res["cells"] and "qk_subtract/random_matched/head0" in res["cells"]
+    qk = res["rows"][0]["cells"]["qk_subtract/answer_edge/all_heads"]
+    assert "attn_answer_total_before" in qk and "dT" in qk
+    assert "qk_subtract/answer_edge/all_heads" in res["summary"]["qk_attention"]
+    m = res["rows"][0]["meta"]["qk"]
+    assert len(m["coef_frac_per_head"]) == 8 and isinstance(m["query_position"], int)
+    assert m["edit_pass"] == res["rows"][0]["K"] - 2
     nc = [r["cells"]["noncandidate_swap/all"] for r in res["rows"] if not r["cells"]["noncandidate_swap/all"].get("skipped")]
     assert nc and "p_watch" in nc[0] and 0.0 <= nc[0]["p_watch"] <= 1.0
     if res["summary"]["reordered/intermediates"].get("redirection"):

@@ -15,6 +15,9 @@ Cells (each run three ways: thoughts free; intermediates fixed, passes
   rewrite_last           the cut edge into the target now points to the decoy
   rewrite_d<d>           a cut edge at depth d redirected so the decoy sits at
                          depth K (availability-limited; skips are counted)
+  qk_subtract/...        the query-key subtraction cells (see qk_cells.py):
+                         remove from thought K-1 the direction each layer-2
+                         head's query maps onto the answer edge's key
 Controls per graph: reserialized baseline, self-transplant (must be exactly
 zero), random donor and same-answer donor at intermediates and at all K. A
 flip counts as redirection only if the same graph did not flip under the
@@ -42,7 +45,9 @@ from prompts import (  # noqa: E402
     decoy_swap, noncandidate_swap, rename, reorder, reorder_unreachable,
     rewrite_at_depth,
 )
+from qk_cells import qk_attention_summary, qk_cells  # noqa: E402
 from sets import test_pin  # noqa: E402
+from common import graph_gen  # noqa: E402
 
 VARIANTS = ("free", "intermediates", "all")
 
@@ -105,12 +110,20 @@ def run(runner, recips, train, base_seed=0):
             for v in VARIANTS:
                 cell(f"{name}/{v}", measure(runner, cf, edits[v], watch=meta.get("watch")))
 
+        # query-key subtraction cells (eager path; dT against the eager baseline)
+        qk, qk_meta = qk_cells(runner, pr, own, base_seed, gi, runner.wte.detach(), graph_gen(base_seed, gi))
+        metas["qk"] = qk_meta
+        for name, sp in qk.items():
+            cells[name] = sp
+            if name not in cell_names:
+                cell_names.append(name)
+
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base,
                      "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None,
                      "meta": metas, "cells": cells})
         show = ["reordered/intermediates", "renamed/intermediates", "unreachable_reordered/intermediates",
                 "decoy_swap/all", "noncandidate_swap/all", "rewrite_last/all", "random_donor/intermediates",
-                "same_answer_donor/intermediates"]
+                "same_answer_donor/intermediates", "qk_subtract/answer_edge/all_heads"]
         print(f"graph {gi}: base T {base['T']:.1f}  " + "  ".join(
             f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in show if not cells[n].get("skipped")))
 
@@ -123,6 +136,7 @@ def run(runner, recips, train, base_seed=0):
             "complete": summarize_rows([c for c in comp if c["complete"]]),
             "partial": summarize_rows([c for c in comp if not c["complete"]]),
         }
+    summary["qk_attention"] = qk_attention_summary(rows, cell_names)
     return {"rows": rows, "summary": summary, "cells": cell_names}
 
 

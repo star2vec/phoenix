@@ -389,6 +389,39 @@ Cells and predictions:
 - Single-edge rewrite at depth d, intermediates fixed, stratified by d.
   Both stories: old answer if d < K-1, new answer if d = K-1. Exploration:
   how much of the search is committed by step K-1.
+- Query-key subtraction (added 2026-09-06 at the user's request, before the
+  pilot). The answer's edge is the edge (p, target) with p at depth K-1; it
+  is read by the layer-2 attention of the query built from thought K-1 (the
+  last intermediate thought, pass K-2). For each layer-2 head, the direction
+  in thought space that the head's query matrix maps onto that edge's key is
+  the query matrix applied to the key (the key averaged over the edge's
+  tokens with the head's own attention as weights), scaled by the layer-norm
+  gain and centered; this is the first-order direction, ignoring the norm
+  rescaling of the layer norm and layer 1's indirect response. The cell
+  subtracts that direction from thought K-1 (norm preserved, as the paper's
+  SUBTRACT), per head and for all eight heads at once (their span removed).
+  Controls: the same coefficients removed along matched random directions
+  (per head and for the span), and the same construction for a non-answer
+  edge (the frontier edge with the most attention that does not lead to the
+  target, else the most attended other edge). Recorded per run: each head's
+  attention from that query onto the answer's edge and the control edge,
+  before and after; the removed coefficient as a fraction of the thought
+  norm; the cosines between the eight directions and between each direction
+  and the input-embedding directions of p and of the target.
+  Identity story, read through attention geometry: attention to the answer's
+  edge drops and the answer flips above the same-answer reference rate
+  (redirection above zero), with the drop largest for the all-heads removal.
+  Position story: attention drops too if the pointer is linear in the
+  thought, since the direction is built from whatever the key carries; no
+  prediction on the answer. Both controls: no drop, no flips beyond the
+  reference. If nothing moves (attention unchanged, flips at the reference
+  rate), the thought's causal content is not in this linear query-key
+  geometry, which is where the paper's per-branch nulls would then be
+  located, and the cell says so.
+
+Pre-pilot note (2026-09-06): the predictions above and in experiment 4 stand
+as written; the same-answer donor is a standing control, and the
+non-candidate swap and query-key cells are included in the first pilot.
 
 Availability (from `tests/test_prompts.py` on training graphs 0-299, so the
 n=100 cells will have skips): reorder, rename, unreachable-only reorder,
