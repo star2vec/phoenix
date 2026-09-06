@@ -63,8 +63,11 @@ def main():
         assert f"reordered/{v}" in res["cells"] and f"renamed/{v}" in res["cells"]
         assert f"noncandidate_swap/{v}" in res["cells"]
     assert "same_answer_donor/intermediates" in res["cells"]
-    assert "parent_swap_km2/intermediates" in res["cells"] and "parent_swap_same_depth/free" in res["cells"]
     assert "beyond_free_twin" in res["summary"]
+    assert "qk_every_step/answer_path/all_heads" in res["cells"] and "qk_every_step/answer_path/head7" in res["cells"]
+    es = [r["cells"]["qk_every_step/answer_path/all_heads"] for r in res["rows"]
+          if not r["cells"]["qk_every_step/answer_path/all_heads"].get("skipped")]
+    assert es and len(es[0]["attn_path_after_per_step"]) == res["rows"][0]["K"] - 1
     r0 = res["rows"][0]["cells"]
     assert r0["self_transplant"]["dT"] == 0.0
     assert "qk_subtract/answer_edge/all_heads" in res["cells"] and "qk_subtract/random_matched/head0" in res["cells"]

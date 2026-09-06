@@ -1,33 +1,30 @@
 """Query-key subtraction cells for experiment 3 (predictions in NOTES.md).
 
-The answer's edge is the edge (p, target) with p at depth K-1. It is read by
-the layer-2 attention of the query built from thought K-1 (the last
-intermediate thought; pass K-2; latent position K-1). For each layer-2 head
-the direction in thought space that the head's query matrix maps onto that
-edge's key is
+For a query built from thought k+1 (latent position k+1; pass k), each
+layer-2 head h has a direction in thought space that its query matrix maps
+onto a chosen edge's key:
 
     u_h = unit( center( gain_ln * (W_Q^h @ k_h) ) )
 
 where k_h is the head's key averaged over the edge's tokens with the head's
 own attention as weights, W_Q^h the head's query columns of the layer's
 c_attn weight, and gain_ln the weight of the layer norm in front of the
-attention. This is the first-order direction: it ignores the layer norm's
-rescaling by the residual norm and layer 1's indirect response to a changed
-thought.
+attention. First-order: it ignores the layer norm's rescaling by the residual
+norm and layer 1's indirect response to a changed thought.
 
-Cells (all edits at pass K-2, norm preserved as in the paper's SUBTRACT):
-  qk_subtract/answer_edge/head<h>      remove u_h
-  qk_subtract/answer_edge/all_heads    remove the span of u_0..u_7
-  qk_subtract/random_matched/head<h>   same coefficient along a random unit
-  qk_subtract/random_matched/all_heads same coefficients along random
-                                       orthonormal directions
-  qk_subtract/nonanswer_edge/head<h>, /all_heads   the same construction for
-                                       a control edge (the frontier edge with
-                                       the most attention that does not lead
-                                       to the target, else the most attended
-                                       other edge)
-Every cell records each head's attention from that query onto the answer's
-edge and onto the control edge, before and after.
+Last-step cells (edit at pass K-2, the thought that reads the parent edge):
+  qk_subtract/answer_edge/head<h>, /all_heads
+  qk_subtract/random_matched/head<h>, /all_heads
+  qk_subtract/nonanswer_edge/head<h>, /all_heads
+Every-step cells (edit at every pass k = 0..K-2; at step k the edge is the
+most attended shortest-path edge from depth k+1 to depth k+2):
+  qk_every_step/answer_path/head<h>, /all_heads
+  qk_every_step/random_matched/all_heads
+  qk_every_step/nonpath_edge/all_heads  (skipped when some step has no
+                                         frontier edge off the answer path)
+Every cell records each head's attention from the edited step's query onto
+the answer edge and the control edge, before and after; every-step cells
+record the per-step attention on the answer-path edge.
 """
 
 import sys
@@ -39,7 +36,8 @@ import torch  # noqa: E402
 
 from attn_hooks import AttnHooks  # noqa: E402
 from edits import rand_orthonormal  # noqa: E402
-from measure import answer_split, at_passes, run_ids  # noqa: E402
+from measure import answer_split, run_ids  # noqa: E402
+from prompts import on_path_nodes  # noqa: E402
 
 LAYER = 1  # layer 2 (0-based block index)
 
@@ -49,8 +47,6 @@ def slot_tokens(slot):
 
 
 def head_direction(WQ, gain, h, hd, key_vec):
-    """Unit direction in pre-layer-norm residual space that raises head h's
-    attention logit on key_vec (first order)."""
     d = WQ[:, h * hd:(h + 1) * hd] @ key_vec
     d = d * gain
     d = d - d.mean()
@@ -58,8 +54,6 @@ def head_direction(WQ, gain, h, hd, key_vec):
 
 
 def weighted_key(kv_key, attn_row, positions):
-    """Key of an edge for one head: its tokens' keys averaged with the head's
-    attention on them (uniform when the head ignores the edge)."""
     w = attn_row[positions].clone()
     w = w / w.sum() if float(w.sum()) > 1e-8 else torch.full_like(w, 1.0 / len(positions))
     return (kv_key[positions, :] * w[:, None]).sum(0)
@@ -77,91 +71,95 @@ def recorded_run(runner, ids, thought_edit=None):
 
 
 def attention_on(rec, q, slot, n_heads):
-    """Per-head attention mass from query position q onto a slot's tokens."""
-    w = rec.attention(LAYER, q)  # (heads, k_len)
+    w = rec.attention(LAYER, q)
     return [float(w[h, slot_tokens(slot)].sum()) for h in range(n_heads)]
 
 
-def sub_dirs(units, rand=None):
-    """Norm-preserving removal of the span of `units` (list of unit vectors);
-    with `rand` (orthonormal (d, m)), the same coefficients are removed along
-    those directions instead (the matched random control)."""
+def span_removal(units, rand=None):
+    """Norm-preserving removal of the span of `units`; with `rand` the same
+    coefficients are removed along those orthonormal directions instead."""
     Q, _ = torch.linalg.qr(torch.stack(units, dim=1))
     Q = Q[:, :len(units)]
 
-    def f(k, t):
+    def f(t):
         c = Q.T @ t.to(Q)
         t2 = t - ((rand if rand is not None else Q) @ c).to(t)
         return t2 / t2.norm().clamp_min(1e-12) * t.norm()
     return f
 
 
+def per_pass_edit(edits_by_pass):
+    def f(k, t):
+        e = edits_by_pass.get(k)
+        return e(t) if e is not None else t
+    return f
+
+
+class _Geometry:
+    """Shared baseline run and direction builder for one graph."""
+
+    def __init__(self, runner, pr, ids):
+        base = runner.model.base_causallm
+        blk = base.transformer.h[LAYER]
+        self.n_heads, self.hd = blk.attn.num_heads, blk.attn.head_dim
+        self.WQ = blk.attn.c_attn.weight[:, :blk.attn.embed_dim].detach()
+        self.gain = blk.ln_1.weight.detach()
+        self.L = pr.layout()
+        logits0, self.rec0, kv0 = recorded_run(runner, ids)
+        self.base_split = answer_split(logits0, pr.target, pr.decoy)
+        self.key0 = kv0[LAYER][0]
+
+    def total_attention(self, q, slot_j):
+        return sum(attention_on(self.rec0, q, self.L["slots"][slot_j], self.n_heads))
+
+    def directions(self, q, slot_j):
+        pos = slot_tokens(self.L["slots"][slot_j])
+        w = self.rec0.attention(LAYER, q)
+        return [head_direction(self.WQ, self.gain, h, self.hd, weighted_key(self.key0[h], w[h], pos))
+                for h in range(self.n_heads)]
+
+
 def qk_cells(runner, pr, own, base_seed, gi, wte, gen):
-    """Returns (cells, meta). cells: name -> answer split with dT against the
-    eager baseline and the attention records."""
-    base = runner.model.base_causallm
-    blk = base.transformer.h[LAYER]
-    n_heads, hd = blk.attn.num_heads, blk.attn.head_dim
-    WQ = blk.attn.c_attn.weight[:, :blk.attn.embed_dim].detach()
-    gain = blk.ln_1.weight.detach()
-    K, L = pr.K, pr.layout()
-    q = L["latents"][K - 2]        # latent K-1 holds thought K-1
-    edit_pass = K - 2
-    ids = pr.ids(runner.tok)
+    """Last-step and every-step query-key cells. Returns (cells, meta)."""
+    K, ids = pr.K, pr.ids(runner.tok)
     d = pr.depths()
+    G = _Geometry(runner, pr, ids)
+    n_heads, L = G.n_heads, G.L
+    on = on_path_nodes(pr)
+    cells, meta = {}, {"baseline_eager": G.base_split}
 
-    logits0, rec0, kv0 = recorded_run(runner, ids)
-    base_split = answer_split(logits0, pr.target, pr.decoy)
-    key0 = kv0[LAYER][0]  # (heads, k_len, hd)
-
-    # answer edge: the most attended parent edge
+    # ---- last step: the parent edge, read by the query at latent K-1 ----
+    q = L["latents"][K - 2]
+    edit_pass = K - 2
     parents = pr.parent_slots()
     if not parents:
         return {}, {"skipped": True, "reason": "no_parent_edge_at_depth_K-1"}
-    tot = lambda j: sum(attention_on(rec0, q, L["slots"][j], n_heads))
-    ans = max(parents, key=tot)
-    # control edge: most attended frontier edge not into the target, else any other
+    ans = max(parents, key=lambda j: G.total_attention(q, j))
     frontier = [j for j, (s_, t) in enumerate(pr.edges)
                 if d.get(s_) == K - 1 and t != pr.target and j not in parents]
     others = [j for j in range(len(pr.edges)) if j not in parents]
-    ctrl = max(frontier, key=tot) if frontier else max(others, key=tot)
-    ctrl_is_frontier = bool(frontier)
-
-    def directions(slot_j):
-        slot = L["slots"][slot_j]
-        pos = slot_tokens(slot)
-        w = rec0.attention(LAYER, q)
-        return [head_direction(WQ, gain, h, hd, weighted_key(key0[h], w[h], pos)) for h in range(n_heads)]
-
-    u_ans = directions(ans)
-    u_ctrl = directions(ctrl)
+    ctrl = max(frontier, key=lambda j: G.total_attention(q, j)) if frontier else max(others, key=lambda j: G.total_attention(q, j))
+    u_ans, u_ctrl = G.directions(q, ans), G.directions(q, ctrl)
     t_edit = own[edit_pass].to(u_ans[0])
-    coef = [float(t_edit @ u) / float(t_edit.norm()) for u in u_ans]
     U = torch.stack(u_ans)
-    cos = U @ U.T
-    off = cos[~torch.eye(n_heads, dtype=bool)]
-    sv = torch.linalg.svdvals(U)
-    p_node = pr.edges[ans][0]
     unit = lambda v: v / v.norm()
-    meta = {
+    p_node = pr.edges[ans][0]
+    meta.update({
         "query_position": q, "edit_pass": edit_pass, "answer_slot": ans, "control_slot": ctrl,
-        "control_is_frontier_edge": ctrl_is_frontier, "n_parent_edges": len(parents),
-        "coef_frac_per_head": coef,
-        "mean_abs_cos_between_heads": float(off.abs().mean()),
-        "singular_values": [round(float(x), 3) for x in sv],
+        "control_is_frontier_edge": bool(frontier), "n_parent_edges": len(parents),
+        "coef_frac_per_head": [float(t_edit @ u) / float(t_edit.norm()) for u in u_ans],
+        "mean_abs_cos_between_heads": float((U @ U.T)[~torch.eye(n_heads, dtype=bool)].abs().mean()),
+        "singular_values": [round(float(x), 3) for x in torch.linalg.svdvals(U)],
         "cos_to_source_embedding": [float(u @ unit(wte[p_node].to(u))) for u in u_ans],
         "cos_to_target_embedding": [float(u @ unit(wte[pr.target].to(u))) for u in u_ans],
-        "baseline_eager": base_split,
-        "attn_answer_before": attention_on(rec0, q, L["slots"][ans], n_heads),
-        "attn_control_before": attention_on(rec0, q, L["slots"][ctrl], n_heads),
-    }
+        "attn_answer_before": attention_on(G.rec0, q, L["slots"][ans], n_heads),
+        "attn_control_before": attention_on(G.rec0, q, L["slots"][ctrl], n_heads),
+    })
 
-    cells = {}
-
-    def run_cell(name, edit, head=None):
-        logits, rec, _ = recorded_run(runner, ids, at_passes(edit, [edit_pass]))
+    def run_cell(name, edits_by_pass, head=None):
+        logits, rec, _ = recorded_run(runner, ids, per_pass_edit(edits_by_pass))
         sp = answer_split(logits, pr.target, pr.decoy)
-        sp["dT"] = sp["T"] - base_split["T"]
+        sp["dT"] = sp["T"] - G.base_split["T"]
         a_after = attention_on(rec, q, L["slots"][ans], n_heads)
         c_after = attention_on(rec, q, L["slots"][ctrl], n_heads)
         sp["attn_answer_total_before"] = sum(meta["attn_answer_before"])
@@ -173,26 +171,71 @@ def qk_cells(runner, pr, own, base_seed, gi, wte, gen):
             sp["attn_answer_head_after"] = a_after[head]
         sp["attn_answer_after_per_head"] = a_after
         cells[name] = sp
+        return rec
 
     rand_units = [rand_orthonormal(1, U.shape[1], gen, U.device)[:, 0] for _ in range(n_heads)]
     rand_span = rand_orthonormal(n_heads, U.shape[1], gen, U.device)
     for h in range(n_heads):
-        run_cell(f"qk_subtract/answer_edge/head{h}", sub_dirs([u_ans[h]]), head=h)
-        run_cell(f"qk_subtract/random_matched/head{h}", sub_dirs([u_ans[h]], rand=rand_units[h][:, None]), head=h)
-        run_cell(f"qk_subtract/nonanswer_edge/head{h}", sub_dirs([u_ctrl[h]]), head=h)
-    run_cell("qk_subtract/answer_edge/all_heads", sub_dirs(u_ans))
-    run_cell("qk_subtract/random_matched/all_heads", sub_dirs(u_ans, rand=rand_span))
-    run_cell("qk_subtract/nonanswer_edge/all_heads", sub_dirs(u_ctrl))
+        run_cell(f"qk_subtract/answer_edge/head{h}", {edit_pass: span_removal([u_ans[h]])}, head=h)
+        run_cell(f"qk_subtract/random_matched/head{h}", {edit_pass: span_removal([u_ans[h]], rand=rand_units[h][:, None])}, head=h)
+        run_cell(f"qk_subtract/nonanswer_edge/head{h}", {edit_pass: span_removal([u_ctrl[h]])}, head=h)
+    run_cell("qk_subtract/answer_edge/all_heads", {edit_pass: span_removal(u_ans)})
+    run_cell("qk_subtract/random_matched/all_heads", {edit_pass: span_removal(u_ans, rand=rand_span)})
+    run_cell("qk_subtract/nonanswer_edge/all_heads", {edit_pass: span_removal(u_ctrl)})
+
+    # ---- every intermediate step: the answer-path edge read at each step ----
+    steps = []  # per pass k: dict(query, slot, ctrl_slot or None, dirs, ctrl_dirs)
+    for k in range(K - 1):
+        qk = L["latents"][k]
+        path_edges = [j for j, (s_, t) in enumerate(pr.edges)
+                      if on.get(s_) == k + 1 and on.get(t) == k + 2]
+        if not path_edges:
+            steps = None
+            break
+        slot = max(path_edges, key=lambda j: G.total_attention(qk, j))
+        off_path = [j for j, (s_, t) in enumerate(pr.edges)
+                    if d.get(s_) == k + 1 and not (on.get(s_) == k + 1 and on.get(t) == k + 2)]
+        cslot = max(off_path, key=lambda j: G.total_attention(qk, j)) if off_path else None
+        steps.append({"pass": k, "query": qk, "slot": slot, "ctrl_slot": cslot,
+                      "dirs": G.directions(qk, slot),
+                      "ctrl_dirs": G.directions(qk, cslot) if cslot is not None else None,
+                      "attn_before": attention_on(G.rec0, qk, L["slots"][slot], n_heads)})
+    if steps is None:
+        meta["every_step"] = {"skipped": True, "reason": "no_path_edge_at_some_step"}
+        return cells, meta
+    meta["every_step"] = {
+        "slots": [st["slot"] for st in steps],
+        "ctrl_slots": [st["ctrl_slot"] for st in steps],
+        "attn_before_per_step": [sum(st["attn_before"]) for st in steps],
+    }
+
+    def run_every(name, edits_by_pass, head=None):
+        rec = run_cell(name, edits_by_pass, head)
+        after = [sum(attention_on(rec, st["query"], L["slots"][st["slot"]], n_heads)) for st in steps]
+        cells[name]["attn_path_before_per_step"] = meta["every_step"]["attn_before_per_step"]
+        cells[name]["attn_path_after_per_step"] = after
+        cells[name]["attn_path_drop_mean"] = float(sum(b - a for b, a in zip(meta["every_step"]["attn_before_per_step"], after)) / len(steps))
+
+    run_every("qk_every_step/answer_path/all_heads", {st["pass"]: span_removal(st["dirs"]) for st in steps})
+    run_every("qk_every_step/random_matched/all_heads",
+              {st["pass"]: span_removal(st["dirs"], rand=rand_orthonormal(n_heads, U.shape[1], gen, U.device)) for st in steps})
+    if all(st["ctrl_dirs"] is not None for st in steps):
+        run_every("qk_every_step/nonpath_edge/all_heads", {st["pass"]: span_removal(st["ctrl_dirs"]) for st in steps})
+    else:
+        cells["qk_every_step/nonpath_edge/all_heads"] = {"skipped": True, "reason": "no_off_path_edge_at_some_step"}
+    for h in range(n_heads):
+        run_every(f"qk_every_step/answer_path/head{h}", {st["pass"]: span_removal([st["dirs"][h]]) for st in steps}, head=h)
     return cells, meta
 
 
 def qk_attention_summary(rows, cell_names):
-    """Mean attention on the answer edge before and after, per qk cell."""
+    """Mean attention on the answer edge before and after, per qk cell; for
+    every-step cells also the mean per-step drop on the answer-path edge."""
     import numpy as np
     from stats import bootstrap
     out = {}
     for name in cell_names:
-        if not name.startswith("qk_subtract"):
+        if not (name.startswith("qk_subtract") or name.startswith("qk_every_step")):
             continue
         rs = [r["cells"][name] for r in rows if not r["cells"].get(name, {}).get("skipped")]
         if not rs:
@@ -208,5 +251,7 @@ def qk_attention_summary(rows, cell_names):
         if "attn_answer_head_before" in rs[0]:
             entry["attn_answer_head_drop"] = bootstrap(
                 [r["attn_answer_head_before"] - r["attn_answer_head_after"] for r in rs], np.mean)
+        if "attn_path_drop_mean" in rs[0]:
+            entry["attn_path_drop_mean_over_steps"] = bootstrap([r["attn_path_drop_mean"] for r in rs], np.mean)
         out[name] = entry
     return out

@@ -545,6 +545,35 @@ pilot level with no exception in 10 graphs; the renamed half cannot be run on
 this substrate. The identity story's positive support therefore rests on
 experiment 2 (n=100, both seeds), the query-key cell, and experiment 4.
 
+Before the n=100 run (2026-09-06, user's decisions): the parent-swap cells
+are dropped (their free twin breaks too often to read anything from them).
+Two additions to the query-key cell, predictions first:
+- Per head, at n=100. Identity story: each single-head removal drops that
+  head's own attention on the answer edge by an amount that tracks the
+  head's coefficient in the thought; the answer flips above the same-answer
+  reference only for the heads that carry most of the match (heads 3 and 4
+  in the pilot), and the all-heads removal flips more graphs than any single
+  head. Position story: the same drop pattern; no prediction on the answer.
+  Matched random per head: no drop, flips at the reference rate.
+- At every intermediate step (the paper's path elimination, asked in the
+  right coordinates). At each pass k = 0..K-2 the answer-path edge read at
+  that step is the most attended edge from a depth-(k+1) node on a shortest
+  path to the target to a depth-(k+2) node on one (the last step's edge is
+  the parent edge). From thought k+1 the span of the eight directions that
+  its layer-2 heads map onto that edge's key is removed; all steps in one
+  run, directions taken from the unedited run. Identity story: attention
+  onto the answer-path edge drops at every step and the answer flips at
+  least as often as in the last-step-only cell; the paper's identity-basis
+  version of this removal did nothing, and this cell asks whether that null
+  was the basis. Position story: attention drops if the pointer is linear in
+  the thought; no prediction on the answer. Controls: matched random
+  directions at every step (no drop, reference-rate flips); the most
+  attended frontier edge off the answer path at every step (its own
+  attention drops, the answer path's does not, no flips beyond the
+  reference; skipped on graphs where some step has no such edge).
+  A per-head every-step version is run as well, read like the per-head
+  last-step cells.
+
 Availability (from `tests/test_prompts.py` on training graphs 0-299, so the
 n=100 cells will have skips): reorder, rename, unreachable-only reorder,
 decoy swap and candidate swap are constructible on every graph; the last-hop

@@ -8,10 +8,8 @@ Cells (each run three ways: thoughts free; intermediates fixed, passes
                          (exploration only: the model relies on the id-depth
                          convention of ProsQA labels, so this prompt fails
                          with thoughts free; see NOTES.md)
-  parent_swap_km2        the target's parent trades labels with a depth K-2
-                         node (separating; two labels move)
-  parent_swap_same_depth the parent trades labels with another depth K-1
-                         node (control: the frontier is unchanged as a set)
+  (parent-swap cells were piloted and dropped 2026-09-06: their free twin
+   breaks too often to read anything from them; constructor kept in prompts)
   unreachable_reordered  only edges with an unreachable source move
   decoy_swap             the edge(s) into the target and edge(s) into the
                          decoy trade slots; the graph is unchanged
@@ -25,6 +23,8 @@ Cells (each run three ways: thoughts free; intermediates fixed, passes
   qk_subtract/...        the query-key subtraction cells (see qk_cells.py):
                          remove from thought K-1 the direction each layer-2
                          head's query maps onto the answer edge's key
+  qk_every_step/...      the same at every intermediate step, on the
+                         answer-path edge read at that step
 Controls per graph: reserialized baseline, self-transplant (must be exactly
 zero), random donor and same-answer donor at intermediates and at all K. A
 flip counts as redirection only if the same graph did not flip under the
@@ -49,8 +49,8 @@ from common import (  # noqa: E402
 )
 from measure import all_passes, capture, fixed, intermediates, measure  # noqa: E402
 from prompts import (  # noqa: E402
-    decoy_swap, noncandidate_swap, parent_swap, rename, reorder,
-    reorder_unreachable, rewrite_at_depth,
+    decoy_swap, noncandidate_swap, rename, reorder, reorder_unreachable,
+    rewrite_at_depth,
 )
 from qk_cells import qk_attention_summary, qk_cells  # noqa: E402
 from sets import test_pin  # noqa: E402
@@ -64,8 +64,6 @@ def counterfactual_set(pr, rng):
     out = [
         ("reordered", *reorder(pr, rng)),
         ("renamed", *rename(pr, rng)),
-        ("parent_swap_km2", *parent_swap(pr, rng, -1)),
-        ("parent_swap_same_depth", *parent_swap(pr, rng, 0)),
         ("unreachable_reordered", *reorder_unreachable(pr, rng)),
         ("decoy_swap", *decoy_swap(pr)),
         ("noncandidate_swap", *noncandidate_swap(pr)),
@@ -130,9 +128,10 @@ def run(runner, recips, train, base_seed=0):
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base,
                      "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None,
                      "meta": metas, "cells": cells})
-        show = ["reordered/intermediates", "parent_swap_km2/intermediates", "parent_swap_same_depth/intermediates",
+        show = ["reordered/intermediates", "renamed/intermediates", "unreachable_reordered/intermediates",
                 "decoy_swap/all", "noncandidate_swap/all", "rewrite_last/all", "random_donor/intermediates",
-                "same_answer_donor/intermediates", "qk_subtract/answer_edge/all_heads"]
+                "same_answer_donor/intermediates", "qk_subtract/answer_edge/all_heads",
+                "qk_every_step/answer_path/all_heads"]
         print(f"graph {gi}: base T {base['T']:.1f}  " + "  ".join(
             f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in show if not cells[n].get("skipped")))
 
