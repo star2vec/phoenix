@@ -9,3 +9,4 @@ results/*/train.out
 # Amendment 1: the relabeled training file (30 MB) is regenerated from the recorded seed;
 # its sha256 is in data/relabel/manifest.json
 data/relabel/prosqa_train_graph_4_coconut.json
+results/*/*/train.out
