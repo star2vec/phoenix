@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed1/relabel/best.pt",
+  "data_dir": "data/relabel",
+  "serialization_seed": 1,
+  "test_accuracy": 0.491647,
+  "test_cor": 206,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": 0.988,
+        "std": 1.389,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 1.007,
+        "std": 1.738,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 1.644,
+        "std": 1.395,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 2.228,
+        "std": 1.191,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": 1.037,
+        "std": 1.376,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 1.018,
+        "std": 1.569,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 1.062,
+        "std": 1.447,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 1.739,
+        "std": 1.362,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 1.11,
+        "std": 1.718,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.781,
+        "std": 1.635,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 0.903,
+        "std": 1.715,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 2.047,
+        "std": 1.753,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.851,
+        "std": 2.355,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.673,
+        "std": 2.206,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 2.97,
+        "std": 3.372,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 5.759,
+        "std": 1.961,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": false,
+    "3": false,
+    "4": false
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

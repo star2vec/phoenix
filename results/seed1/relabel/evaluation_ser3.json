@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed1/relabel/best.pt",
+  "data_dir": "data/relabel",
+  "serialization_seed": 3,
+  "test_accuracy": 0.498807,
+  "test_cor": 209,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": 0.989,
+        "std": 1.392,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 0.995,
+        "std": 1.74,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 1.635,
+        "std": 1.397,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 2.23,
+        "std": 1.187,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": 1.041,
+        "std": 1.385,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 1.006,
+        "std": 1.563,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 1.056,
+        "std": 1.427,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 1.728,
+        "std": 1.355,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 1.111,
+        "std": 1.729,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.775,
+        "std": 1.637,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 0.912,
+        "std": 1.729,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 2.065,
+        "std": 1.761,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.837,
+        "std": 2.362,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.674,
+        "std": 2.226,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 3.013,
+        "std": 3.416,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 5.848,
+        "std": 1.97,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": false,
+    "3": false,
+    "4": false
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

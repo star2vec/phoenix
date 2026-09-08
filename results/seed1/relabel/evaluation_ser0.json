@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed1/relabel/best.pt",
+  "data_dir": "data/relabel",
+  "serialization_seed": 0,
+  "test_accuracy": 0.50358,
+  "test_cor": 211,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": 0.988,
+        "std": 1.39,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 0.998,
+        "std": 1.735,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 1.637,
+        "std": 1.385,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 2.224,
+        "std": 1.161,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": 1.04,
+        "std": 1.379,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 1.008,
+        "std": 1.559,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 1.053,
+        "std": 1.432,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 1.718,
+        "std": 1.357,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 1.112,
+        "std": 1.715,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.776,
+        "std": 1.631,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 0.909,
+        "std": 1.723,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 2.081,
+        "std": 1.724,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.85,
+        "std": 2.357,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.668,
+        "std": 2.22,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 2.995,
+        "std": 3.399,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 5.811,
+        "std": 1.978,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": false,
+    "3": false,
+    "4": false
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

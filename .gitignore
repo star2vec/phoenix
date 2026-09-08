@@ -10,3 +10,4 @@ results/*/train.out
 # its sha256 is in data/relabel/manifest.json
 data/relabel/prosqa_train_graph_4_coconut.json
 results/*/*/train.out
+*.tar.gz

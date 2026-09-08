@@ -8,10 +8,15 @@ preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
 
 Dated amendments live in `DECISIONS.md`. Amendment 1 (2026-09-06): retrain
 on a dataset with labels assigned uniformly at random per graph, so the two
-blocked label-based cells of experiment 3 can run. Data regenerated
-(`data/relabel/`, seed 20260906, manifest with hashes), `--data-dir` added to
-`train.py` and `evaluate.py`; training waits for the laptop; the amendment
-stops at its gate 1 (accuracy parity) before any cell runs.
+blocked label-based cells of experiment 3 can run. Outcome (2026-09-08):
+gate 1 failed on both seeds. Trained on relabeled data with the unchanged
+recipe (RunPod RTX 3090), the model memorizes the training graphs (99 and 97
+percent on seen graphs) and is at chance on unseen ones (49 to 52 percent
+under four serialization seeds; readout ordering fails), with stage
+validation accuracy at chance from stage 0 on. The breadth-first label order
+of ProsQA is load-bearing for learning the task at this size and budget, not
+only for the trained model's competence. The two label cells were not run.
+Numbers and files in `DECISIONS.md`, Amendment 1, Outcome.
 
 Comparability of the evaluation across the original and retrained models
 (checked 2026-09-06): the accuracy is the argmax token against the target
@@ -27,6 +32,9 @@ the original checkpoints is needed.
 ## Status
 
 - Experiments 0 to 4 are complete at n=100 on both seeds (2026-09-06).
+  Amendment 1 (shuffled-label retrain) ran to its gate 1 and failed it on
+  both seeds (2026-09-08): the model does not learn the task without
+  ProsQA's label order. Next step is the user's decision (see DECISIONS.md).
   Experiment 5 is not designed yet; the open question left by 3 is where the
   answer is recovered when the thoughts' attention onto the answer path is
   removed (candidates: layer-1 edge reading, and the answer position's own

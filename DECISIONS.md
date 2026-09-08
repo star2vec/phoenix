@@ -5,8 +5,8 @@ added below each entry afterwards, never edited into the prediction.
 
 ## Amendment 1 (2026-09-06): shuffled-label retrain
 
-**Status (2026-09-06, evening):** approved. Data regenerated and code
-written; training not started (it runs on the laptop). Waiting at gate 1.
+**Status (2026-09-08):** run to gate 1 and stopped there; gate 1 failed on
+both seeds (see Outcome). No cell was run.
 
 - Data: `src/phoenix/relabel.py --seed 20260906` wrote the three splits to
   `data/relabel/` with `manifest.json` (seed, source and output sha256, and
@@ -163,6 +163,46 @@ as its own small logged entry here, with its matched-random-direction
 control. Worth doing if wall time is cheap; it is insurance for that
 headline result.
 
-### Outcome
+### Outcome (2026-09-08): gate 1 failed on both seeds; the amendment stops here
 
-(not run)
+Training ran on a RunPod RTX 3090 with the pinned environment (torch 2.5.1,
+Python 3.12; equivalence and relabel tests passed there; all three data
+hashes matched the manifest). Both seeds completed the four fixed stages and
+stopped by early stop at epoch 140 after 40 full-task epochs, about 1.9 hours
+each. Files: `results/seed{0,1}/relabel/{metrics.jsonl, train.out,
+best.json, evaluation_ser{0..3}.json}`; checkpoints under
+`ckpts/seed{0,1}/relabel/` (not committed).
+
+- **Held-out accuracy at chance.** Relabeled test split under serialization
+  seeds 0 to 3: seed 0, 216, 209, 206, 215 of 419 (49.2 to 51.6 percent);
+  seed 1, 211, 206, 206, 209 (49.2 to 50.4). Best validation accuracy 0.549
+  (seed 0, epoch 109) and 0.580 (seed 1, epoch 105). The predicted range was
+  92.6 to 96.7; the stop threshold was 88.
+- **The readout ordering does not hold.** Seed 0: false at all four steps
+  under every serialization seed. Seed 1: true at step 1 only. Optimal and
+  frontier means do exceed the others at most steps, but the reachable mean
+  sits at or below not-reachable.
+- **Failure mode: memorization from the first stage.** In every curriculum
+  stage the training loss fell (stage 0: 3.36 to 0.85; full task: to 0.20)
+  while the stage validation accuracy stayed at chance: 0.13 to 0.17 for
+  "name a child of the root" (about one node in seven), 0.08 to 0.19 in
+  stages 1 and 2, 0.44 to 0.54 in stage 3, 0.49 to 0.58 on the full task.
+  On 300 training graphs the finished models answer 296 and 292 correctly;
+  on 300 unseen test graphs 152 and 144. The original seed 0 answers 299 of
+  300 seen and 282 of 300 unseen under the same measurement (2026-09-08,
+  CPU). The relabeled models learned no rule at any depth, not even the
+  one-hop step, and fit the training graphs instead.
+
+Reading, per the amendment's own rule for prediction 1: the label cue was
+load-bearing, and not only for the trained model's competence but for
+learning the task at all with this model size, curriculum and budget. Under
+ProsQA's breadth-first ids, a two-layer model reaches 94 percent; with the
+same graphs under random labels it memorizes. The two label cells cannot be
+run on this substrate, and the amendment stops here without running them.
+
+What this does not settle: whether a longer or different schedule would let
+the mechanism emerge without the cue (the loss was still falling when each
+25-epoch stage ended, and the full-task phase stopped after 40 epochs), or
+whether keeping only the name convention (root on token 0 or 1, concepts
+random) is enough to make the task learnable. Either is a new amendment with
+its own predictions, not a continuation of this one.
