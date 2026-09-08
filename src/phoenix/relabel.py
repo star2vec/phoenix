@@ -14,7 +14,8 @@ vendor file names, so --data-dir swaps them in) and data/relabel/
 manifest.json with the seed, source hashes, and the mean depth by label on
 the relabeled training set (flat if the cue is gone).
 
-    python src/phoenix/relabel.py --seed 20260906
+    python src/phoenix/relabel.py --seed 20260906                                   # Amendment 1
+    python src/phoenix/relabel.py --seed 20260908 --keep-names --out data/relabel_names  # Amendment 2
 """
 
 import argparse
@@ -36,10 +37,19 @@ SPLITS = ("train", "valid", "test")
 FILE = "prosqa_{split}_graph_4_coconut.json"
 
 
-def relabel_graph(sample, rng):
-    """One graph with a fresh uniformly random injective labeling."""
+NAME_TOKENS = (0, 1)  # ProsQA: the two names; one is the root, the other the unreachable source
+
+
+def relabel_graph(sample, rng, keep_names=False):
+    """One graph with a fresh uniformly random injective labeling. With
+    keep_names (Amendment 2) the two name nodes keep tokens 0 and 1 and only
+    the concept nodes are relabeled, uniformly at random over 2..30."""
     n = len(sample["idx_to_symbol"])
-    perm = rng.sample(range(N_NODE_TOKENS), n)  # perm[old] = new
+    if keep_names:
+        assert n >= 2 and sample["root"] in NAME_TOKENS
+        perm = [0, 1] + rng.sample(range(2, N_NODE_TOKENS), n - 2)  # perm[old] = new
+    else:
+        perm = rng.sample(range(N_NODE_TOKENS), n)  # perm[old] = new
     f = lambda v: perm[v]
     symbols = ["<unused>"] * N_NODE_TOKENS
     for old, sym in enumerate(sample["idx_to_symbol"]):
@@ -77,15 +87,18 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--seed", type=int, default=20260906)
     p.add_argument("--out", default=str(OUT_DIR))
+    p.add_argument("--keep-names", action="store_true",
+                   help="Amendment 2: names keep tokens 0 and 1; concepts random over 2..30")
     args = p.parse_args()
-    out_dir = Path(args.out)
+    out_dir = Path(args.out).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
     rng = random.Random(args.seed)
-    manifest = {"seed": args.seed, "node_tokens": N_NODE_TOKENS, "splits": {}}
+    manifest = {"seed": args.seed, "node_tokens": N_NODE_TOKENS,
+                "mode": "names kept, concepts random" if args.keep_names else "all labels random", "splits": {}}
     for split in SPLITS:  # fixed order, so the seed reproduces every file
         src = VENDOR_DATA / FILE.format(split=split)
         data = json.load(open(src))
-        new = [relabel_graph(s, rng) for s in data]
+        new = [relabel_graph(s, rng, args.keep_names) for s in data]
         dst = out_dir / FILE.format(split=split)
         with open(dst, "w") as f:
             json.dump(new, f)

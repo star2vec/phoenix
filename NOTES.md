@@ -18,6 +18,11 @@ of ProsQA is load-bearing for learning the task at this size and budget, not
 only for the trained model's competence. The two label cells were not run.
 Numbers and files in `DECISIONS.md`, Amendment 1, Outcome.
 
+Amendment 2 (2026-09-08): names kept on tokens 0 and 1, concept labels
+random over 2..30 (`data/relabel_names/`, seed 20260908). Asks whether the
+root marker alone makes the task learnable; predictions and the gate in
+`DECISIONS.md`. Written, not trained.
+
 Comparability of the evaluation across the original and retrained models
 (checked 2026-09-06): the accuracy is the argmax token against the target
 and does not depend on which tokens the readout counts. The inner-product

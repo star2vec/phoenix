@@ -11,3 +11,4 @@ results/*/train.out
 data/relabel/prosqa_train_graph_4_coconut.json
 results/*/*/train.out
 *.tar.gz
+data/relabel_names/prosqa_train_graph_4_coconut.json

@@ -41,6 +41,20 @@ def main():
     assert rng_new < 0.4, "the relabeled cue should be gone"
     roots = {t["root"] for t in new}
     assert len(roots) > 20, "roots should spread over the label range"
+    # Amendment 2 mode: names fixed on 0 and 1, concepts random over 2..30, cue gone among concepts
+    rng = random.Random(1)
+    kept = [relabel_graph(s, rng, keep_names=True) for s in data[:2000]]
+    for s, t in zip(data[:2000], kept):
+        perm = t["relabel_perm"]
+        assert perm[0] == 0 and perm[1] == 1 and t["root"] == s["root"] and t["root"] in (0, 1)
+        assert all(2 <= v <= 30 for v in perm[2:]) and len(set(perm)) == len(perm)
+        d0, d1 = bfs_depths(s["edges"], s["root"]), bfs_depths(t["edges"], t["root"])
+        assert d1 == {perm[v]: dep for v, dep in d0.items()}
+    md_kept = depth_by_label(kept)
+    concept_range = max(v for k, v in md_kept.items() if int(k) >= 2) - min(v for k, v in md_kept.items() if int(k) >= 2)
+    print(f"names kept: concept mean depth by label range {concept_range:.2f}; roots on {sorted({t['root'] for t in kept})}")
+    assert concept_range < 0.4
+
     # the full file is reproduced exactly by the seed (manifest reproducibility)
     a = [relabel_graph(s, random.Random(7)) for s in data[:50]]
     b = [relabel_graph(s, random.Random(7)) for s in data[:50]]

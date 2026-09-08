@@ -206,3 +206,85 @@ the mechanism emerge without the cue (the loss was still falling when each
 whether keeping only the name convention (root on token 0 or 1, concepts
 random) is enough to make the task learnable. Either is a new amendment with
 its own predictions, not a continuation of this one.
+
+## Amendment 2 (2026-09-08): names kept, concept labels random
+
+**Status:** written before running; approved in principle by the user
+(option 2 of Amendment 1's outcome). Data generated and tested; training not
+started (RunPod, tomorrow). Gate 1 first, cells only if it passes.
+
+### Motivation
+
+Amendment 1 showed that with every label random the same model memorizes
+instead of learning (chance on unseen graphs from stage 0 on). ProsQA carries
+two label cues: the two name tokens 0 and 1 always mark the root and the
+source of the unreachable component, and concept ids are assigned in
+breadth-first order so id encodes depth. This amendment removes only the
+second. If the model learns, the depth-order cue was dispensable and the
+root marker is what made the task learnable at this size; the two label
+cells then run with concept-only relabelings, which are on-distribution for
+this model. If it memorizes again, the depth order itself is load-bearing and
+the label cells cannot be run at this model size and budget.
+
+### Fix
+
+- **Data.** `src/phoenix/relabel.py --seed 20260908 --keep-names --out
+  data/relabel_names`: per graph, the two names keep tokens 0 and 1 (the
+  root stays on whichever of the two it had), and the concept nodes get an
+  independent uniformly random injective assignment into 2..30. Structure,
+  candidate pairs, solution lengths and file order unchanged. Manifest with
+  seed, source and output sha256 and mean depth by label: concepts 2..30 run
+  2.21 to 2.25 (Amendment 1's original range: 0.00 to 3.23);
+  roots on token 1 in 9065 graphs and token 0 in 5720. Training
+  file not committed (30 MB); regenerated on the pod from the seed; sha256
+  `5326364306d5e4b2...`. `tests/test_relabel.py` covers this mode.
+- **Training.** Unchanged recipe, seeds 0 and 1, `--run-name
+  seed{0,1}/relabel_names --data-dir data/relabel_names`, checkpoints under
+  `ckpts/seed{0,1}/relabel_names/`, results under
+  `results/seed{0,1}/relabel_names/`. Same pinned environment and tests as
+  Amendment 1 on the pod.
+- **Everything else** (evaluation under four serialization seeds with the
+  present-labels readout, the four cells at n=100 on both seeds, their
+  controls, per-graph checkpointing, the derangement constraint) exactly as
+  in Amendment 1, with one change: the relabeling used inside the renamed
+  cell deranges the concept labels only and leaves the two names untouched,
+  matching this model's training distribution.
+
+### Predictions, written before anything is run
+
+Learnability first; neither story predicts it, and the outcome decides
+whether the cells run.
+
+1. **Stage 0 is learned.** With the root always on token 0 or 1, the
+   one-hop task has a fixed marker: stage-0 validation accuracy rises well
+   above chance (above 0.5; Amendment 1 stayed at 0.13 to 0.17). If it
+   does not, the root marker is not what made stage 0 learnable and the
+   fork below is moot.
+2. **Gate 1, the fork.** (i) Held-out accuracy within 92.6 to 96.7 (or at
+   least above 88) with the readout ordering holding: the depth-order cue
+   was dispensable for learning; proceed to the cells. (ii) Chance, with
+   seen-graph accuracy near 100 percent as in Amendment 1: the depth order
+   is load-bearing on its own; stop and report. (iii) In between (88 down
+   to about 60): partial learning; report, and decide whether a longer
+   schedule is worth trying before any cell. My expectation, stated so it
+   can be wrong: stage 0 learned, and the deeper stages partly learned,
+   landing in (iii) or the low end of (i), because the deeper expansions
+   need general content matching that the original data let the model skip.
+3. **If (i): the renamed-prompt failure disappears.** Concept-deranged
+   prompts with thoughts free score within 3 points of clean accuracy. If
+   not, stop; the explanation is incomplete.
+4. **If (i): the label cells.** As Amendment 1's predictions 3 and 4:
+   intermediates fixed breaks beyond the free twin, escape-dominant;
+   all K fixed puts probability at or above 0.5 on the token that was the
+   target's old label on most graphs. Position story refuted, predicts
+   nothing. Reordered edges and the decoy swap unchanged; controls as
+   before.
+
+### Cost
+
+Two retrains on a rented RTX 3090 (about 1.9 hours each, concurrently), then
+about 30 minutes of CPU per seed if the gate passes.
+
+### Outcome
+
+(not run)
