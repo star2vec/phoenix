@@ -54,10 +54,11 @@ class AttnHooks:
             "tensor": tensor, "heads": None if heads is None else list(heads),
         })
 
-    def add_mask(self, layers, q_positions, k_positions):
+    def add_mask(self, layers, q_positions, k_positions, heads=None):
         """Block attention from each query position to each key position in
-        the given layers."""
-        self.masks.append({"layers": set(layers), "q": list(q_positions), "k": list(k_positions)})
+        the given layers, for the given heads (None = all heads)."""
+        self.masks.append({"layers": set(layers), "q": list(q_positions), "k": list(k_positions),
+                           "heads": None if heads is None else list(heads)})
 
     def clear_records(self):
         self.weights = []
@@ -112,18 +113,21 @@ class AttnHooks:
                     tgt[0, h, pos, :] = src[hi, idx, :]
 
             add = None
+            n_h = query.shape[1]
             for m in hooks.masks:
                 if li not in m["layers"]:
                     continue
                 ks = [k for k in m["k"] if k < k_len]
                 if not ks:
                     continue
+                hs = list(range(n_h)) if m.get("heads") is None else m["heads"]
                 for q in m["q"]:
                     qi = q - offset
                     if 0 <= qi < q_len:
                         if add is None:
-                            add = torch.zeros(1, 1, q_len, k_len, dtype=query.dtype, device=query.device)
-                        add[0, 0, qi, ks] = MASK_VALUE
+                            add = torch.zeros(1, n_h, q_len, k_len, dtype=query.dtype, device=query.device)
+                        for hh in hs:
+                            add[0, hh, qi, ks] = MASK_VALUE
             if add is not None:
                 attention_mask = add if attention_mask is None else attention_mask + add
 

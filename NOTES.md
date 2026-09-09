@@ -861,12 +861,81 @@ emit.
 n=100 outcome, 4b: see the experiment 3 block's neighbour above and the
 seed-0 block ("n=100 outcome, experiment 4b, seed 0").
 
-## Experiment 5: later, only if 1-4 favor one story
+## Experiment 5: where the answer is recovered (masking), written 2026-09-10
 
-Mask the answer position's (and separately every latent's) attention to the
-two candidate tokens (`attn_hooks.AttnHooks.add_mask`); checkpoints along
-training (saved by `train.py --save-every`); three- and four-layer models.
-Designs and predictions to be written after 1-4 report.
+Experiments 1-4 favored the identity story. Experiment 3's query-key cell
+left one loose end: removing the thought's linear match to the answer-path
+edges empties that attention in layer 2 (last step 1.79 to 0.31 and 2.54 to
+0.37; every step: path attention 1.60 and 1.99 of about 1.8 and 2.5 gone),
+yet the answer stays at the fallback rate. The answer is recovered
+somewhere else. Experiment 2 showed two other routes that read edges by
+content: layer 1's edge-reading heads at the latent positions, and the
+answer position's own heads reading edges. This experiment blocks those
+routes (a mask on attention, `attn_hooks.AttnHooks.add_mask`) alone and in
+combination with the query-key removal, on the existing checkpoints.
+
+Design. Recipients and controls as in experiment 3 (test graphs; pilot
+400-409 on seed 0; n=100 on both seeds; reserialized, self-transplant,
+random donor, same-answer donor at intermediates and at all K; the
+query-key every-step removal, its matched random directions and the
+off-path control). Head sets are chosen per seed from experiment 2's n=100
+summary (`heads_n100.json`), by a named cutoff: a head is an edge-reading
+head at a query class if its mean attention onto edge slots there is at
+least 0.5 (the cutoff protects "this head reads edges", stricter than
+experiment 2's 0.2 because here heads are removed, not scored). On seed 0
+that gives layer-1 heads 3, 4, 6, 7 at the latents and layer-1 heads 2, 5,
+6 plus layer-2 heads 0, 1, 2, 5, 6, 7 at the answer position; on seed 1
+layer-1 heads 1, 3, 5, 6, 7 at the latents and layer-1 head 0 plus layer-2
+heads 2, 4 at the answer position. The chosen sets are recorded in the
+results file. Masks act on the answer-path edges' slots (every shortest-path
+edge from depth k+1 to depth k+2, all steps) or, as control, on a matched set
+of off-path edges (the most attended frontier edges off the path, same
+count). Masking a slot blocks attention to all three of its tokens.
+
+Cells (each is a mask set; "plus removal" adds the query-key every-step
+all-heads removal from experiment 3):
+- L1 latents: layer-1 edge heads at every latent query, path edges masked;
+  alone and plus removal.
+- Answer heads: the answer position's edge-reading heads (both layers), path
+  edges masked; alone and plus removal.
+- All routes: L1 latents and answer heads together; alone and plus removal.
+- L2 latents mask: layer-2 heads at the latent queries, path edges masked,
+  alone. This is the mask version of the query-key removal; it should
+  reproduce its null and calibrates masking against subtraction.
+- Off-path controls: every mask set applied to the matched off-path edges.
+- Query-key removal alone (the experiment 3 cell, rerun here on the same
+  graphs as the reference).
+
+Predictions, one line per story where a story forces one:
+- Identity story, through the mechanism the experiments have mapped: the
+  thought's match to the path is one of at least two content routes. A mask
+  that blocks one route alone leaves the answer near baseline (flips at the
+  same-answer reference), as the removal did. Blocking a route together with
+  the removal collapses the answer (flips beyond the reference, comparable
+  to the random donor) if that route is the recovery path. Concretely: at
+  least one of "L1 latents plus removal" and "answer heads plus removal"
+  collapses, and "all routes plus removal" collapses on the largest share of
+  graphs. Off-path masks do nothing beyond the reference in any combination.
+- Position story: refuted; no prediction.
+- Neither story: if "all routes plus removal" still leaves the answer at
+  the reference rate, the recovery does not go through attention onto edges
+  at all (candidates: the MLPs at the final positions, or content the final
+  thought already carries before any edge is read), and the cell says so.
+- Calibration: "L2 latents mask" alone reproduces the query-key null
+  (attention onto the path gone, flips at the reference). If it collapses
+  where the removal did not, the removal was incomplete and the loose end is
+  an artifact of the subtraction, which changes the reading of experiment 3.
+
+Cutoffs, all named: edge-reading head 0.5 of attention on edge slots; flip
+and escape as everywhere; "collapses" means flips beyond the same-answer
+reference with the interval above zero.
+
+Pilot outcome: (not run)
+What the pilot changed: (not run)
+n=100 outcome: (not run)
+
+Earlier notes for this slot (checkpoints along training via `train.py
+--save-every`; three- and four-layer models) remain optional extras.
 
 ## Next run
 

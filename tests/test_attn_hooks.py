@@ -120,7 +120,15 @@ def main():
             assert float(w[:, [L["c1"], L["c2"]]].abs().max()) < 1e-12
             w2 = h.attention(layer, L["root"])
             assert float(w2[:, [L["c1"], L["c2"]]].sum()) > 0, "mask leaked to other queries"
-    print("mask: OK")
+    with AttnHooks(r.base) as h:
+        h.record_weights = True
+        h.add_mask([0], [L["a"]], [L["c1"], L["c2"]], heads=[2, 5])
+        M.run_ids(r, ids, attn_eager=True)
+        w = h.attention(0, L["a"])
+        assert float(w[[2, 5]][:, [L["c1"], L["c2"]]].abs().max()) < 1e-12
+        others = [hh for hh in range(w.shape[0]) if hh not in (2, 5)]
+        assert float(w[others][:, [L["c1"], L["c2"]]].sum()) > 0, "per-head mask leaked to other heads"
+    print("mask: OK (whole-layer and per-head)")
 
     # 6. residual hooks: record then self-patch is exact; a foreign vector acts
     with ResidualHooks(r.base) as rh:

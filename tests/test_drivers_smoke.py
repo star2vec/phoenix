@@ -102,6 +102,15 @@ def main():
     assert "donor/edges/k/L2" in res["cells"] and "random_graph/latents_intermediate/kv/both" in res["cells"]
     dump("cache_patch", res)
 
+    print("masking (synthetic head sets)")
+    import masking
+    sets = {"latents": {0: [3, 4, 6, 7]}, "answer": {0: [2, 5, 6], 1: [0, 1, 2, 5, 6, 7]}}
+    res = masking.run(runner, recips, train, sets)
+    assert {"qk_removal", "l1_latents/path/alone", "l1_latents/path/plus_removal", "answer_heads/offpath/alone",
+            "all_routes/path/plus_removal", "l2_latents_mask/path/alone"} <= set(res["cells"])
+    assert all(abs(r["cells"]["self_transplant"]["dT"]) < 1e-6 for r in res["rows"])
+    dump("masking", res)
+
     print("baseline (random bases)")
     probe = torch.randn(40, 768)
     res = baseline.run_subtraction(runner, recips, train, probe)
