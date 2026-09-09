@@ -46,7 +46,10 @@ def head_sets(run_name, cut=EDGE_HEAD_CUT):
                 e = S.get(f"L{layer + 1}H{h}/{cls}")
                 return e["slot_mass_a"]["point"] if e and e.get("slot_mass_a") else 0.0
             lat = min(mass("intermediate_latent"), mass("last_latent"))
-            if lat >= cut:
+            if lat >= cut and layer == 0:
+                # the latents route is layer 1 only: every layer-2 head reads
+                # edges at the latents, and that route is the query-key removal
+                # (and the l2_latents_mask calibration cell), not this one
                 out["latents"].setdefault(layer, []).append(h)
             if mass("answer") >= cut:
                 out["answer"].setdefault(layer, []).append(h)

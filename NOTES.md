@@ -930,9 +930,43 @@ Cutoffs, all named: edge-reading head 0.5 of attention on edge slots; flip
 and escape as everywhere; "collapses" means flips beyond the same-answer
 reference with the interval above zero.
 
-Pilot outcome: (not run)
-What the pilot changed: (not run)
-n=100 outcome: (not run)
+Pilot outcome (seed 0, test graphs 400-409; `results/seed0/masking_pilot.json`;
+the first run's file is kept as `masking_pilot_v1_l2_in_latents_set.json`):
+- Head sets on seed 0 at the 0.5 cutoff: layer-1 heads 3, 4, 6, 7 at the
+  latents; at the answer position layer-1 heads 2, 5, 6 and layer-2 heads
+  0, 1, 2, 5, 6, 7.
+- Masks alone do nothing: layer-1 latent heads, answer heads, and both
+  together, on the path edges, medians -0.0, no flips on 10 of 10; off-path
+  the same.
+- Masks on top of the query-key removal add nothing to it. Per graph, the
+  removal alone and every "plus removal" cell land within a few points of
+  each other (graph 400: -74.9 alone, -67.7 with layer 1 masked, -77.7 with
+  the answer heads masked, -71.2 with all routes masked; graph 401: -96.5
+  in all four; graph 407: -0.4 in all four). Medians -7.9 (removal), -9.9,
+  -8.6, -10.4; flips 3 of 10 in each; escape near 0. The off-path masks plus
+  removal give the same numbers again (-10.6, -8.4, -10.7).
+- Calibration: the layer-2 mask on the path edges at the latents reproduces
+  the removal cell almost exactly (median -9.3, the same three graphs
+  flipped, per-graph values within 3 points). Masking and subtraction agree,
+  so the removal was not incomplete.
+- Controls: reserialized and self-transplant exactly zero; random donor
+  -25.1 with e 0.87; same-answer donor 2 of 10 at intermediates, none at
+  all K.
+Reading, per the predictions: this is the "neither story" branch. Blocking
+the thought's layer-2 match, layer 1's edge reading at the latents, and the
+answer position's edge reading, all at once, leaves the answer exactly where
+the layer-2 removal alone leaves it. On 7 of 10 graphs that is within a few
+points of baseline; on 3 it is a flip that no added mask deepens. The
+recovery does not go through attention onto the path edges at any position.
+What remains: the final positions' MLPs, attention onto non-edge tokens
+(the candidates, the root), or content the recycled thoughts already carry
+before any edge is read at the last steps.
+What the pilot changed: one fix. The first run's head-set rule admitted
+every layer-2 head into the "latents" set (all eight read edges there), so
+the layer-1 cell masked layer 2 too and duplicated the calibration cell. The
+latents set is now layer 1 only, as the predictions say; the answer set is
+unchanged. Nothing else.
+n=100 outcome: (running, both seeds)
 
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
