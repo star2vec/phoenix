@@ -36,10 +36,13 @@ the original checkpoints is needed.
 
 ## Status
 
-- Experiments 0 to 4 are complete at n=100 on both seeds (2026-09-06).
-  Amendment 1 (shuffled-label retrain) ran to its gate 1 and failed it on
-  both seeds (2026-09-08): the model does not learn the task without
-  ProsQA's label order. Next step is the user's decision (see DECISIONS.md).
+- Experiments 0 to 5 are complete at n=100 on both seeds (experiment 5 on
+  2026-09-10: blocking every attention route onto the path edges adds
+  nothing to the query-key removal; the answer is not recovered through
+  attention onto edges). Amendment 1 (shuffled-label retrain) failed its
+  gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) is written and
+  not trained. Next step is the user's decision (see DECISIONS.md and the
+  experiment 5 block).
   Experiment 5 is not designed yet; the open question left by 3 is where the
   answer is recovered when the thoughts' attention onto the answer path is
   removed (candidates: layer-1 edge reading, and the answer position's own
@@ -966,7 +969,42 @@ every layer-2 head into the "latents" set (all eight read edges there), so
 the layer-1 cell masked layer 2 too and duplicated the calibration cell. The
 latents set is now layer 1 only, as the predictions say; the answer set is
 unchanged. Nothing else.
-n=100 outcome: (running, both seeds)
+n=100 outcome (both seeds; `results/seed0/masking_n100.json`,
+`results/seed1/masking_n100.json`). Head sets at the 0.5 cutoff: seed 0,
+layer-1 heads 3, 4, 6, 7 at the latents and layer-1 heads 2, 5, 6 plus
+layer-2 heads 0, 1, 2, 5, 6, 7 at the answer position; seed 1, layer-1 heads
+1, 3, 5, 6, 7 at the latents and layer-1 head 0 plus layer-2 heads 2, 4 at
+the answer position.
+- Masks alone do nothing on either seed: layer-1 latent heads, answer heads,
+  and both together, on the path edges, medians -0.0, flips 0.00, escapes at
+  most 0.01; off-path masks the same.
+- Masks on top of the query-key removal add nothing to it. Paired per graph
+  against the removal alone, flips beyond it are 0.00 [0.00, 0.00] for the
+  layer-1 mask, -0.02 [-0.05, 0.00] for the answer heads and -0.01 [-0.03,
+  0.00] for all routes on seed 0; 0.00 [-0.03, +0.03] for all three on seed
+  1. The median per-graph difference in T against the removal alone is 0.0
+  in every cell on both seeds. The flip rates sit at the removal's own (17 to
+  19 percent on seed 0, 22 on seed 1), which is the same-answer reference
+  rate (19 and 26). Off-path masks plus removal: identical numbers.
+- Calibration: the layer-2 mask on the path edges at the latents matches the
+  removal (flips 0.15 vs 0.19 and 0.20 vs 0.22; median differences 0.0 and
+  +0.2). Masking and subtraction agree; the removal was not incomplete.
+- Controls: reserialized and self-transplant exactly zero on all 200 runs;
+  random donor -8.4 (e 0.94) and -37.7 (e 0.83); same-answer donor 19 and 26
+  percent at intermediates, none at all K; matched random directions 0.00.
+Conclusion, the "neither story" branch at n=100 on both seeds: with the
+thought's layer-2 match, layer 1's edge reading at the latents, and the
+answer position's edge reading all blocked on the answer-path edges, the
+answer stays where the layer-2 removal alone leaves it, which is at the
+fallback rate. The answer is not recovered through attention onto the path
+edges at any position or layer. Remaining candidates, not tested here: the
+MLPs at the final positions; attention onto non-edge tokens (the two
+candidates after [Q], the root); and content the recycled thoughts carry
+into the last steps before any edge is read there. The third fits experiment
+4: restoring the final thought alone recovers the answer (0.98 to 1.00) and
+the intermediate latents matter only through the thought they emit. Whether
+to test these is the user's decision; each is an analysis-only step on the
+existing checkpoints.
 
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
