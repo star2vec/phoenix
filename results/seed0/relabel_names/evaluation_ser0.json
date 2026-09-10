@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed0/relabel_names/best.pt",
+  "data_dir": "data/relabel_names",
+  "serialization_seed": 0,
+  "test_accuracy": 0.49642,
+  "test_cor": 208,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": 0.723,
+        "std": 1.643,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 1.073,
+        "std": 1.784,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 1.686,
+        "std": 1.64,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 2.452,
+        "std": 1.275,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": 0.787,
+        "std": 1.751,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 0.87,
+        "std": 1.88,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 0.984,
+        "std": 1.726,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 1.936,
+        "std": 1.427,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 0.901,
+        "std": 2.231,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.616,
+        "std": 2.004,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 0.897,
+        "std": 2.188,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 2.478,
+        "std": 2.212,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.698,
+        "std": 2.772,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.552,
+        "std": 2.519,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 3.29,
+        "std": 3.819,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 6.516,
+        "std": 1.952,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": true,
+    "3": false,
+    "4": false
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

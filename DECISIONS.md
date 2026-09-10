@@ -209,9 +209,8 @@ its own predictions, not a continuation of this one.
 
 ## Amendment 2 (2026-09-08): names kept, concept labels random
 
-**Status:** written before running; approved in principle by the user
-(option 2 of Amendment 1's outcome). Data generated and tested; training not
-started (RunPod, tomorrow). Gate 1 first, cells only if it passes.
+**Status (2026-09-11):** run to gate 1 and stopped there; gate 1 failed on
+both seeds, fork (ii). No cell was run. See Outcome.
 
 ### Motivation
 
@@ -285,6 +284,49 @@ whether the cells run.
 Two retrains on a rented RTX 3090 (about 1.9 hours each, concurrently), then
 about 30 minutes of CPU per seed if the gate passes.
 
-### Outcome
+### Outcome (2026-09-11): gate 1 failed on both seeds, fork (ii); stopped
 
-(not run)
+Trained on a RunPod RTX 4090 (not the 3090 named in the plan; same pinned
+environment, tests passed, all three data hashes matched the manifest). Both
+seeds ran the four fixed stages and early-stopped at epoch 139 after 40
+full-task epochs, 1.1 hours each concurrently. Files:
+`results/seed{0,1}/relabel_names/{metrics.jsonl, train.out, best.json,
+evaluation_ser{0..3}.json}`; checkpoints under
+`ckpts/seed{0,1}/relabel_names/` (not committed).
+
+- **Prediction 1 held.** Stage-0 validation accuracy at epoch 24: 0.747 and
+  0.611 (Amendment 1: 0.125 and 0.148). With the root fixed on a name token
+  the one-hop stage is learned.
+- **Nothing past one hop is learned.** Stages 1 and 2 peaked mid-stage near
+  0.24 and ended at 0.17 to 0.19 while the loss fell to about 1.0; stage 3
+  and the full task sat at 0.49 to 0.58 (chance for two candidates). Best
+  validation accuracy 0.510 (seed 0, epoch 107) and 0.576 (seed 1, epoch
+  101).
+- **Gate 1.** Held-out accuracy on the relabeled test split under
+  serialization seeds 0 to 3: seed 0, 208, 211, 204, 208 of 419 (48.7 to
+  50.4 percent); seed 1, 209, 219, 215, 209 (49.9 to 52.3). Amendment 1
+  gave 49.2 to 51.6 and 49.2 to 50.4. Predicted range 92.6 to 96.7; stop
+  threshold 88; fork (iii) floor about 60.
+- **Readout ordering** holds exactly as far as the learning went and no
+  further: seed 0 true at steps 1 and 2, false at 3 and 4; seed 1 true at
+  step 1 only. At the failing steps the reachable mean sits below the
+  not-reachable mean while frontier and optimal stay largest, the same shape
+  as Amendment 1.
+- **Memorization check** (2026-09-11, CPU, the check the pod did not run):
+  on 300 seen training graphs the models answer 300 and 298 correctly; on
+  300 unseen test graphs 151 and 151. Same pattern as Amendment 1 (296/292
+  seen, 152/144 unseen); the original seed 0 answers 299 seen and 282 unseen.
+
+Reading, per the fork written above: (ii). The root marker alone makes the
+one-hop stage learnable; the depth-order labeling is load-bearing on its own
+for every hop after the first. At this model size, curriculum and budget the
+model does not learn multi-hop reachability unless concept ids encode depth;
+it memorizes the training graphs instead. The two label cells cannot be run
+on this substrate, and the amendment stops here. Predictions 3 and 4 were
+never reached and are recorded as untested.
+
+Taken with Amendment 1, the substrate finding now has two angles: all labels
+random, nothing learned at any depth; names kept, one hop learned and
+nothing beyond. Neither retrain touches the results on the original model.
+Still open, and not pursued: whether a longer or different schedule would let
+the mechanism emerge without the cue.

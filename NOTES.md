@@ -19,9 +19,14 @@ only for the trained model's competence. The two label cells were not run.
 Numbers and files in `DECISIONS.md`, Amendment 1, Outcome.
 
 Amendment 2 (2026-09-08): names kept on tokens 0 and 1, concept labels
-random over 2..30 (`data/relabel_names/`, seed 20260908). Asks whether the
-root marker alone makes the task learnable; predictions and the gate in
-`DECISIONS.md`. Written, not trained.
+random over 2..30 (`data/relabel_names/`, seed 20260908). Outcome
+(2026-09-11): fork (ii). Stage 0 is learned (validation 0.75 and 0.61 vs
+0.13 and 0.15 with all labels random), nothing past one hop is; held-out
+accuracy 48.7 to 52.3 percent under four serialization seeds; 300 and 298 of
+300 seen training graphs right, 151 of 300 unseen. The root marker makes the
+first hop learnable; the depth-order labeling is load-bearing on its own for
+every later hop. The label cells cannot run on this substrate. Numbers and
+files in `DECISIONS.md`, Amendment 2, Outcome.
 
 Comparability of the evaluation across the original and retrained models
 (checked 2026-09-06): the accuracy is the argmax token against the target
@@ -40,8 +45,9 @@ the original checkpoints is needed.
   2026-09-10: blocking every attention route onto the path edges adds
   nothing to the query-key removal; the answer is not recovered through
   attention onto edges). Amendment 1 (shuffled-label retrain) failed its
-  gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) is written and
-  not trained. Next step is the user's decision (see DECISIONS.md and the
+  gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) failed its gate
+  1 on both seeds too, after learning the one-hop stage (2026-09-11). The
+  label cells are not runnable on this substrate. Next step is the user's decision (see DECISIONS.md and the
   experiment 5 block).
   Experiment 5 is not designed yet; the open question left by 3 is where the
   answer is recovered when the thoughts' attention onto the answer path is

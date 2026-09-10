@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed0/relabel_names/best.pt",
+  "data_dir": "data/relabel_names",
+  "serialization_seed": 2,
+  "test_accuracy": 0.486874,
+  "test_cor": 204,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": 0.723,
+        "std": 1.647,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 1.077,
+        "std": 1.785,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 1.693,
+        "std": 1.638,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 2.472,
+        "std": 1.265,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": 0.783,
+        "std": 1.75,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 0.876,
+        "std": 1.88,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 0.993,
+        "std": 1.725,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 1.969,
+        "std": 1.398,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 0.899,
+        "std": 2.225,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.617,
+        "std": 1.998,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 0.896,
+        "std": 2.17,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 2.453,
+        "std": 2.196,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.701,
+        "std": 2.755,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.549,
+        "std": 2.517,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 3.279,
+        "std": 3.796,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 6.474,
+        "std": 1.962,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": true,
+    "3": false,
+    "4": false
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

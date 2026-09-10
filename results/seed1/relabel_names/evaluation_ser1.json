@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed1/relabel_names/best.pt",
+  "data_dir": "data/relabel_names",
+  "serialization_seed": 1,
+  "test_accuracy": 0.522673,
+  "test_cor": 219,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": 0.766,
+        "std": 1.362,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 0.872,
+        "std": 1.267,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 1.154,
+        "std": 1.319,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 1.612,
+        "std": 1.182,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": 0.708,
+        "std": 1.503,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 0.589,
+        "std": 1.408,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 0.682,
+        "std": 1.346,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 1.268,
+        "std": 1.23,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 0.643,
+        "std": 2.035,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.339,
+        "std": 1.664,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 0.744,
+        "std": 1.839,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 2.006,
+        "std": 2.099,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.338,
+        "std": 2.698,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.235,
+        "std": 2.441,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 3.372,
+        "std": 3.847,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 6.601,
+        "std": 2.186,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": false,
+    "3": false,
+    "4": false
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed1/relabel_names/best.pt",
+  "data_dir": "data/relabel_names",
+  "serialization_seed": 2,
+  "test_accuracy": 0.513126,
+  "test_cor": 215,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": 0.765,
+        "std": 1.364,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 0.872,
+        "std": 1.272,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 1.154,
+        "std": 1.326,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 1.616,
+        "std": 1.19,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": 0.707,
+        "std": 1.505,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 0.591,
+        "std": 1.404,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 0.684,
+        "std": 1.345,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 1.285,
+        "std": 1.233,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 0.648,
+        "std": 2.031,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.336,
+        "std": 1.664,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 0.724,
+        "std": 1.859,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 2.021,
+        "std": 2.127,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.336,
+        "std": 2.697,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.233,
+        "std": 2.438,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 3.389,
+        "std": 3.843,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 6.614,
+        "std": 2.2,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": false,
+    "3": false,
+    "4": false
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}
