@@ -36,10 +36,13 @@ the original checkpoints is needed.
 
 ## Status
 
-- Experiments 0 to 5 are complete at n=100 on both seeds (experiment 5 on
-  2026-09-10: blocking every attention route onto the path edges adds
-  nothing to the query-key removal; the answer is not recovered through
-  attention onto edges). Amendment 1 (shuffled-label retrain) failed its
+- Experiments 0 to 6 are complete at n=100 on both seeds. Experiment 5
+  (2026-09-10): blocking every attention route onto the path edges adds
+  nothing to the query-key removal. Experiment 6 (2026-09-11): the answer
+  is carried in thought K and read out by the answer position's layer-1
+  MLP; the same-answer donor's thought K restores every removal-flipped
+  graph (41 of 41 across seeds); token and edge masks at the final
+  positions do nothing. The recovery question is closed. Amendment 1 (shuffled-label retrain) failed its
   gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) is written and
   not trained. Next step is the user's decision (see DECISIONS.md and the
   experiment 5 block).
@@ -1146,7 +1149,58 @@ cell is unchanged from run 1. Amended prediction for cell 3 confirmed: the
 answer position's layer-1 MLP output encodes the answer (same-answer donor's
 keeps it, random donor's breaks it), and it does so whether or not the
 thought's match to the path was removed. Design frozen after run 2.
-n=100 outcome: (running, both seeds)
+n=100 outcome (both seeds; `results/seed0/recovery_n100.json`,
+`results/seed1/recovery_n100.json`). Removal-flipped graphs: 19 on seed 0,
+22 on seed 1 (p_decoy under the removal 0.83 and 0.87).
+- Cell 4, thought carry-over: under the removal, the same-answer donor's
+  thought K restores the answer on 19 of 19 and 22 of 22 removal-flipped
+  graphs (p_target 0.96 and 1.00; p_decoy 0.04 and 0.00), and leaves every
+  other graph at baseline (medians +0.0, no flips, no escapes, 98 of 98 on
+  each seed). The random donor's thought K destroys the answer (e 1.00;
+  escape 74 and 77 percent) alone and under the removal alike. Identity
+  story's "carried" prediction, per graph without exception on 200 graphs.
+- Cell 3, MLPs at the answer position, layer 1: the same-answer donor's
+  output keeps the answer on 98 of 98 (alone and under the removal; under
+  the removal it restores 19 of 19 and 22 of 22 flipped graphs, p_target
+  0.98 and 1.00); the random donor's destroys it (e 1.00, escape 79
+  percent); the training mean sits between (escape 25 and 14 percent).
+  Layer 2 at the answer position: mean alone -0.0, and under the removal the
+  same-answer output lowers the flip rate below the removal's (0.14 vs 0.19;
+  0.08 vs 0.22) while the random output leaves it (0.20; 0.26). The final
+  latent's MLPs: nothing under any replacement, alone or beyond the removal,
+  on both seeds. Amended prediction confirmed: the answer position's
+  layer-1 MLP output encodes the answer.
+- Cells 1, 2, 5, 6, 7: nothing alone (medians -0.0 to +0.0, flips 0.00, on
+  both seeds) and nothing beyond the removal (flips beyond the reference
+  -0.03 to +0.03, all intervals spanning zero; medians within 2.5 points of
+  the removal alone). Masking the candidate tokens, the root, the decoy's
+  edges, both candidates' edges, or tokens plus decoy edges at the final
+  positions changes neither the correct answers nor the fallback.
+- Fallback line, on the removal-flipped graphs: the token and edge masks
+  leave p_decoy at 0.83 to 0.90 (weakened on 0 to 5 percent); the answer
+  position's layer-1 MLP mean replacement drops it to 0.45 and 0.49 with
+  escape 0.41 and 0.27 (weakened 63 and 55 percent); the same-answer donor's
+  thought K or layer-1 MLP output drops it to 0.00 to 0.04 with p_target
+  0.96 to 1.00 (weakened 95 to 100 percent). The switch to the decoy is
+  carried in thought K and read out by the layer-1 MLP at the answer
+  position; it does not read the decoy's edges or the candidate tokens.
+- Controls: reserialized and self-transplant exactly zero on all 200 runs;
+  random donor breaks (e 0.94 and 0.83); same-answer donor 19 and 26 percent
+  at intermediates, none at all K; matched random directions +0.0.
+Conclusion. After the thought's layer-2 match to the answer path is removed,
+what still produces the answer is content thought K already carries, read
+out by the answer position's layer-1 MLP; when the removal flips a graph,
+thought K carries the wrong candidate and the same readout names it. No
+attention onto edges or tokens at the final positions is involved in either
+case (experiments 5 and 6). Together with the per-step separation in check 3
+(the target separated from the decoy in the thought by step 3, perfectly by
+step 4), this is the identity story's account carried through to the
+readout: by the last step the thought encodes which candidate wins, and the
+edge reading at the final positions is confirmation rather than
+computation. It also revises the paper's sentence "identity is bound late":
+the identity is present in the thought from step 3 on; the paper's final-
+step swap and final-step transplant acted on a thought that already carried
+the answer.
 
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
