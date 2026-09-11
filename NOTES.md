@@ -1093,9 +1093,60 @@ beyond the same-answer reference with the interval above zero; "weakens"
 for the fallback line is mean p_decoy on the removal-flipped graphs falling
 by at least 0.25 (protects "the switch lost its support").
 
-Pilot outcome: (not run)
-What the pilot changed: (not run)
-n=100 outcome: (not run)
+Pilot outcome, run 1 (seed 0, test graphs 400-409;
+`results/seed0/recovery_pilot_v1_noise_control.json`):
+- Cell 4, thought carry-over: under the removal, the same-answer donor's
+  thought K restores the answer on 10 of 10 graphs, including the three the
+  removal flipped (their p_target 0.97, p_decoy 0.03); the random donor's
+  thought K destroys it (e 1.00 on all, mass on other nodes). Alone, the
+  same-answer donor's thought K changes nothing (median +0.0) and the random
+  donor's breaks (-75.3, e 1.00). The identity story's "carried" prediction,
+  per graph without exception.
+- Cell 3, MLPs: replacing the answer position's MLP output by the training
+  mean breaks alone (median -30.8, e 0.49; 5 of 10 escape), and the effect
+  sits in layer 1 (-20.0, e 0.46) not layer 2 (-0.0). The final latent's
+  MLPs do nothing alone or beyond the removal. The noise control broke more
+  than the mean replacement (-34.1, e 0.79), the reverse of the prediction:
+  the control was off-manifold (mean plus a random vector at the deviation
+  norm is not an MLP output the model produces), so it cannot calibrate the
+  mean replacement. Design fault, fixed below.
+- Cells 1, 2, 5, 6, 7 (candidate tokens, root token, decoy's edges, both
+  candidates' edges, tokens plus decoy edges): nothing alone (medians +0.0,
+  no flips on 10 of 10) and nothing beyond the removal (per graph within 8
+  points of the removal alone; controls identical). Masking the candidate
+  tokens at the final positions does not stop the model naming the target.
+- Fallback line, on the three removal-flipped graphs (p_decoy 0.84 under the
+  removal): the token and edge masks leave it at 0.78 to 0.85 (none
+  weakened); the answer position's layer-1 MLP mean replacement drops it to
+  0.41 (escape 0.54); the same-answer donor's thought K drops it to 0.03 with
+  p_target 0.97. The switch to the decoy is carried in thought K and read
+  out by the answer position's layer-1 MLP; it does not read the decoy's
+  edges or the candidate tokens.
+- Controls: reserialized and self-transplant exactly zero; random donor
+  -25.1 (e 0.87); same-answer donor 2 of 10 at intermediates, none at all K;
+  matched random directions +0.0.
+What the pilot changed: the MLP noise control is replaced by on-manifold
+donor controls, mirroring cell 4: the MLP output captured at the same role
+and layer from the same-answer donor's own run and from the random donor's
+own run. Amended prediction for cell 3 (written before run 2): if the
+answer position's layer-1 MLP output encodes the answer, the same-answer
+donor's output keeps the answer and the random donor's breaks it, with the
+mean in between; if that MLP is a generic on-manifold requirement, all three
+replacements behave alike. Nothing else changed.
+
+Pilot outcome, run 2 (seed 0, same graphs; `results/seed0/recovery_pilot.json`):
+only the MLP control changed, and the on-manifold controls settle cell 3.
+At the answer position, layer 1: the same-answer donor's MLP output keeps the
+answer on 10 of 10 (median +0.0; on the three removal-flipped graphs, under
+the removal, p_target 0.98); the random donor's output destroys it (-49.3
+alone, e 1.00 on all); the training mean sits between (-20.0, e 0.46).
+Layer 2 alone does nothing under any replacement. The final latent's MLPs
+do nothing under any replacement, alone or beyond the removal. Every other
+cell is unchanged from run 1. Amended prediction for cell 3 confirmed: the
+answer position's layer-1 MLP output encodes the answer (same-answer donor's
+keeps it, random donor's breaks it), and it does so whether or not the
+thought's match to the path was removed. Design frozen after run 2.
+n=100 outcome: (running, both seeds)
 
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.

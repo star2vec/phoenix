@@ -8,10 +8,11 @@ removal from experiment 3 (directions from the unedited run).
   cand_tokens/{path,ctrl}      mask attention from the final positions onto
                                the two candidate tokens / onto [Q] and [R]
   root_token/{path,ctrl}       onto the root token / onto [Q] and [R]
-  mlp/{answer,latent}/{both,L1,L2}/{mean,noise}
+  mlp/{answer,latent}/{both,L1,L2}/{mean,same_answer,random}
                                replace the MLP output at a final position by
                                its mean over training graphs at that role /
-                               by the mean plus matched-norm noise
+                               by the same-answer donor's output there / by
+                               the random donor's (on-manifold controls)
   thoughtK/{same_answer,random}
                                thought K substituted by the donor's thought K
   decoy_edges/{path,ctrl}      final positions' attention masked onto every
@@ -79,6 +80,20 @@ def mlp_means(runner, train, n=N_MEAN, base_seed=0, cache=None):
     return out
 
 
+def donor_mlp_outputs(runner, pr_donor):
+    """{(layer, role): MLP output} captured from the donor's own run at its
+    final latent and answer position (on-manifold replacement vectors)."""
+    L = pr_donor.layout()
+    with MLPHooks(runner.model.base_causallm) as mh:
+        mh.record = True
+        run_ids(runner, pr_donor.ids(runner.tok))
+        out = {}
+        for li in mh.store:
+            out[(li, "latent")] = mh.store[li][L["latents"][pr_donor.K - 1]]
+            out[(li, "answer")] = mh.store[li][L["a"]]
+    return out
+
+
 def run(runner, recips, train, means, base_seed=0):
     rows, cell_names = [], []
     for gi, sample, pr in recips:
@@ -116,10 +131,12 @@ def run(runner, recips, train, means, base_seed=0):
         cell("self_transplant", measure(thought_edit=fixed(own, all_passes(K))))
         assert abs(cells["self_transplant"]["dT"]) < 1e-6
         d_gi, _ = random_donor(train, K, rng)
-        rth = donor_run(runner, train, d_gi, base_seed, attn_eager=True)[1]
+        rpr, rth = donor_run(runner, train, d_gi, base_seed, attn_eager=True)
         cell("random_donor/intermediates", measure(thought_edit=fixed(rth, intermediates(K))))
         sad = same_answer_donor(train, pr.target, pr.decoy, K)
-        sth = donor_run(runner, train, sad[0], base_seed, attn_eager=True)[1] if sad else None
+        spr, sth = donor_run(runner, train, sad[0], base_seed, attn_eager=True) if sad else (None, None)
+        rmlp = donor_mlp_outputs(runner, rpr)
+        smlp = donor_mlp_outputs(runner, spr) if spr is not None else None
         if sth is None:
             skip("same_answer_donor/intermediates", "no_same_answer_donor"); skip("same_answer_donor/all", "no_same_answer_donor")
         else:
@@ -163,19 +180,18 @@ def run(runner, recips, train, means, base_seed=0):
         both("root_token/path", mask_keys=[L["root"]])
         both("root_token/ctrl", mask_keys=[L["q"], L["r"]])
 
-        # 3: final-position MLPs, mean replacement and matched-norm noise
+        # 3: final-position MLPs: training mean, same-answer donor's output,
+        # random donor's output (the last two are on-manifold controls)
         for role, pos in (("answer", L["a"]), ("latent", L["latents"][K - 1])):
             for lname, layers in (("both", (0, 1)), ("L1", (0,)), ("L2", (1,))):
                 if role == "latent" and lname != "both":
                     continue
-                mp = {(li, pos): means[(li, role)][0] for li in layers}
-                both(f"mlp/{role}/{lname}/mean", mlp_patches=mp)
-                noise = {}
-                for li in layers:
-                    mean, dev = means[(li, role)]
-                    r_ = torch.randn(mean.shape, generator=gen).to(mean)
-                    noise[(li, pos)] = mean + r_ / r_.norm() * dev
-                both(f"mlp/{role}/{lname}/noise", mlp_patches=noise)
+                both(f"mlp/{role}/{lname}/mean", mlp_patches={(li, pos): means[(li, role)][0] for li in layers})
+                if smlp is not None:
+                    both(f"mlp/{role}/{lname}/same_answer", mlp_patches={(li, pos): smlp[(li, role)] for li in layers})
+                else:
+                    skip(f"mlp/{role}/{lname}/same_answer/alone", "no_same_answer_donor"); skip(f"mlp/{role}/{lname}/same_answer/plus_removal", "no_same_answer_donor")
+                both(f"mlp/{role}/{lname}/random", mlp_patches={(li, pos): rmlp[(li, role)] for li in layers})
 
         # 4: thought K substituted by a donor's thought K
         if sth is not None:
@@ -202,7 +218,7 @@ def run(runner, recips, train, means, base_seed=0):
 
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base, "meta": meta,
                      "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None, "cells": cells})
-        show = ["qk_removal", "mlp/answer/both/mean/alone", "mlp/latent/both/mean/alone", "thoughtK/same_answer/plus_removal",
+        show = ["qk_removal", "mlp/answer/L1/mean/alone", "mlp/answer/L1/same_answer/alone", "mlp/answer/L1/random/alone", "thoughtK/same_answer/plus_removal",
                 "thoughtK/random/plus_removal", "decoy_edges/path/plus_removal", "cand_tokens/path/alone"]
         print(f"graph {gi}: base T {base['T']:.1f}  " + "  ".join(
             f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in show if n in cells and not cells[n].get("skipped")))
