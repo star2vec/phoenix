@@ -288,3 +288,61 @@ about 30 minutes of CPU per seed if the gate passes.
 ### Outcome
 
 (not run)
+
+## Replication run (2026-09-11): seeds 2 and 3, headline cells only
+
+**Status:** written before training. Approved by the user; training on a
+rented GPU with the original recipe and data; then no more experiments.
+
+### Purpose
+
+Two more independently trained models on the original ProsQA data, to
+report the headline results on four seeds instead of two. No new design:
+the cells are the ones already run and recorded at n=100 on seeds 0 and 1.
+
+### Training
+
+`train.py --seed {2,3} --run-name seed{2,3} --device cuda
+--fixed-early-stages --full-task-patience 15 --save-every 10`, original
+data (`vendor/reasoning-by-superposition/data`), pinned environment (torch
+2.5.1, Python 3.12), both seeds concurrently on one GPU. Gate, the same as
+the paper's substrate precondition and Amendment 1's gate 1: held-out
+accuracy under serialization seeds 0 to 3, and the readout ordering. A seed
+is reported whatever its accuracy; a seed below 88 is marked as failing the
+precondition, as the paper marked its seeds 2 and 3 (90.2 and 92.8, both
+below the paper's 93 cutoff but with the ordering intact), and its cells are
+still run and reported.
+
+### Cells (n=100, test graphs 0-99, no pilot: the designs are frozen)
+
+- Prerequisites: `evaluate.py` under four serialization seeds;
+  `heads.py --mode n100` (experiment 2; also supplies the head sets for the
+  masking cells).
+- `necessity.py --mode n100` (experiment 1).
+- The removal and the three mask cells: `masking.py --mode n100`
+  (experiment 5: the query-key every-step removal with its matched random
+  directions, the layer-1 latent mask, the answer-heads mask, the all-routes
+  mask, each alone and plus removal, with off-path controls).
+- The final-thought carry-over and the decoy-edge masks: `recovery.py
+  --mode n100` (experiments 6 and 6b as run on seeds 0 and 1; the
+  same-answer donor's thought K under the removal is the headline cell).
+Standing controls as everywhere (reserialized and self-transplant exactly
+zero, random donor, same-answer donor). Not run on seeds 2 and 3: the
+paper's baseline battery, the probe and Jacobian fits, tracing, cache
+patching, and the counterfactual set other than the removal.
+
+### Predictions
+
+The same as recorded for each experiment on seeds 0 and 1; a replication is
+reported as holding when the new seed's cell falls inside the pattern the
+first two seeds share (direction and whether the interval excludes zero),
+and as failing otherwise, cell by cell. No new prediction lines.
+
+### Cost
+
+About 1.1 to 1.9 hours of GPU for the two trainings (concurrently), then
+about 1.5 hours of CPU per seed for the four drivers on this Mac.
+
+### Outcome
+
+(not run)
