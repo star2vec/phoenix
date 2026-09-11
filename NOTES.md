@@ -1292,6 +1292,18 @@ kept as `recovery_n100_v1_exp6.json`):
   candidates removed the model still names a candidate, and gets it right
   more often than chance (58 to 72 percent), so some of the winner survives
   the loss of both candidates' edges; escape never rises above 0.03.
+  Distribution of T under this mask alone (added 2026-09-11, since chance
+  is the prediction): median 70.1 [37.7, 87.5] and 78.2 [60.6, 90.4], mean
+  56.6 [48.6, 64.7] and 62.8 [55.4, 70.1]; bimodal, with 34 and 25 graphs
+  below 20, 43 and 48 above 80, and 23 to 27 percent between 20 and 80.
+  Under the removal as well: median 36.6 and 62.0, mean 48.8 [40.7, 57.0]
+  and 54.9 [46.8, 62.7]. So the mean sits at or a little above 50 while the
+  per-graph values are near 0 or near 100: the model does not hedge; it
+  commits to a candidate on each graph and is right on somewhat more than
+  half. Chance in the sense of "a coin per graph" fits the mean, not the
+  shape; the shape says the choice is still driven by something graph-
+  specific that the two masks do not remove (for comparison, the decoy-edge
+  mask alone has mean T 85 and 91 with 78 and 87 graphs above 80).
 - Per-step carry-over, under the removal, restoration of the removal-flipped
   graphs by the same-answer donor's thought at one step: at K, 19 of 19 and
   22 of 22; at K-1, 9 of 19 (K=3: 7 of 14; K=4: 2 of 5) and 16 of 22 (K=3:
