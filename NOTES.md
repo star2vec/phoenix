@@ -42,7 +42,11 @@ the original checkpoints is needed.
   is carried in thought K and read out by the answer position's layer-1
   MLP; the same-answer donor's thought K restores every removal-flipped
   graph (41 of 41 across seeds); token and edge masks at the final
-  positions do nothing. The recovery question is closed. Amendment 1 (shuffled-label retrain) failed its
+  positions do nothing. Experiment 6b (2026-09-11): the decoy's incoming
+  edges count against the decoy during the search, visible only under the
+  removal; the winner is complete in thought K, largely present in K-1, absent
+  in K-2; the label cue does not enter the trained model's choice. The
+  recovery question is closed. Amendment 1 (shuffled-label retrain) failed its
   gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) is written and
   not trained. Next step is the user's decision (see DECISIONS.md and the
   experiment 5 block).
@@ -1265,7 +1269,52 @@ What the pilot changed: nothing in the cells. One reading rule added: for
 the both-candidates mask the reference is a coin flip (flip rate near 0.5,
 escape near 0), not the same-answer donor's rate. The per-step cells are
 read split by K (the split machinery already carries K).
-n=100 outcome: (running, both seeds)
+n=100 outcome (both seeds; `results/seed0/recovery_n100.json`,
+`results/seed1/recovery_n100.json`; the experiment 6 files before 6b are
+kept as `recovery_n100_v1_exp6.json`):
+- Decoy's edges masked at every latent query and the answer position.
+  Alone: flips 0.05 and 0.04 (below the reference; the decoy's edges are not
+  needed when the thought carries the winner). On top of the removal: flips
+  0.46 and 0.40, that is +0.27 [+0.17, +0.37] and +0.18 [+0.10, +0.26]
+  beyond the removal alone, with escape at 0.01 and 0.02 and the mass moving
+  to the decoy (0.52 and 0.43 on average). The matched off-path edges plus
+  removal reproduce the removal alone (-0.01 and 0.00 beyond it). The
+  elimination line holds under the removal on both seeds: the decoy's
+  incoming edges are read during the search and count against the decoy,
+  and this only matters once the thought's match to the path is gone. On
+  the graphs the removal already flipped, p_decoy stays where it was (0.81
+  and 0.83); the added flips come from graphs the removal had left correct.
+- Both candidates' edges masked at every latent query and the answer
+  position. Alone: flips 0.33 and 0.28, +0.14 [+0.02, +0.27] and +0.03
+  [-0.09, +0.14] beyond the reference, escape 0.03 and 0.02; on top of the
+  removal, flips 0.42 and 0.42, +0.23 and +0.20 beyond the removal. Read
+  against a coin flip (the pilot's rule): with the evidence for both
+  candidates removed the model still names a candidate, and gets it right
+  more often than chance (58 to 72 percent), so some of the winner survives
+  the loss of both candidates' edges; escape never rises above 0.03.
+- Per-step carry-over, under the removal, restoration of the removal-flipped
+  graphs by the same-answer donor's thought at one step: at K, 19 of 19 and
+  22 of 22; at K-1, 9 of 19 (K=3: 7 of 14; K=4: 2 of 5) and 16 of 22 (K=3:
+  6 of 10; K=4: 10 of 12); at K-2, 7 of 19 and 10 of 22. The K-1 donor
+  thought is not a clean intervention: alone it flips 0.19 and 0.26 of
+  graphs (the same-answer donor's intermediate rate), and under the removal
+  it flips 9 of 79 and 19 of 76 graphs the removal had left correct. Its
+  net effect is zero beyond the reference (0.00 [0.00, 0.00]) on both seeds.
+  So the K-1 thought carries the winner on most graphs (it restores about
+  half to three quarters of the flipped ones and, in check 3, separates the
+  candidates on 0.88 to 0.92 of graphs) but not reliably enough to be
+  substituted across graphs; only thought K is. The random donor's K-1
+  thought breaks (e 0.90 and 0.82).
+Conclusion. Three additions to experiment 6's picture, replicated on both
+seeds. First, the decoy's incoming edges are part of the search: reading
+them lowers the decoy, but this is a secondary route that shows only when
+the thought's match to the path has been removed. Second, the fallback is
+always a candidate-level choice, never an escape, even with both
+candidates' edges hidden. Third, the carried winner is complete in thought
+K and largely but not reliably present in thought K-1; it is not present in
+K-2. The label cue does not enter: accuracy differs by 1 to 3 points across
+candidate id order and an ids-only probe reaches AUC 0.64 against the
+thought's 0.99 at step 3.
 
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
