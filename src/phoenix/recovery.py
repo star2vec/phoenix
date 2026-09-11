@@ -21,6 +21,11 @@ removal from experiment 3 (directions from the unedited run).
                                non-candidates
   both_cand_edges/path         decoy edges plus the target's parent edges
   cand_tokens_plus_decoy_edges/path
+  allq_decoy_edges/{path,ctrl}, allq_both_cand_edges/path
+                               the same edge masks at every latent query and
+                               the answer position (experiment 6b)
+  thoughtKm1/{same_answer,random}, thoughtKm2/...
+                               the donor's thought at step K-1 or K-2 only
 Standing controls: reserialized, self-transplant (exactly zero), random
 donor and same-answer donor at intermediates and at all K, the removal's
 matched random directions.
@@ -215,6 +220,41 @@ def run(runner, recips, train, means, base_seed=0):
         else:
             for nm in ("decoy_edges/path", "decoy_edges/ctrl", "both_cand_edges/path", "cand_tokens_plus_decoy_edges/path"):
                 skip(f"{nm}/alone", "decoy_has_no_in_edge"); skip(f"{nm}/plus_removal", "decoy_has_no_in_edge")
+
+        # 6b: candidate-edge masks at every latent query and the answer position
+        allq = list(L["latents"]) + [L["a"]]
+
+        def measure_allq(mask_keys, thought_edit=None):
+            with AttnHooks(runner.model.base_causallm) as h:
+                h.add_mask([0, 1], allq, mask_keys)
+                logits = run_ids(runner, ids, thought_edit, attn_eager=True)
+            return answer_split(logits, pr.target, pr.decoy)
+
+        def both_allq(name, keys):
+            cell(f"{name}/alone", measure_allq(keys))
+            if removal is None:
+                skip(f"{name}/plus_removal", "no_path_edge_at_some_step")
+            else:
+                cell(f"{name}/plus_removal", measure_allq(keys, removal))
+        if decoy_slots:
+            both_allq("allq_decoy_edges/path", tok(decoy_slots))
+            both_allq("allq_decoy_edges/ctrl", tok(others) if others else tok(decoy_slots))
+            both_allq("allq_both_cand_edges/path", tok(decoy_slots + parent_slots))
+        else:
+            for nm in ("allq_decoy_edges/path", "allq_decoy_edges/ctrl", "allq_both_cand_edges/path"):
+                skip(f"{nm}/alone", "decoy_has_no_in_edge"); skip(f"{nm}/plus_removal", "decoy_has_no_in_edge")
+
+        # 6b: per-step carry-over, the donor's thought at step j only (thought K left to the model)
+        for j, tag in ((K - 2, "Km1"), (K - 3, "Km2")):
+            if j < 0:
+                for src in ("same_answer", "random"):
+                    skip(f"thought{tag}/{src}/alone", "no_such_step"); skip(f"thought{tag}/{src}/plus_removal", "no_such_step")
+                continue
+            if sth is not None:
+                both(f"thought{tag}/same_answer", thought_edit=fixed(sth, [j]))
+            else:
+                skip(f"thought{tag}/same_answer/alone", "no_same_answer_donor"); skip(f"thought{tag}/same_answer/plus_removal", "no_same_answer_donor")
+            both(f"thought{tag}/random", thought_edit=fixed(rth, [j]))
 
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base, "meta": meta,
                      "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None, "cells": cells})

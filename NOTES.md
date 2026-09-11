@@ -1202,6 +1202,71 @@ the identity is present in the thought from step 3 on; the paper's final-
 step swap and final-step transplant acted on a thought that already carried
 the answer.
 
+## Experiment 6b: candidate-edge masks at every latent query, and the per-step carry-over (written 2026-09-11, before the run)
+
+Two additions requested after experiment 6, predictions first.
+
+Cells (each alone and plus the query-key every-step removal; controls as in
+experiment 6, plus the matched off-path edges for the masks):
+- Decoy's incoming edges masked at every latent query (both layers, all
+  heads) and at the answer position. Elimination line: if the search rules
+  out the decoy by reading its edges, the thought loses the winner and the
+  fallback rises (flips beyond the reference above zero, p_decoy up on the
+  removal-flipped graphs, or escape up). Label-cue line: nothing changes.
+- Both candidates' incoming edges masked at every latent query and the
+  answer position. Elimination line: the thought loses both, escape rises.
+  Label-cue line: nothing changes.
+- Per-step carry-over: the same-answer donor's thought at step j only, for
+  j = K-1 and K-2 (thought K left to the model), alone and under the removal.
+  Identity story: under the removal, restoration of the flipped graphs
+  falls with distance from the end: near-complete at K-1 if the winner is
+  already carried there (check 3: 0.92/0.88 separated at step 3), partial at
+  K-2. If restoration at K-1 equals that at K, the carried answer is settled
+  one step before the end; if it is near zero, thought K alone carries it.
+  Random donor's thought at the same step as the breaking reference.
+
+Checks run before this design (2026-09-11, on existing data and the
+trained models with thoughts free):
+- Test accuracy split by candidate id order, seed 0 / seed 1: target id
+  below decoy id 161/174 = 0.925 / 165/174 = 0.948; target id above decoy id
+  235/245 = 0.959 / 0.959. A 1 to 3 point difference; the id order is not
+  what the model relies on.
+- Winner probe from ids alone (candidate ids, the depth-k frontier ids, and
+  their order; no graph structure), held-out training graphs 2500-2999:
+  AUC 0.64 at every step (an order-only rule scores 0.60). The thought's own
+  separation at step 3 is 0.99/0.98 and at step 4 1.00. The numbering
+  predicts almost none of the step-3 separation; it is computed from the
+  graph.
+
+Pilot outcome (seed 0, test graphs 400-409; `results/seed0/recovery_pilot.json`;
+the pre-6b pilot file is kept as `recovery_pilot_v2_before_6b.json`):
+- Decoy's edges masked at every latent query and the answer position:
+  alone, nothing (median +0.0, no flips); on top of the removal, the
+  fallback rises: median -51.5, flips 5 of 10 (removal alone 3), and on the
+  three removal-flipped graphs p_decoy goes from 0.84 to 0.95. The matched
+  off-path edges plus removal reproduce the removal alone (-8.7, 3 flips).
+  The elimination line, under the removal only: the decoy's incoming edges
+  are read during the search and count against the decoy, but only matter
+  once the thought's match to the path is gone.
+- Both candidates' edges masked at every latent query and the answer
+  position: alone, 4 of 10 flip with escape 0 (median -1.5; the two K=3
+  graphs and two others); on top of the removal, 6 of 10 flip. With the
+  evidence for both candidates removed the model still names a candidate,
+  at about chance; escape does not rise. Neither prediction line as
+  written: the fallback is a candidate-level choice, never an escape.
+- Per-step carry-over, under the removal: the same-answer donor's thought at
+  K-1 restores 2 of the 3 removal-flipped graphs (p_target 0.71 on them) but
+  disturbs 2 others (402: -6 to -34; 408: +11 to -74); at K-2 it restores
+  none (p_target 0.00, escape 0.33) and the random donor's K-2 thought plus
+  removal breaks (-37.0). The random donor's K-1 thought breaks (e 0.83).
+  Consistent with check 3: the winner is nearly settled by step K-1 and not
+  by K-2.
+What the pilot changed: nothing in the cells. One reading rule added: for
+the both-candidates mask the reference is a coin flip (flip rate near 0.5,
+escape near 0), not the same-answer donor's rate. The per-step cells are
+read split by K (the split machinery already carries K).
+n=100 outcome: (running, both seeds)
+
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
 
