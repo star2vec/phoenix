@@ -88,9 +88,9 @@ def main():
           f"max logit diff {(out_s.logits - out_f.logits).abs().max():.2e})")
 
     # --- hooks importable and inactive: still bit-exact ----------------------
-    from phoenix.attn_hooks import AttnHooks, ResidualHooks
+    from phoenix.attn_hooks import AttnHooks, MLPHooks, ResidualHooks
 
-    with AttnHooks(fast.base_causallm), ResidualHooks(fast.base_causallm):
+    with AttnHooks(fast.base_causallm), ResidualHooks(fast.base_causallm), MLPHooks(fast.base_causallm):
         out_h = fast(**batch)
     assert torch.equal(out_h.logits, out_f.logits), "inactive hooks broke bit-exactness"
     assert torch.equal(out_h.inputs_embeds, out_f.inputs_embeds)

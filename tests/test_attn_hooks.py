@@ -153,6 +153,27 @@ def main():
     assert torch.allclose(store[0][lat1], cap[0] + wpe[lat1], atol=1e-5)
     print("residual hooks: OK (exact self patch; level 0 at latent = thought + position embedding)")
 
+    # 6b. MLP hooks: record, self-patch exact, foreign vector acts, inactive is exact
+    from attn_hooks import MLPHooks
+    with MLPHooks(r.base):
+        assert torch.equal(M.run_ids(r, ids), ref2), "inactive MLP hooks changed the logits"
+    with MLPHooks(r.base) as mh:
+        mh.record = True
+        M.run_ids(r, ids)
+        mstore = {li: dict(d) for li, d in mh.store.items()}
+    assert set(mstore) == {0, 1} and all(len(mstore[li]) == n for li in mstore)
+    with MLPHooks(r.base) as mh:
+        for li in mstore:
+            for pos, vec in mstore[li].items():
+                mh.patches[(li, pos)] = vec
+        out7 = M.run_ids(r, ids)
+    assert float((out7 - ref2).abs().max()) < 1e-5, "self MLP patch changed the answer"
+    with MLPHooks(r.base) as mh:
+        mh.patches[(1, L["a"])] = torch.randn(768) * 5
+        out8 = M.run_ids(r, ids)
+    assert float((out8 - ref2).abs().max()) > 1e-6
+    print("MLP hooks: OK (inactive exact; self patch exact; foreign vector acts)")
+
     # 7. thought injection: self-transplant is exactly zero; donor changes it
     own = M.capture(r, ids)
     out5 = M.run_ids(r, ids, M.fixed(own, M.all_passes(pr.K)))

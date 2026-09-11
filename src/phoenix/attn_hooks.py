@@ -216,3 +216,59 @@ class ResidualHooks:
 
     def levels(self):
         return list(range(len(self.blocks) + 1))
+
+
+class MLPHooks:
+    """Record or replace the MLP output of each block at chosen absolute
+    positions. patches[(layer, abs_pos)] = (d_model,) tensor replaces the MLP
+    output (before it is added to the residual). Inactive when nothing is
+    set, so the bit-exact path is untouched."""
+
+    def __init__(self, base):
+        self.blocks = list(base.transformer.h)
+        self.patches = {}
+        self.record = False
+        self.store = {}     # layer -> {abs_pos: (d_model,)}
+        self._handles = []
+        self._offset = 0
+
+    def set_offset(self, offset):
+        """Absolute position of the first row of the current call. The
+        block's forward receives layer_past; the pre-hook below reads it."""
+        self._offset = offset
+
+    def __enter__(self):
+        for li, blk in enumerate(self.blocks):
+            def pre(mod, args, kwargs, li=li):
+                lp = kwargs.get("layer_past")
+                self._offset = 0 if lp is None else int(lp[0].shape[-2])
+                return None
+
+            def post(mod, args, output, li=li):
+                if not self.record and not self.patches:
+                    return None
+                h = output
+                assert h.shape[0] == 1, "MLPHooks assume batch size 1"
+                q_len = h.shape[1]
+                if self.record:
+                    st = self.store.setdefault(li, {})
+                    for i in range(q_len):
+                        st[self._offset + i] = h[0, i].detach().clone()
+                todo = [(pos, v) for (lvl, pos), v in self.patches.items()
+                        if lvl == li and self._offset <= pos < self._offset + q_len]
+                if not todo:
+                    return None
+                h = h.clone()
+                for pos, v in todo:
+                    h[0, pos - self._offset] = v.to(device=h.device, dtype=h.dtype)
+                return h
+
+            self._handles.append(blk.register_forward_pre_hook(pre, with_kwargs=True))
+            self._handles.append(blk.mlp.register_forward_hook(post))
+        return self
+
+    def __exit__(self, *exc):
+        for h in self._handles:
+            h.remove()
+        self._handles = []
+        return False

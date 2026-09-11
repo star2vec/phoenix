@@ -111,6 +111,16 @@ def main():
     assert all(abs(r["cells"]["self_transplant"]["dT"]) < 1e-6 for r in res["rows"])
     dump("masking", res)
 
+    print("recovery (experiment 6)")
+    import recovery
+    means = recovery.mlp_means(runner, train, n=20)
+    res = recovery.run(runner, recips, train, means)
+    assert {"qk_removal", "cand_tokens/path/alone", "mlp/answer/both/mean/alone", "mlp/latent/both/noise/plus_removal",
+            "thoughtK/random/alone", "decoy_edges/path/plus_removal", "cand_tokens_plus_decoy_edges/path/alone"} <= set(res["cells"])
+    assert all(abs(r["cells"]["self_transplant"]["dT"]) < 1e-6 for r in res["rows"])
+    assert "fallback_line" in res["summary"]
+    dump("recovery", res)
+
     print("baseline (random bases)")
     probe = torch.randn(40, 768)
     res = baseline.run_subtraction(runner, recips, train, probe)

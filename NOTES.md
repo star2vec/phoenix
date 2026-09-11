@@ -19,14 +19,9 @@ only for the trained model's competence. The two label cells were not run.
 Numbers and files in `DECISIONS.md`, Amendment 1, Outcome.
 
 Amendment 2 (2026-09-08): names kept on tokens 0 and 1, concept labels
-random over 2..30 (`data/relabel_names/`, seed 20260908). Outcome
-(2026-09-11): fork (ii). Stage 0 is learned (validation 0.75 and 0.61 vs
-0.13 and 0.15 with all labels random), nothing past one hop is; held-out
-accuracy 48.7 to 52.3 percent under four serialization seeds; 300 and 298 of
-300 seen training graphs right, 151 of 300 unseen. The root marker makes the
-first hop learnable; the depth-order labeling is load-bearing on its own for
-every later hop. The label cells cannot run on this substrate. Numbers and
-files in `DECISIONS.md`, Amendment 2, Outcome.
+random over 2..30 (`data/relabel_names/`, seed 20260908). Asks whether the
+root marker alone makes the task learnable; predictions and the gate in
+`DECISIONS.md`. Written, not trained.
 
 Comparability of the evaluation across the original and retrained models
 (checked 2026-09-06): the accuracy is the argmax token against the target
@@ -45,9 +40,8 @@ the original checkpoints is needed.
   2026-09-10: blocking every attention route onto the path edges adds
   nothing to the query-key removal; the answer is not recovered through
   attention onto edges). Amendment 1 (shuffled-label retrain) failed its
-  gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) failed its gate
-  1 on both seeds too, after learning the one-hop stage (2026-09-11). The
-  label cells are not runnable on this substrate. Next step is the user's decision (see DECISIONS.md and the
+  gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) is written and
+  not trained. Next step is the user's decision (see DECISIONS.md and the
   experiment 5 block).
   Experiment 5 is not designed yet; the open question left by 3 is where the
   answer is recovered when the thoughts' attention onto the answer path is
@@ -1011,6 +1005,97 @@ into the last steps before any edge is read there. The third fits experiment
 the intermediate latents matter only through the thought they emit. Whether
 to test these is the user's decision; each is an analysis-only step on the
 existing checkpoints.
+
+## Experiment 6: where the answer is recovered, part two (written 2026-09-11)
+
+Experiment 5 excluded every attention route onto the path edges. Three
+candidates remain: the MLPs at the final positions; attention onto non-edge
+tokens (the two candidates after [Q], the root); and content the recycled
+thoughts already carry into the last steps. Three checks on existing data
+were run before the design was fixed (2026-09-11, on this Mac):
+- Target id below decoy id on 41.5 percent of test graphs (174 of 419),
+  42.2 percent of training graphs, 44 of the 100 masking recipients. A mild
+  id cue against the target; not a shortcut the fallback can use.
+- Every decoy on both splits has at least one incoming edge (mean in-degree
+  2.15; target 1.54), so the requested split of the masking-run graphs by
+  decoy in-edges has an empty group. Under the query-key removal the flipped
+  graphs put 0.83 and 0.87 of the mass on the decoy: the fallback is a clean
+  switch to the other candidate.
+- Per-step separation of target from decoy inside the thought (500 held-out
+  training graphs, paper's inner-product readout, target minus decoy): the
+  target scores higher on 0.46/0.42 of graphs at step 1, 0.63/0.57 at step
+  2, 0.92/0.88 at step 3, 1.00/1.00 at step 4 (seed 0 / seed 1); a paired
+  probe reaches AUC 0.99/0.98 at step 3 and 1.00 at step 4. The thought
+  separates the candidates one full step before the answer is emitted. The
+  same comparison for the candidates' parents is flat (0.44 to 0.79).
+
+Design. Recipients, controls and the query-key every-step removal as in
+experiment 5 (eager path). "Final positions" means the final latent (holding
+thought K) and the answer position. Cells, each alone and plus removal:
+1. Candidate tokens: mask attention from the final positions onto the two
+   candidate tokens (both layers). Control: mask onto the [Q] and [R]
+   markers. Exploration: no prediction.
+2. Root token: mask onto the root token. Same control. Exploration: no
+   prediction.
+3. Final-position MLPs: replace the MLP output at a final position, per
+   layer, by its mean over 2,000 training graphs at the same role (final
+   latent, answer position). Control: the mean plus Gaussian noise at the
+   norm of the mean deviation. Cells: answer position (both layers), final
+   latent (both layers), each layer alone at the answer position.
+4. Thought carry-over: substitute thought K by the same-answer donor's
+   thought K (same candidates, same correct answer) or by the random
+   donor's; each alone and plus removal.
+5. Decoy's incoming edges: mask the final positions' attention (both
+   layers) onto the slots of every edge into the decoy. Control: the same
+   count of the most attended edges into unreachable non-candidates.
+6. Both candidates' incoming edges: 5 plus the target's parent edges.
+7. Candidate tokens plus decoy edges: cell 1 and cell 5 together.
+
+Predictions (position story refuted throughout; "fallback line" is about the
+switch to the decoy, which experiment 5 showed is the fallback):
+- 3, MLPs. If the answer is computed at the last step from the edges, the
+  answer-position MLPs collapse the answer alone (flips beyond the reference,
+  comparable to the random donor). If the answer is carried in the thought,
+  the final latent's MLPs matter more than the answer position's, and
+  plus-removal exceeds alone at the latent, not at the answer position. The
+  noise control moves less than the mean replacement either way.
+- 4, thought carry-over, the primary cell (check 3 says the content is
+  there). Identity story: under the removal, the same-answer donor's thought
+  K keeps the answer (flips at or below the reference) while the random
+  donor's breaks it, and the gap between them is the carried content. If
+  both donor thoughts give the removal's own result, the final thought's
+  content is not what is used and the recovery is computed at the end.
+- 5, decoy's edges. Identity story: no change alone; no change beyond the
+  removal on graphs the removal leaves correct, because their thought carries
+  the target. Fallback line: on graphs that flip under the removal, masking
+  the decoy's edges takes away the evidence the fallback reads, so the
+  switch to the decoy weakens (p_decoy falls, mass moves to the target or
+  escapes); if it does not, the fallback does not read the decoy's edges
+  either. Control edges: nothing.
+- 6, both candidates' edges. Identity story: alone, nothing (the thought
+  carries the target); plus removal, no more than 5 plus removal. Fallback
+  line: if the fallback compares the two candidates' evidence, removing both
+  gives escape rather than a switch.
+- 7, candidate tokens plus decoy edges. Identity story: whatever cell 1
+  does, adding the decoy's edges adds nothing on graphs whose thought carries
+  the target. Fallback line: the decoy cannot be named without its token and
+  cannot be supported without its edges, so escape replaces the switch on the
+  flipped graphs.
+- Off-path and marker controls: nothing in any combination.
+- Overall: prediction 4 on the "carried" side and 3 on the "final latent"
+  side is the identity story's account (the thought carries the answer into
+  the last steps; the edge reading there is confirmation). The other pattern
+  (answer-position MLP collapses alone, donor thoughts indifferent) would be
+  a readout computed from the prompt at the very end.
+
+Cutoffs, all named: flips and escapes as everywhere; "collapses" is flips
+beyond the same-answer reference with the interval above zero; "weakens"
+for the fallback line is mean p_decoy on the removal-flipped graphs falling
+by at least 0.25 (protects "the switch lost its support").
+
+Pilot outcome: (not run)
+What the pilot changed: (not run)
+n=100 outcome: (not run)
 
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
