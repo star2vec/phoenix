@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed2/best.pt",
+  "data_dir": "/workspace/phoenix/vendor/reasoning-by-superposition/data",
+  "serialization_seed": 3,
+  "test_accuracy": 0.9642,
+  "test_cor": 404,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": -0.295,
+        "std": 1.651,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 3.276,
+        "std": 2.931,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 4.507,
+        "std": 2.294,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 5.655,
+        "std": 1.355,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": -0.139,
+        "std": 1.424,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 1.304,
+        "std": 2.336,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 2.551,
+        "std": 2.391,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 4.001,
+        "std": 1.806,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 0.189,
+        "std": 1.645,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.621,
+        "std": 2.399,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 2.968,
+        "std": 2.841,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 5.508,
+        "std": 2.667,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.117,
+        "std": 1.724,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.516,
+        "std": 2.791,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 5.324,
+        "std": 3.918,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 8.708,
+        "std": 1.861,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": true,
+    "3": true,
+    "4": true
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}

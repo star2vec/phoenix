@@ -345,4 +345,13 @@ about 1.5 hours of CPU per seed for the four drivers on this Mac.
 
 ### Outcome
 
-(not run)
+Training (2026-09-15, RunPod RTX 4090, pinned environment, equivalence test
+passed there): seed 2 stopped at epoch 156 after 1.20 h,
+best validation accuracy 0.973 at epoch 141; seed 3 stopped at epoch
+139 after 1.10 h, best 0.973 at epoch 114.
+Gate: held-out accuracy under serialization seeds 0 to 3, seed 2: 95.5,
+95.0, 95.7, 96.4; seed 3: 95.2, 95.5, 95.7, 95.5; readout ordering correct
+at every step in all eight runs. Both inside the spread of seeds 0 and 1
+(92.6 to 96.7). Precondition met on both; the headline drivers run.
+
+Cells: (running on this Mac)

@@ -1,0 +1,105 @@
+{
+  "checkpoint": "/workspace/phoenix/ckpts/seed3/best.pt",
+  "data_dir": "/workspace/phoenix/vendor/reasoning-by-superposition/data",
+  "serialization_seed": 3,
+  "test_accuracy": 0.954654,
+  "test_cor": 400,
+  "test_total": 419,
+  "readout_by_step": {
+    "1": {
+      "NotReachable": {
+        "mean": -0.18,
+        "std": 1.695,
+        "n": 7822
+      },
+      "Reachable": {
+        "mean": 3.3,
+        "std": 3.088,
+        "n": 1669
+      },
+      "Frontier": {
+        "mean": 4.568,
+        "std": 2.49,
+        "n": 1250
+      },
+      "Optimal": {
+        "mean": 5.848,
+        "std": 1.608,
+        "n": 555
+      }
+    },
+    "2": {
+      "NotReachable": {
+        "mean": -0.125,
+        "std": 1.478,
+        "n": 5937
+      },
+      "Reachable": {
+        "mean": 1.396,
+        "std": 2.564,
+        "n": 3554
+      },
+      "Frontier": {
+        "mean": 2.84,
+        "std": 2.542,
+        "n": 1885
+      },
+      "Optimal": {
+        "mean": 4.461,
+        "std": 1.794,
+        "n": 537
+      }
+    },
+    "3": {
+      "NotReachable": {
+        "mean": 0.169,
+        "std": 1.779,
+        "n": 4531
+      },
+      "Reachable": {
+        "mean": 0.674,
+        "std": 2.687,
+        "n": 4960
+      },
+      "Frontier": {
+        "mean": 3.367,
+        "std": 3.089,
+        "n": 1406
+      },
+      "Optimal": {
+        "mean": 6.204,
+        "std": 2.864,
+        "n": 454
+      }
+    },
+    "4": {
+      "NotReachable": {
+        "mean": 0.1,
+        "std": 1.891,
+        "n": 2043
+      },
+      "Reachable": {
+        "mean": 0.541,
+        "std": 3.079,
+        "n": 2903
+      },
+      "Frontier": {
+        "mean": 5.855,
+        "std": 4.284,
+        "n": 421
+      },
+      "Optimal": {
+        "mean": 9.553,
+        "std": 2.041,
+        "n": 217
+      }
+    }
+  },
+  "readout_ordering_ok_by_step": {
+    "1": true,
+    "2": true,
+    "3": true,
+    "4": true
+  },
+  "paper_reference": "Table 5 / Fig. 6 of arXiv:2505.12514v3"
+}
