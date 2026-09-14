@@ -354,4 +354,55 @@ Gate: held-out accuracy under serialization seeds 0 to 3, seed 2: 95.5,
 at every step in all eight runs. Both inside the spread of seeds 0 and 1
 (92.6 to 96.7). Precondition met on both; the headline drivers run.
 
-Cells: (running on this Mac)
+Cells (2026-09-15, this Mac, n=100 on test graphs 0-99; files
+`results/seed{2,3}/{heads,necessity,masking,recovery}_n100.json`). Read
+cell by cell against the pattern seeds 0 and 1 share.
+
+Replicated on both new seeds:
+- Experiment 2, heads. All eight layer-2 heads at the intermediate latents
+  follow edge content after reordering: content scores 0.90 to 0.92 (seed 2)
+  and 0.88 to 0.92 (seed 3), position scores -0.00 to +0.02, slot mass 0.91
+  to 0.97. The layer-1 separator copy: 8 of 8 and 7 of 8 heads keep at
+  least 0.8 of their attention inside the edge's own slot. Four seeds agree.
+- Experiment 1, necessity. Every uninformative substitute breaks (average
+  -25.8 and -23.5, noise -23.7 and -23.2, zero -24.8 and -28.8, random donor
+  -35.5 and -34.6, removed -19.1 and -53.6; flips 0.33 to 0.50); the
+  same-answer donor at all K flips nothing (0.00) and at intermediates sets
+  the fallback rate (0.26 and 0.28).
+- Experiment 5, the removal and the three masks. The removal flips 0.33 and
+  0.25 (seed 2 higher than seeds 0 and 1), at the fallback reference (+0.07
+  [-0.06, +0.20] and -0.03 [-0.16, +0.09] beyond it); matched random
+  directions 0.00. Masks alone: 0.00 flips in every cell. Masks plus removal
+  add nothing to the removal (paired flips beyond the removal alone +0.01
+  and -0.03; off-path the same); the layer-2 mask reproduces the removal
+  (0.33 and 0.24). Four seeds agree.
+- Experiment 6, the final-thought carry-over. Under the removal the
+  same-answer donor's thought K restores 32 of 33 and 23 of 25 removal-
+  flipped graphs and leaves all others at baseline (flips 0.00 and 0.01);
+  the random donor's thought K destroys (escape 0.78 and 0.75). The answer
+  position's layer-1 MLP: the same-answer output keeps 100 of 100 (restores
+  31 of 33 and 24 of 25 flipped), the random output breaks (escape 0.79),
+  the mean sits between (escape 0.29 and 0.15); layer 2 and the final
+  latent's MLPs inert. Candidate-token masks: nothing alone or beyond the
+  removal. Four seeds agree; the two or three unrestored graphs per new seed
+  are the first exceptions in 99 flipped graphs (seeds 0 and 1: 41 of 41).
+- Experiment 6b, per-step carry-over: the K-1 thought restores 25 of 33 and
+  16 of 25 flipped graphs with zero net effect beyond the reference (0.00
+  [0.00, 0.00]); K-2 does not restore. Both candidates' edges masked at
+  every latent: candidate-level choice above chance, escape 0.05 and 0.10.
+  Four seeds agree.
+
+Not replicated on one seed:
+- Experiment 6b, the decoy's incoming edges masked at every latent query,
+  on top of the removal. Seeds 0, 1 and 3: flips 0.46, 0.40, 0.51, that is
+  +0.28 [+0.16, +0.39], +0.15 [+0.03, +0.29], +0.23 [+0.10, +0.37] beyond
+  the reference and +0.27, +0.18, +0.26 beyond the removal alone, controls
+  flat. Seed 2: flips 0.30, +0.04 [-0.08, +0.16] beyond the reference and
+  -0.03 beyond the removal alone; the interval spans zero. Alone the cell is
+  a null on all four (flips 0.00 to 0.05). So the secondary route through
+  the decoy's edges is present on three seeds and absent or too weak to see
+  on one; the write-up reports it as three of four, and the interpretation
+  "the decoy's edges count against the decoy during the search" is stated
+  as seed-dependent.
+
+No cell reversed direction on either new seed. No further experiments.

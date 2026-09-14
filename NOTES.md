@@ -46,7 +46,11 @@ the original checkpoints is needed.
   edges count against the decoy during the search, visible only under the
   removal; the winner is complete in thought K, largely present in K-1, absent
   in K-2; the label cue does not enter the trained model's choice. The
-  recovery question is closed. Amendment 1 (shuffled-label retrain) failed its
+  recovery question is closed. Replication on seeds 2 and 3 (2026-09-15,
+  `DECISIONS.md`, last entry): every headline cell replicates on both new
+  seeds except the decoy-edge mask under the removal, which holds on seeds
+  0, 1 and 3 and not on seed 2. No further experiments; the write-up is
+  next. Amendment 1 (shuffled-label retrain) failed its
   gate 1 on both seeds (2026-09-08); Amendment 2 (names kept) is written and
   not trained. Next step is the user's decision (see DECISIONS.md and the
   experiment 5 block).
