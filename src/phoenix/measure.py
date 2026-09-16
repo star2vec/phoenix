@@ -34,13 +34,15 @@ def run_ids(runner, ids, thought_edit=None, attn_eager=False):
     return out.logits[0, -1].float()
 
 
-def answer_split(logits, target, decoy, watch=None):
+def answer_split(logits, target, decoy, watch=None, node_ids=None):
     """T, e, and where the answer probability went. watch: optional list of
-    node tokens whose summed probability is reported as p_watch."""
+    node tokens whose summed probability is reported as p_watch. node_ids:
+    the node-token set for a vocabulary where it is not the prefix 0..30
+    (the GPT-2 path); None keeps the symbol model's prefix."""
     p = F.softmax(logits, dim=-1)
     pt, pd = float(p[target]), float(p[decoy])
     T = 100.0 * pt / (pt + pd) if pt + pd > 0 else 50.0
-    node_mass = float(p[:N_NODE_TOKENS].sum())
+    node_mass = float(p[:N_NODE_TOKENS].sum()) if node_ids is None else float(p[list(node_ids)].sum())
     out = {
         "T": T,
         "e": 1.0 - (pt + pd),

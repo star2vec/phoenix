@@ -39,10 +39,11 @@ CLASSES = ("root", "intermediate_latent", "last_latent", "answer")
 
 
 def slot_mass(w, slots):
-    """(heads, E): attention mass per edge slot (sum over the slot's tokens)."""
+    """(heads, E): attention mass per edge slot (sum over the slot's tokens;
+    a slot is a tuple of positions, None entries skipped)."""
     cols = []
-    for ps, pt, sep in slots:
-        idx = [ps, pt] + ([sep] if sep is not None else [])
+    for slot in slots:
+        idx = [p for p in slot if p is not None]
         cols.append(w[:, idx].sum(-1))
     return torch.stack(cols, dim=1)
 
@@ -56,12 +57,17 @@ def corr(a, b):
 
 
 def query_positions(L, K):
-    return {
-        "root": [L["root"]],
+    """Query classes. A layout may name the position that computes thought 1
+    ("thought1_query"; the symbol layout's root token) and add classes of its
+    own ("extra_query_classes")."""
+    q = {
+        "root": [L.get("thought1_query", L["root"])],
         "intermediate_latent": L["latents"][: K - 1],
         "last_latent": [L["latents"][K - 1]],
         "answer": [L["a"]],
     }
+    q.update(L.get("extra_query_classes", {}))
+    return q
 
 
 def record(runner, ids, thought_edit=None):
@@ -100,13 +106,18 @@ def run(runner, recips, base_seed=0):
         _, A = record(runner, ids)
         _, B = record(runner, rb.ids(runner.tok), fixed(own, all_passes(K)))
         qpos = query_positions(L, K)
+        # run B's own layout: identical to L for the fixed-width symbol slots,
+        # different when sentences of different lengths change slots
+        LB = rb.layout()
+        qposB = query_positions(LB, K)
+        sink = L.get("sink")
 
         per = {}  # (layer, head, class) -> dict of lists
         for layer in range(n_layers):
             for cls, qs in qpos.items():
-                for q in qs:
+                for q, qb in zip(qs, qposB[cls]):
                     wa = slot_mass(A.attention(layer, q), L["slots"])  # (heads, E)
-                    wb = slot_mass(B.attention(layer, q), L["slots"])
+                    wb = slot_mass(B.attention(layer, qb), LB["slots"])
                     wb_by_edge = wb[:, perm]  # column j = mass on the slot where edge j went
                     for h in range(n_heads):
                         d = per.setdefault((layer, h, cls), {"pos": [], "con": [], "mass_a": [], "mass_b": []})
@@ -114,6 +125,8 @@ def run(runner, recips, base_seed=0):
                         d["con"].append(corr(wa[h], wb_by_edge[h]))
                         d["mass_a"].append(float(wa[h].sum()))
                         d["mass_b"].append(float(wb[h].sum()))
+                        if sink is not None:
+                            d.setdefault("sink", []).append(float(A.attention(layer, q)[h, sink]))
             # edge-token queries: attention kept inside the own slot (A vs B),
             # from the target token and from the separator token (which can
             # see both endpoints of its edge)
@@ -123,14 +136,14 @@ def run(runner, recips, base_seed=0):
                     q = slot[qidx]
                     if q is None:
                         continue
-                    slot_b = L["slots"][perm[j]]
+                    slot_b = LB["slots"][perm[j]]
                     qb = slot_b[qidx]
                     if qb is None:
                         continue
                     wa = A.attention(layer, q)
                     wb = B.attention(layer, qb)
-                    own_a.append(wa[:, [slot[0], slot[1]]].sum(-1))
-                    own_b.append(wb[:, [slot_b[0], slot_b[1]]].sum(-1))
+                    own_a.append(wa[:, [p for p in slot[:2] if p is not None]].sum(-1))
+                    own_b.append(wb[:, [p for p in slot_b[:2] if p is not None]].sum(-1))
                 own_a = torch.stack(own_a).mean(0)  # (heads,)
                 own_b = torch.stack(own_b).mean(0)
                 for h in range(n_heads):
@@ -162,16 +175,21 @@ def run(runner, recips, base_seed=0):
                     "first_slot": mean_or_none(d.get("first_slot", [])),
                     "last_slot": mean_or_none(d.get("last_slot", [])),
                 }
+                if "sink" in d:
+                    heads_row[key]["sink_mass"] = mean_or_none(d["sink"])
         rows.append({"gi": gi, "K": K, "n_edges": E, "cov": covariates(pr), "moved": meta["moved"], "heads": heads_row})
         print(f"graph {gi}: done ({E} edges, K={K})")
 
     # summary: bootstrap over graphs of each per-graph mean
     summary = {}
     keys = sorted({k for r in rows for k in r["heads"]})
+    has_sink = any("sink_mass" in r["heads"][k] for r in rows for k in r["heads"])
     for key in keys:
         entry = {}
         fields = ("own_slot_a", "own_slot_b") if key.endswith(("edge_token", "edge_sep")) else (
             "position_score", "content_score", "slot_mass_a", "slot_mass_b", "first_slot", "last_slot")
+        if has_sink and not key.endswith(("edge_token", "edge_sep")):
+            fields = fields + ("sink_mass",)
         for f in fields:
             vals = [r["heads"][key][f] for r in rows if r["heads"][key].get(f) is not None]
             entry[f] = bootstrap(vals, np.mean) if vals else None

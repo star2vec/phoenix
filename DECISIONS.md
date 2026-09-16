@@ -406,3 +406,48 @@ Not replicated on one seed:
   as seed-dependent.
 
 No cell reversed direction on either new seed. No further experiments.
+
+
+## Experiment 7 (2026-09-16): the same measurements on fine-tuned GPT-2
+
+**Status:** written before the pilot. Approved by the user (2026-09-16) with
+three amendments: the Jacobian basis is refit on the full slice regardless
+of cost; a second fine-tuned checkpoint gets its own n=100 column after the
+pilot passes on the first; the regime check records two-candidate accuracy
+with the thoughts zeroed against the from-scratch zeroing number.
+
+### Decision
+
+- No training. The user asked to use a released GPT-2 COCONUT ProsQA
+  checkpoint if one exists. The authors never released one (issues 3 and 37
+  of facebookresearch/coconut), but two follow-up groups did. Primary:
+  Dilgren and Wiegreffe's checkpoint_40 (connordilgren/gpt2-prosqa-coconut,
+  sha256 231dbdee73cd46540f5e0a8e60da237454242e79eeecd32e21c7ce831159723e), because its training configuration is byte-identical
+  to the official args/prosqa_coconut.yaml on the official code at its
+  current commit, and it is the model the "thoughts unused" literature
+  describes. Second: Aswal et al.'s checkpoint_best
+  (darpanaswal/coconut-gpt2-prosqa, sha256 6b607f88b167fe4b969a69e6cc0aa97fce14fe148b469f7fe1fb0a697cc5abb8). Both are third
+  parties' models, so each passes the regime check (six-latent exact match
+  near the literature's 97-98 on the original test set) before any cell.
+- Same graphs, the model's format. The vendor graphs carry the original
+  ProsQA text; the renderer is verified byte for byte; all recipients are in
+  the original test split and none in the original training split.
+- Fixed K = 6 (the model's latent count) with L the solution length; the
+  removal acts at passes 0..L-2. Readout at the first name token after the
+  frame "### Root is a". Position 0 (the attention sink) excluded from slot
+  quantities and reported separately.
+- Route rungs, in order: edge-slot mass at the search latents at least 0.5
+  (experiment 5's cutoff); else 0.2 (experiment 2's); else the top eight by
+  that mass, labelled exploration. Recorded in the results file.
+- The winner probe is written once for both model kinds and rerun on seeds 0
+  and 1 so the comparison table's from-scratch numbers point to files.
+
+### Predictions
+
+Two lines, in `NOTES.md`, experiment 7 block: what the literature's claim
+predicts for the four cells, and what the from-scratch account predicts if
+the circuit were present. Nothing per cell.
+
+### Outcome
+
+(to be added)

@@ -58,3 +58,17 @@ On the Mac use `--device cpu` for all analysis runs: batch-one forwards on
 this model take about 25 ms on CPU and 180 ms on MPS, and the MPS allocator
 grows by hundreds of MB per few dozen forwards (a long run was killed for
 memory). MPS pays off only for batched training.
+
+## Experiment 7: fine-tuned GPT-2 COCONUT
+
+The four headline measurements on released GPT-2 checkpoints (no training
+here). Put a checkpoint at `ckpts/<run>/best.pt` (`gpt2_dilgren`:
+connordilgren/gpt2-prosqa-coconut `checkpoint_40`; `gpt2_aswal`:
+darpanaswal/coconut-gpt2-prosqa `checkpoint_best`) with its `SOURCE.json`,
+and the original ProsQA files from facebookresearch/coconut under
+`data/prosqa_original/` (sha256 in its manifest). The GPT-2 tokenizer with the
+three latent tokens is snapshotted to `ckpts/gpt2_tokenizer/` on first use.
+Drivers: `gpt2_eval.py` (regime check), `gpt2_cells.py --part heads|cells`,
+`winner_probe.py --model gpt2|symbol`, `gpt2_bases.py --part probe|jlens`;
+all default to `--device cpu`. Test: `tests/test_gpt2_plumbing.py` (tiny
+random model, real tokenizer; must print `GPT2: PASS`).

@@ -13,3 +13,8 @@ results/*/*/train.out
 *.tar.gz
 data/relabel_names/prosqa_train_graph_4_coconut.json
 seeds23.tar.gz
+# experiment 7: original ProsQA files (downloaded, sha256 in data/prosqa_original/manifest.json) and thought caches
+data/prosqa_original/*.json
+results/*/thought_cache.pt
+results/*/jlens_partial.pt
+!data/prosqa_original/manifest.json

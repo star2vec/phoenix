@@ -1,0 +1,21 @@
+{
+ "source": "https://github.com/facebookresearch/coconut/tree/main/data",
+ "downloaded": "2026-09-16",
+ "splits": {
+  "train": {
+   "bytes": 30872695,
+   "sha256": "99e40ce7e9107fd02e35bcd78a7a4479bd57f415bab0a6efd37cc11a72e594f6",
+   "n": 17886
+  },
+  "valid": {
+   "bytes": 518208,
+   "sha256": "c74e0de24f1e90ec48b1a993e6458a7be4caeef3928f5104e3c2e45d689a5249",
+   "n": 300
+  },
+  "test": {
+   "bytes": 856611,
+   "sha256": "82ddc0afe6ee30eb31bb16fa208e293e55278a20fa987098d48519cae7e12680",
+   "n": 500
+  }
+ }
+}

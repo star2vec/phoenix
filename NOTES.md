@@ -2,7 +2,7 @@
 
 Running notes for the position-vs-identity study. A fresh session should be
 able to pick up from this file alone. Literature is in `lit/NOTES.md`; the
-preliminary paper is `paper/v1.pdf`. Last updated 2026-09-06.
+preliminary paper is `paper/v1.pdf`. Last updated 2026-09-16.
 
 ## Amendments
 
@@ -36,6 +36,9 @@ the original checkpoints is needed.
 
 ## Status
 
+- Experiment 7 (2026-09-16): the four headline measurements on fine-tuned
+  GPT-2 COCONUT (released checkpoints, no training). Regime check running;
+  predictions written; pilot next. See the experiment 7 block.
 - Experiments 0 to 6 are complete at n=100 on both seeds. Experiment 5
   (2026-09-10): blocking every attention route onto the path edges adds
   nothing to the query-key removal. Experiment 6 (2026-09-11): the answer
@@ -170,6 +173,9 @@ read through attention.
 - "Intermediates fixed" injects the original run's thoughts at passes
   0..K-2. "All K fixed" also injects the final one. Both variants are run
   where the plan says so.
+- The GPT-2 models (experiment 7) use the same recipients in the model's
+  natural-language format, K = 6 for every prompt, and a readout at the first
+  name token after "### Root is a"; details in the experiment 7 block.
 
 ## Experiment 0: setup and baseline
 
@@ -1335,6 +1341,149 @@ thought's 0.99 at step 3.
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
 
+## Experiment 7: the same measurements on fine-tuned GPT-2 (written 2026-09-16, before the pilot)
+
+Design. Everything so far is on the two-layer model trained from scratch.
+Rizvi-Martel, Dilgren and Wiegreffe, and Aswal (`lit/NOTES.md`) report that
+COCONUT fine-tuned from pretrained GPT-2 barely uses its latents on ProsQA:
+removing them costs at most about one point, and causal tracing puts the
+effect at prompt positions, near zero at the thought positions. Four of our
+measurements run on that model, unchanged in design and cutoffs, on the same
+held-out graphs: the heads measurement (all twelve layers), the query-key
+removal with its calibration mask, the same-answer-donor carry-over cell,
+and the per-step winner probe. The question is whether the circuit mapped on
+the from-scratch model exists there at all. No new cell design.
+
+Models. No official checkpoint exists (the authors declined twice,
+facebookresearch/coconut issues 3 and 37); two follow-up groups released
+theirs. `gpt2_dilgren` is connordilgren/gpt2-prosqa-coconut, file
+checkpoint_40 (Dilgren and Wiegreffe, arXiv 2604.04902; sha256
+231dbdee73cd4654...), trained with the official repository at its current
+commit 27273cb8 and a configuration identical to the official
+args/prosqa_coconut.yaml: GPT-2 small, one thought per step, five epochs per
+stage, six latent stages, fifty epochs, learning rate 1e-4, effective batch
+128. `gpt2_aswal` is darpanaswal/coconut-gpt2-prosqa, file checkpoint_best
+(Aswal et al., arXiv 2606.12689; sha256 6b607f88b167fe4b...). Both are
+raw state dicts of the official Coconut wrapper (150 keys, three tied copies
+of the 50260 x 768 embedding), loaded strictly with the tied-weight checks
+(`src/phoenix/gpt2.py`); files in `ckpts/<run>/best.pt` with
+`ckpts/<run>/SOURCE.json`, not committed. The literature's numbers for this
+model: Dilgren and Wiegreffe 98.0 on the original test set and no change with
+the latents removed; Aswal 98.0 with thoughts, 97.8 removed. Both are
+third-party checkpoints, so the regime check below is also the gate on each.
+
+Format the model saw (official dataset.py). The question text, a newline,
+<|start-latent|>, six <|latent|> (always six at evaluation, padded to the
+last stage), <|end-latent|>, then "### Sally is a sterpus." and eos; greedy
+decoding, exact match on the text after the last "#". The vendor graphs carry
+the original natural-language question and answer: the vendor sets are the
+original ProsQA splits restricted to three- and four-step problems (14,785 /
+419). A renderer that writes "{Name} is a {y}." for a capitalised source (a
+person; several per graph) and "Every {x} is a {y}." otherwise, joined by
+single spaces, then " Is {Root} a {c1} or {c2}?" in the displayed order,
+reproduces every stored question byte for byte (15,204 graphs;
+`tests/test_gpt2_plumbing.py`), once the sentence order is read off the
+question (the stored edge list is in another order). Held-out check
+(2026-09-16, `results/gpt2_dilgren/evaluation.json`, held_out_check): all 110
+recipients and all 419 vendor test graphs are in the original test set and
+none is in the original training set.
+
+Sets and measures for this model. Recipients as always (test 0-99 at n=100,
+400-409 for the pilot), rendered in the model's format. The baseline
+serialization is the original sentence order (what the model sees at test);
+the reserialized control and the reorder counterfactual are pinned sentence
+permutations (the usual seeds). Donors are training graphs in their stored
+order; the same-answer donor is matched by target name, decoy name and
+solution length (one exists for every recipient); the random donor by
+solution length. K = 6 for every prompt; L = solution length (3 or 4).
+"Intermediates" = passes 0..4, "all" = 0..5, thought K = pass 5. The removal
+acts at passes 0..L-2, the passes with an answer-path edge to read; passes
+L-1..4 have none and are left alone (forced by the model's fixed K). Readout:
+the prompt ends with the common token prefix of the two answer strings, which
+on every recipient is the four-token frame "### Root is a"; T is read from
+the two next tokens (the names' first tokens), e = 1 - p_target - p_decoy,
+and the node set is the graph's concept-name tokens under that prefix (38
+names, 32 distinct first tokens; a third name colliding with a candidate's
+token is counted per graph). GPT-2 parks attention on position 0, which is
+the first token of sentence 0: position 0 is excluded from slot 0 in every
+slot quantity (mass, keys, masks) and never masked, and each head's mass on
+it is reported as sink mass. Query classes added to the heads measurement:
+latent0..latent5 and search_latent (latents 0..L-2).
+
+The route and the removal. From the run's own heads file (the pilot's for the
+pilot, the n=100 file for n=100) a head is in the latents route if its mean
+edge-slot mass at the search latents is at least 0.5 (experiment 5's cutoff,
+protecting "this head reads edges"); if no head reaches it, 0.2 (experiment
+2's classification cutoff); if none reaches that, the eight heads with the
+most mass, labelled exploration. The rung is recorded in the results file.
+For each (layer, head) in the route the direction is built as in experiment
+3: that layer's query matrix applied to the head's attention-weighted key
+over the path edge's tokens, scaled by the layer-norm gain and centered. The
+span of all of them is removed from the recycled thought at each pass 0..L-2
+(norm preserved); the matched random control removes the same number of
+random orthonormal directions. For layers above the first this is the same
+first-order construction the two-layer cell made through layer 1, weaker the
+deeper the layer, so the recorded attention drop is the gate, and the
+calibration mask (the same heads masked at all six latent queries onto the
+path edges' tokens, and onto a count-matched off-path set) carries the exact
+route-blocking claim. Carry-over: the same-answer donor's and the random
+donor's thought K at pass 5, alone and after the removal, with the fallback
+line on removal-flipped graphs as in experiment 6.
+
+Winner probe, defined once for both models (`src/phoenix/winner_probe.py`;
+check 3 of experiment 6 was computed ad hoc, so its numbers are recomputed by
+the same script and the table points to files). On the last 500 training
+graphs, per pass k: the fraction of graphs whose thought scores the target
+above the decoy in the input-embedding basis, the probe basis and the
+Jacobian basis (refit per GPT-2 model: the probe basis on train[:2500] with
+holdout train[-500:], smaller than the from-scratch fit and recorded; the
+Jacobian basis on train[500:2500], per token; `src/phoenix/gpt2_bases.py`),
+and a learned linear winner probe (multinomial logistic regression from the
+thought to the target's node token, fit on train[500:2500], L2 1e-3, LBFGS),
+scored as the AUC over the held-out candidate instances (target 1, decoy 0,
+score the candidate's logit; pairs whose candidates share a token are
+dropped and counted). The ids-only control stays from-scratch only: names
+carry no depth cue.
+
+Regime check, first. Accuracy as run.py scores it (greedy, exact match after
+the last "#", with the key/value cache) on the original test set (500) and
+the vendor test set (419), under three prompts: six latents; the markers
+with no latent between them (the stage-0 format); no markers. Then, on the
+vendor test set at the readout position, two-candidate accuracy with the
+model's own thoughts and with every recycled thought replaced by the zero
+vector, and the change in T under zeroing, as a row against the from-scratch
+necessity cell zero/all (paper: -42.9 median). Gate: six-latent exact match
+near 97-98 on the 500. Hand check on three original test items
+(2026-09-16): the model writes "### Sally is a sterpus." with six latents
+and, with the markers and no latents, still goes straight to the answer
+without step sentences.
+
+Predictions, two lines, written before the pilot:
+- The literature's "thoughts unused" claim: accuracy with the latents
+  removed within about one point of the full model, and zeroing them costs
+  little; no head set at the latents reaches the edge-reading cutoff, or if
+  one does, removing its geometry and masking its route leave T unchanged
+  with no flips beyond the same-answer reference; neither the same-answer
+  donor's nor the random donor's final thought moves the answer (nothing is
+  carried in thought K); the winner is as separable from the thought at pass
+  1 as at pass 6 (decided from the prompt before the latents run).
+- Our from-scratch account, if the circuit were present: removing or zeroing
+  the latents costs tens of points; a head set at the latents follows edge
+  content (content near 0.9, position near 0); the removal empties its
+  attention onto the path and flips the answer only at the fallback rate;
+  the same-answer donor's thought K restores the removal-flipped graphs and
+  the random donor's destroys the answer (e near 1); the winner separates
+  late, from pass L-1, not at pass 1.
+
+Cutoffs, all named: flips and escapes as everywhere; the route rungs above;
+"weakened" for the fallback line as in experiment 6 (p_decoy down by at
+least 0.25 on removal-flipped graphs).
+
+Second model. After the pilot passes on `gpt2_dilgren`, `gpt2_aswal` gets the
+same regime check, thought cache, bases, winner probe, and the n=100 heads
+and cells directly (no pilot: the design is frozen), as a second column of
+the table. Its route is picked by the same rungs from its own heads file.
+
 ## Next run
 
 Device on this Mac: `cpu` (measured 2026-09-06: 25 ms per batch-one forward
@@ -1349,6 +1498,19 @@ two paths differ at rounding level only (`tests/test_fast_equivalence.py`).
 .venv/bin/python src/phoenix/fit_jlens.py --run-name seed0 --device cpu
 .venv/bin/python src/phoenix/baseline.py --run-name seed0 --device cpu --mode pilot
 ```
+
+Experiment 7 (GPT-2), in order, all on `--device cpu`:
+
+```
+.venv/bin/python src/phoenix/gpt2_eval.py --run-name gpt2_dilgren --device cpu
+.venv/bin/python src/phoenix/gpt2_cells.py --run-name gpt2_dilgren --device cpu --mode pilot --part heads
+.venv/bin/python src/phoenix/gpt2_cells.py --run-name gpt2_dilgren --device cpu --mode pilot --part cells
+.venv/bin/python src/phoenix/winner_probe.py --model gpt2 --run-name gpt2_dilgren --device cpu
+.venv/bin/python src/phoenix/gpt2_bases.py --run-name gpt2_dilgren --device cpu --part probe
+.venv/bin/python src/phoenix/gpt2_bases.py --run-name gpt2_dilgren --device cpu --part jlens
+.venv/bin/python src/phoenix/winner_probe.py --model symbol --run-name seed0 --device cpu
+```
+then `--mode n100` for heads and cells, then the same chain on `gpt2_aswal`.
 
 Then, each after the user says so and after its predictions above are
 re-read: `necessity.py`, `heads.py`, `counterfactuals.py`, `tracing.py`,
@@ -1375,7 +1537,20 @@ seeds. Result files: `results/<run>/<driver>_<mode>.json`.
   path untouched).
 - `src/phoenix/train.py`: `--save-every` periodic checkpoints.
 - Drivers: `baseline.py`, `necessity.py`, `heads.py`, `counterfactuals.py`,
-  `tracing.py`, `cache_patch.py`.
+  `tracing.py`, `cache_patch.py`, `masking.py` (experiment 5), `recovery.py`
+  (experiments 6 and 6b); `qk_cells.py` holds the query-key cells;
+  `relabel.py` the amendment relabelers; `evaluate.py`, `fit_probes.py`,
+  `fit_jlens.py` the experiment-0 fits.
+- GPT-2 path (experiment 7): `nl.py` (natural-language prompts, layout from
+  tokenizer offsets, donors by name), `gpt2.py` (loader with the tied-weight
+  checks, cached greedy generation), `gpt2_eval.py` (regime check),
+  `gpt2_cells.py` (heads on all layers; the removal, calibration mask and
+  carry-over cells), `winner_probe.py` (both model kinds), `gpt2_bases.py`
+  (probe and Jacobian bases per GPT-2 run). Shared edits, all backward
+  compatible: `heads.slot_mass` sums any slot tuple, `heads.run` scores the
+  reordered run with its own layout, `measure.answer_split(node_ids=)`.
 - Tests: `tests/test_fast_equivalence.py` (bit-exact, plus hooks-off and
   eager-path checks), `tests/test_prompts.py`, `tests/test_attn_hooks.py`,
-  `tests/test_minimal_pairs.py`.
+  `tests/test_minimal_pairs.py`, `tests/test_drivers_smoke.py` (every
+  driver on random weights), `tests/test_relabel.py`,
+  `tests/test_gpt2_plumbing.py` (the GPT-2 path on a tiny random model).
