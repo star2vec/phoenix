@@ -448,6 +448,13 @@ Two lines, in `NOTES.md`, experiment 7 block: what the literature's claim
 predicts for the four cells, and what the from-scratch account predicts if
 the circuit were present. Nothing per cell.
 
-### Outcome
+### Outcome (2026-09-16)
 
-(to be added)
+Both checkpoints passed the gate (98.0 exact match with six latents on the
+original test set, their authors' numbers). The pilot on gpt2_dilgren
+changed one thing: the mass-only route rule saturates on a natural-language
+prompt (84 heads), so a content-filtered route was added as exploration
+(both routes recorded and run). At n=100 on both models every cell is zero
+on every graph and the winner probe is at its maximum at pass 1; the
+literature's line holds throughout. Full table in `NOTES.md`, experiment 7.
+No further experiments.

@@ -79,7 +79,8 @@ def scratch_column(run):
         c["removal"] = c["mask"] = "-"
     rc = load(run, "recovery_n100.json")
     if rc:
-        fl = [r for r in rc["rows"] if not r["cells"]["qk_removal"].get("skipped") and r["cells"]["qk_removal"]["dT"] <= -50]
+        fl = [r for r in rc["rows"] if not r["cells"]["qk_removal"].get("skipped") and r["cells"]["qk_removal"]["dT"] <= -50
+              and not r["cells"].get("thoughtK/same_answer/plus_removal", {}).get("skipped", True)]
         rest = sum(1 for r in fl if r["cells"]["thoughtK/same_answer/plus_removal"]["T"] > 50)
         rnd = rc["summary"]["thoughtK/random/alone"]
         c["carry"] = f"{rest} of {len(fl)} removal-flipped graphs restored; random donor escape {pct(rnd['frac_escaped'])}"

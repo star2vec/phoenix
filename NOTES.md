@@ -36,9 +36,15 @@ the original checkpoints is needed.
 
 ## Status
 
-- Experiment 7 (2026-09-16): the four headline measurements on fine-tuned
-  GPT-2 COCONUT (released checkpoints, no training). Regime check running;
-  predictions written; pilot next. See the experiment 7 block.
+- Experiment 7 (2026-09-16): the four headline measurements on two released
+  fine-tuned GPT-2 COCONUT checkpoints (no training). Both pass the regime
+  check (98.0 with six latents; unchanged with the latents removed or every
+  thought zeroed). At n=100 on both: no head at the latents follows edge
+  content, the removal, the calibration mask and the final-thought
+  carry-over change nothing on any graph, and the winner is decodable from
+  the first thought. The from-scratch circuit is absent from this regime.
+  Jacobian-basis rows of the winner probe pending (fits running). See the
+  experiment 7 block and its table.
 - Experiments 0 to 6 are complete at n=100 on both seeds. Experiment 5
   (2026-09-10): blocking every attention route onto the path edges adds
   nothing to the query-key removal. Experiment 6 (2026-09-11): the answer
@@ -1670,6 +1676,75 @@ step-1 thoughts for depth-1 membership, does not separate the winner at
 later steps (0.33 to 0.61 on seed 0), which is expected of a basis fit for a
 different step and label; the Jacobian basis tracks the input-embedding
 readout.
+
+n=100 outcome, gpt2_aswal (the second fine-tuned model; no pilot, the
+design frozen; `results/gpt2_aswal/heads_n100.json.gz`,
+`results/gpt2_aswal/cells_n100.json`, `results/gpt2_aswal/winner_probe.json`,
+`results/gpt2_aswal/probe_basis_report.json`):
+- Heads: 62 of 144 edge readers at the search latents; content median
+  0.06, maximum 0.66 (L2H7, mass 0.88, position 0.16); position
+  median 0.72. Layers 2 and 3 again carry the most edge mass
+  (0.89, 0.97) with content +0.08 and +0.02. Routes: primary 62 heads
+  (edge_head_cut_0.5); content route L2H7 alone (content_cut_0.5), whose
+  attention onto the answer-path edge is 0.01.
+- Baseline median T 100.0 (1 graph wrong), e median 0.0000.
+- Every cell zero on 100 graphs, both routes (medians 0.0, means within
+  0.1, flips 0.00, escapes 0.00), as on the first model. The reserialized
+  control moves the mean -3.6 [-7.7, +0.4] with flips 0.06: a second
+  sentence order changes the answer on six graphs; nothing done to the
+  thoughts does.
+- Removal on attention: 1.24 to 0.98 onto the answer-path edge at the last
+  search pass (62 directions; random 1.24 to 1.26); masked attention 0.0.
+- Winner probe: learned AUC 0.999 at pass 1, 0.989 at pass 3, 0.988 at pass 6;
+  input-embedding separation 0.74 at pass 1, 0.66 at pass 6. Probe basis
+  median holdout AUC 0.64. Jacobian rows pending.
+
+Comparison table (built by `scripts/exp7_table.py` from the results files;
+seeds 2 and 3 ran only the headline cells, so their winner-probe and
+attention rows are empty):
+
+<!-- exp7-table-start -->
+| Cell | seed0 | seed1 | seed2 | seed3 | gpt2_dilgren | gpt2_aswal |
+|---|---|---|---|---|---|---|
+| Accuracy, the model's own prompt | 94.5% | 95.5% | 95.5% | 95.2% | 98% (original 500); 98% (vendor 419) | 98% (original 500); 98% (vendor 419) |
+| Accuracy with the latents removed | not applicable (K latents are the search) | not applicable (K latents are the search) | not applicable (K latents are the search) | not applicable (K latents are the search) | 98% markers only, 95% no markers | 98% markers only, 98% no markers |
+| Every recycled thought zeroed | median dT -25.4, flips 34% | median dT -19.1, flips 39% | median dT -24.8, flips 40% | median dT -28.8, flips 43% | median dT +0.0, flips 0% (accuracy 98% to 98%) | median dT +0.0, flips 0% (accuracy 98% to 98%) |
+| Heads reading edges at the latents (mass at least 0.5) | 12 of 16 (all 8 of layer 2) | 13 of 16 (all 8 of layer 2) | 12 of 16 (all 8 of layer 2) | 13 of 16 (all 8 of layer 2) | 81 of 144 | 62 of 144 |
+| Do they follow edge content? (scores) | layer 2: content 0.85 to 0.90, position -0.02 to +0.02 | layer 2: content 0.91 to 0.94, position -0.00 to +0.03 | layer 2: content 0.90 to 0.92, position -0.00 to +0.02 | layer 2: content 0.88 to 0.92, position -0.00 to +0.02 | content median 0.08, max 0.71 (L4H4); position median 0.59 | content median 0.06, max 0.66 (L2H7); position median 0.72 |
+| Removal: attention onto the answer-path edge, before to after | 1.79 to 0.13 (8 directions) | 2.54 to 0.13 (8 directions) | not run on this seed | not run on this seed | 1.62 to 1.12 (81 directions) | 1.24 to 0.98 (62 directions) |
+| Removal: the answer | flips 19%, beyond reference +0.00 [-0.08, +0.08] | flips 22%, beyond reference -0.03 [-0.15, +0.09] | flips 33%, beyond reference +0.07 [-0.06, +0.20] | flips 25%, beyond reference -0.03 [-0.16, +0.09] | flips 0%, beyond reference +0.00 [+0.00, +0.00] | flips 0%, beyond reference +0.00 [+0.00, +0.00] |
+| Calibration mask on the path edges | flips 15% (removal 19%) | flips 20% (removal 22%) | flips 33% (removal 33%) | flips 24% (removal 25%) | flips 0% (removal 0%) | flips 0% (removal 0%) |
+| Final-thought carry-over | 0 of 0 removal-flipped graphs restored; random donor escape 75% | 0 of 0 removal-flipped graphs restored; random donor escape 75% | 0 of 0 removal-flipped graphs restored; random donor escape 76% | 0 of 0 removal-flipped graphs restored; random donor escape 74% | 0 removal-flipped graphs (nothing to restore); random donor escape 0% | 0 removal-flipped graphs (nothing to restore); random donor escape 0% |
+| Content-filtered route (GPT-2 only, exploration) | - | - | - | - | content_cut_0.5: L4H4; every cell zero | content_cut_0.5: L2H7; every cell zero |
+| Learned winner probe, held-out AUC | AUC 0.67 at pass 1, 0.94 at pass 3, 0.999 at pass 4 | AUC 0.71 at pass 1, 0.91 at pass 3, 0.999 at pass 4 | not run on this seed | not run on this seed | AUC 0.998 at pass 1, 0.973 at pass 3, 0.972 at pass 6 | AUC 0.999 at pass 1, 0.989 at pass 3, 0.988 at pass 6 |
+| Winner separation, input-embedding basis | 0.46 at pass 1, 1.00 at pass 4 | 0.42 at pass 1, 0.99 at pass 4 | not run on this seed | not run on this seed | 0.73 at pass 1, 0.65 at pass 6 | 0.74 at pass 1, 0.66 at pass 6 |
+| Winner separation, Jacobian basis | 0.51 at pass 1, 1.00 at pass 4 | 0.45 at pass 1, 1.00 at pass 4 | not run on this seed | not run on this seed | pending (Jacobian fit running) | pending (Jacobian fit running) |
+| Frontier probe basis, median holdout AUC | 0.997 | 0.992 | - | - | 0.691 | 0.643 |
+<!-- exp7-table-end -->
+
+Conclusion, experiment 7 (both fine-tuned models, n=100; the Jacobian-basis
+rows are added when the fits finish and change nothing below). The circuit
+mapped on the from-scratch model does not exist in COCONUT fine-tuned from
+GPT-2. Its latents are not necessary: removing them, zeroing every recycled
+thought, replacing them with a random graph's thoughts at every intermediate
+pass, or with a donor's final thought, leaves the answer where it was on
+every one of 100 held-out graphs, on both checkpoints. No head at the
+latents follows edge content (best content score 0.71 and 0.66 for one head
+each, medians 0.06 to 0.08; every from-scratch layer-2 head scores 0.85 to
+0.94), so there is no query-key match of thought to edges to remove; the
+construction that emptied the from-scratch attention takes a third off here
+and the answer does not depend on it, nor on the route when it is masked
+outright. And the winner is decodable from the very first thought (AUC 0.998
+and 0.999 at pass 1), before any latent pass has run, where the from-scratch
+probe is at 0.67 to 0.71 and reaches 0.999 only at the last pass. The
+literature's claim holds on every cell; the from-scratch account holds on
+none. What we mapped is a property of the from-scratch regime, where the
+thoughts are the search; in the fine-tuned regime the answer is read off the
+prompt and the thoughts are carried along unused. Both prediction lines
+were written before the pilot; no cell was changed after seeing a result
+other than the addition of the content-filtered route, which is as empty of
+effect as the primary one.
+
 
 ## Next run
 
