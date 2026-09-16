@@ -40,6 +40,10 @@ def pct(x):
     return pt(x, "{:.0%}") if x is not None else "-"
 
 
+def pct1(x):
+    return pt(x, "{:.1%}") if x is not None else "-"
+
+
 def scratch_column(run):
     c = {}
     ev = load(run, "evaluation_ser0.json") or load(run, "evaluation.json")
@@ -79,8 +83,11 @@ def scratch_column(run):
         c["removal"] = c["mask"] = "-"
     rc = load(run, "recovery_n100.json")
     if rc:
-        fl = [r for r in rc["rows"] if not r["cells"]["qk_removal"].get("skipped") and r["cells"]["qk_removal"]["dT"] <= -50
-              and not r["cells"].get("thoughtK/same_answer/plus_removal", {}).get("skipped", True)]
+        def present(r, name):
+            cell = r["cells"].get(name)
+            return cell is not None and not cell.get("skipped")
+        fl = [r for r in rc["rows"] if present(r, "qk_removal") and r["cells"]["qk_removal"]["dT"] <= -50
+              and present(r, "thoughtK/same_answer/plus_removal")]
         rest = sum(1 for r in fl if r["cells"]["thoughtK/same_answer/plus_removal"]["T"] > 50)
         rnd = rc["summary"]["thoughtK/random/alone"]
         c["carry"] = f"{rest} of {len(fl)} removal-flipped graphs restored; random donor escape {pct(rnd['frac_escaped'])}"
@@ -106,10 +113,10 @@ def gpt2_column(run):
     ev = load(run, "evaluation.json")
     if ev:
         g = ev["generation"]
-        c["acc"] = f"{pct(g['original_test']['six']['accuracy'])} (original 500); {pct(g['vendor_test']['six']['accuracy'])} (vendor 419)"
-        c["acc_removed"] = f"{pct(g['original_test']['zero_markers']['accuracy'])} markers only, {pct(g['original_test']['none']['accuracy'])} no markers"
+        c["acc"] = f"{pct1(g['original_test']['six']['accuracy'])} (original 500); {pct1(g['vendor_test']['six']['accuracy'])} (vendor 419)"
+        c["acc_removed"] = f"{pct1(g['original_test']['zero_markers']['accuracy'])} markers only, {pct1(g['original_test']['none']['accuracy'])} no markers"
         tc = ev["two_candidate"]
-        c["zero"] = f"median dT {pt(tc['median_dT_zeroed'], '{:+.1f}')}, flips {pct(tc['frac_flipped_zeroed'])} (accuracy {pct(tc['accuracy_own_thoughts'])} to {pct(tc['accuracy_zeroed'])})"
+        c["zero"] = f"median dT {pt(tc['median_dT_zeroed'], '{:+.1f}')}, flips {pct(tc['frac_flipped_zeroed'])} (accuracy {pct1(tc['accuracy_own_thoughts'])} to {pct1(tc['accuracy_zeroed'])})"
     else:
         c["acc"] = c["acc_removed"] = c["zero"] = "-"
     hd = load(run, "heads_n100.json")
