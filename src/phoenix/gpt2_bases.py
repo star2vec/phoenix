@@ -4,7 +4,7 @@
 probe   per concept name, logistic regression on step-1 thoughts (pass 0),
         label 1 iff the name is at depth 1 in the graph, over the graphs
         containing it; the same recipe as fit_probes.py (L2 1e-3, LBFGS 200,
-        at least MIN_POS positives). Fit set train[:2500] and holdout
+        at least MIN_POS positives). Fit set train[500:2500] and holdout
         train[-500:] from the thought cache winner_probe.py writes (the
         from-scratch fit used all training graphs; the smaller set is
         recorded). Output {"names", "ids", "vectors"(n, d)} and a report.
@@ -33,7 +33,7 @@ from nl import NLPrompt, is_person  # noqa: E402
 from prompts import bfs_depths  # noqa: E402
 from sets import ROOT, load_train, require_checkpoint, require_file, write_json  # noqa: E402
 
-PROBE_FIT = 2500
+PROBE_FIT = (500, 2500)  # the winner probe's cached fit slice
 HOLDOUT = 500
 L2, ITERS, MIN_POS = 1e-3, 200, 50
 JL_FIT = (500, 2500)
@@ -51,9 +51,9 @@ def auc(pos, neg):
 
 def fit_probe_basis(runner, train, run_dir):
     cache = torch.load(require_file(run_dir / "thought_cache.pt", "winner_probe.py --model gpt2"), weights_only=True)
-    fit_idx = [gi for gi in range(PROBE_FIT) if gi in cache]
+    fit_idx = [gi for gi in range(*PROBE_FIT) if gi in cache]
     ho_idx = [gi for gi in range(len(train) - HOLDOUT, len(train)) if gi in cache]
-    assert len(fit_idx) == PROBE_FIT and len(ho_idx) == HOLDOUT, (len(fit_idx), len(ho_idx))
+    assert len(fit_idx) == PROBE_FIT[1] - PROBE_FIT[0] and len(ho_idx) == HOLDOUT, (len(fit_idx), len(ho_idx))
     X = {gi: cache[gi][0] for gi in fit_idx + ho_idx}  # step-1 thought
     present, depth1, node_tok = {}, {}, {}
     for gi in fit_idx + ho_idx:
@@ -100,7 +100,7 @@ def fit_probe_basis(runner, train, run_dir):
     torch.save({"names": names_out, "ids": ids_out, "vectors": torch.stack(vectors)}, run_dir / "probe_basis.pt")
     summary = {"n_names_probed": len(aucs), "median_holdout_auc": round(statistics.median(aucs), 4),
                "min_holdout_auc": round(min(aucs), 4),
-               "recipe": {"step": 1, "label": "bfs_depth==1", "fit": f"train[:{PROBE_FIT}]", "holdout_last_n": HOLDOUT,
+               "recipe": {"step": 1, "label": "bfs_depth==1", "fit": f"train[{PROBE_FIT[0]}:{PROBE_FIT[1]}]", "holdout_last_n": HOLDOUT,
                           "l2": L2, "lbfgs_iters": ITERS, "min_pos": MIN_POS}, "per_name": report}
     write_json(run_dir / "probe_basis_report.json", summary)
     print(f"probed {len(aucs)} names; median holdout AUC {summary['median_holdout_auc']}, min {summary['min_holdout_auc']}")

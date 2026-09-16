@@ -140,31 +140,41 @@ def main():
         sets["original_test"] = json.load(open(require_file(ORIGINAL / "prosqa_test.json", "download (see plan)")))
     if "vendor" in args.sets:
         sets["vendor_test"] = vendor_test
+    run_dir = ROOT / "results" / args.run_name
+    run_dir.mkdir(parents=True, exist_ok=True)
+    path = run_dir / f"{args.out_name}.json"
     out = {"run_name": args.run_name, "checkpoint_source": source_info(args.run_name), "device": args.device,
            "limit": args.limit, "timestamp": time.strftime("%Y-%m-%dT%H:%M:%S"), "generation": {}}
+    if path.exists() and args.limit is None:
+        out = json.load(open(path))  # resume: conditions already present are kept
+        print(f"resuming from {path}: {[(k, sorted(v)) for k, v in out['generation'].items()]}")
     if (ORIGINAL / "prosqa_train.json").exists():
         out["held_out_check"] = held_out_check(vendor_test)
         print("held-out check:", out["held_out_check"])
         assert out["held_out_check"]["recipients_in_original_train"] == 0, "a recipient is in the model's training set"
     for name, data in sets.items():
-        out["generation"][name] = {}
+        out["generation"].setdefault(name, {})
         for cond in args.conditions.split(","):
+            if cond in out["generation"][name] and args.limit is None:
+                print(f"{name}/{cond}: already done, kept")
+                continue
             r = generation_accuracy(runner, data, cond, args.limit, tag=name)
             out["generation"][name][cond] = r
+            write_json(path, out)
             acc = r["accuracy"]["point"] if r["accuracy"] else float("nan")
             print(f"{name}/{cond}: accuracy {acc:.3f} (n {r['n']}), mean generated {r['mean_generated']:.1f} tokens, "
                   f"with step sentences {r['frac_with_step_sentences']:.2f}", flush=True)
             if args.limit is not None and args.limit <= 5:
                 for row in r["rows"]:
                     print("   ", repr(row["text"]))
-    if "vendor_test" in sets:
+    if "vendor_test" in sets and ("two_candidate" not in out or args.limit is not None):
         out["two_candidate"] = two_candidate(runner, vendor_test, args.limit)
+        write_json(path, out)
+    if "two_candidate" in out:
         tc = out["two_candidate"]
         print(f"two-candidate accuracy own {tc['accuracy_own_thoughts']['point']:.3f}, zeroed {tc['accuracy_zeroed']['point']:.3f}, "
               f"median dT zeroed {tc['median_dT_zeroed']['point']:+.1f}, flipped {tc['frac_flipped_zeroed']['point']:.2f}")
-    run_dir = ROOT / "results" / args.run_name
-    run_dir.mkdir(parents=True, exist_ok=True)
-    path = run_dir / f"{args.out_name}.json"
+    out["timestamp_end"] = time.strftime("%Y-%m-%dT%H:%M:%S")
     write_json(path, out)
     print(f"written: {path}")
 

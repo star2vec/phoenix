@@ -49,11 +49,16 @@ def prompt_for(model_kind, sample, gi, seed):
 
 
 def node_tokens(model_kind, pr):
-    """(target token, decoy token) in the model's vocabulary."""
+    """(target token, decoy token) in the model's vocabulary. For GPT-2 a
+    name's node token is its first token after the frame "### Root is a";
+    pairs whose names share it are dropped by the caller."""
     if model_kind == "symbol":
         return pr.target, pr.decoy
-    ro = pr.readout()
-    return ro["target"], ro["decoy"]
+    from nl import tokenizer
+    tok = tokenizer()
+    P = len(tok.encode(f"### {pr.names[pr.root]} is a", add_special_tokens=False))
+    first = lambda v: tok.encode(pr.answer_text(v), add_special_tokens=False)[P]  # noqa: E731
+    return first(pr.target), first(pr.decoy)
 
 
 @torch.no_grad()

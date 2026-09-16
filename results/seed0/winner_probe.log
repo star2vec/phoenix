@@ -1,0 +1,19 @@
+bases present: ['jlens', 'probe']
+  thoughts 200/2500 (13s)
+  thoughts 400/2500 (25s)
+  thoughts 600/2500 (36s)
+  thoughts 800/2500 (46s)
+  thoughts 1000/2500 (54s)
+  thoughts 1200/2500 (62s)
+  thoughts 1400/2500 (72s)
+  thoughts 1600/2500 (81s)
+  thoughts 1800/2500 (89s)
+  thoughts 2000/2500 (97s)
+  thoughts 2200/2500 (106s)
+  thoughts 2400/2500 (114s)
+step 1: input-embedding separation 0.456 (n 500), learned probe AUC 0.666
+step 2: input-embedding separation 0.572 (n 500), learned probe AUC 0.809
+step 3: input-embedding separation 0.892 (n 500), learned probe AUC 0.941
+step 4: input-embedding separation 0.996 (n 252), learned probe AUC 0.999
+written: /Users/ecaterina/Developer/phoenix/results/seed0/winner_probe.json
+written: /Users/ecaterina/Developer/phoenix/results/seed0/winner_probe.json

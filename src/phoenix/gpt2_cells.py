@@ -19,6 +19,9 @@ recorded), then per graph:
                       tokens (or a count-matched off-path set)
   carry-over          thoughtK/{same_answer,random}/{alone,plus_removal}:
                       the donor's final thought at pass K-1
+A second route, added after the pilot heads (exploration, cells prefixed
+"content/"): heads that read edges and follow them by content (content score
+at least CONTENT_CUT), else the eight most content-following edge readers.
 K is 6 for every prompt (the model's fixed latent count); L is the solution
 length. Cutoffs are named where used.
 
@@ -54,18 +57,44 @@ TOP_K = 8             # third rung, exploration: the from-scratch route's size
 SEARCH_CLASS = "search_latent"
 
 
-def head_set(heads_summary, n_layers, n_heads):
-    """(route as [(layer, head)], rung, mass by head) by the recorded rungs."""
-    mass = {}
+CONTENT_CUT = 0.5     # protects "this head follows the edge when it moves" (added after the pilot heads)
+
+
+def head_scores(heads_summary, n_layers, n_heads):
+    """{(layer, head): {"mass", "content", "position"}} at the search latents."""
+    out = {}
     for l in range(n_layers):
         for h in range(n_heads):
-            e = heads_summary.get(f"L{l + 1}H{h}/{SEARCH_CLASS}")
-            mass[(l, h)] = e["slot_mass_a"]["point"] if e and e.get("slot_mass_a") else 0.0
+            e = heads_summary.get(f"L{l + 1}H{h}/{SEARCH_CLASS}") or {}
+
+            def pt(f):
+                return e[f]["point"] if e.get(f) else 0.0
+            out[(l, h)] = {"mass": pt("slot_mass_a"), "content": pt("content_score"), "position": pt("position_score")}
+    return out
+
+
+def head_set(heads_summary, n_layers, n_heads):
+    """The pre-registered route: edge-slot mass at the search latents by the
+    recorded rungs. Returns (route as [(layer, head)], rung, scores)."""
+    sc = head_scores(heads_summary, n_layers, n_heads)
     for rung, cut in (("edge_head_cut_0.5", EDGE_HEAD_CUT), ("class_cut_0.2", CLASS_CUT)):
-        S = sorted(k for k, m in mass.items() if m >= cut)
+        S = sorted(k for k, v in sc.items() if v["mass"] >= cut)
         if S:
-            return S, rung, mass
-    return sorted(sorted(mass, key=lambda k: -mass[k])[:TOP_K]), "top8_exploration", mass
+            return S, rung, sc
+    return sorted(sorted(sc, key=lambda k: -sc[k]["mass"])[:TOP_K]), "top8_exploration", sc
+
+
+def head_set_content(heads_summary, n_layers, n_heads):
+    """The content-filtered route added after the pilot heads (exploration):
+    heads that read edges (mass at least EDGE_HEAD_CUT) and follow them by
+    content (content score at least CONTENT_CUT); if none, the TOP_K most
+    content-following heads among the edge readers."""
+    sc = head_scores(heads_summary, n_layers, n_heads)
+    readers = [k for k, v in sc.items() if v["mass"] >= EDGE_HEAD_CUT]
+    S = sorted(k for k in readers if sc[k]["content"] >= CONTENT_CUT)
+    if S:
+        return S, "content_cut_0.5", sc
+    return sorted(sorted(readers, key=lambda k: -sc[k]["content"])[:TOP_K]), "top8_content_exploration", sc
 
 
 def head_name(l, h):
@@ -76,7 +105,7 @@ class MultiGeometry:
     """One recorded baseline run; query-key directions for a route that may
     span several layers (the two-layer cell's construction, per layer)."""
 
-    def __init__(self, runner, pr, ids, S):
+    def __init__(self, runner, pr, ids, S, baseline=None):
         base = runner.model.base_causallm
         self.S = [tuple(x) for x in S]
         self.layers = sorted({l for l, _ in self.S})
@@ -88,7 +117,8 @@ class MultiGeometry:
         self.hd = base.transformer.h[0].attn.head_dim
         self.L = pr.layout()
         self.ro = pr.readout()
-        logits0, self.rec0, kv0 = recorded_run(runner, ids)
+        logits0, self.rec0, kv0 = recorded_run(runner, ids) if baseline is None else baseline
+        self.baseline = (logits0, self.rec0, kv0)
         self.keys = {l: kv0[l][0] for l in self.layers}
         self.base_split = answer_split(logits0, self.ro["target"], self.ro["decoy"], node_ids=self.ro["nodes"])
         self.all_slot_tokens = [p for slot in self.L["slots"] for p in slot_tokens(slot)]
@@ -145,14 +175,23 @@ def route_mask(hooks, S, L, q_positions, slots):
     return ks
 
 
-def run(runner, recips, train, S, rung, base_seed=0):
-    S = [tuple(x) for x in S]
+def run(runner, recips, train, routes, base_seed=0):
+    """routes: {prefix: (heads, rung)}; the primary route has prefix "" and
+    keeps the from-scratch cell names, other routes prefix their removal,
+    mask and plus-removal cells. Standing controls and the alone cells are
+    shared."""
+    routes = {p: ([tuple(x) for x in S], rung) for p, (S, rung) in routes.items()}
+    assert "" in routes
+    prefixes = [p for p in routes if p]
     rows, cell_names = [], []
     for gi, sample, pr in recips:
         K, L = pr.K, pr.layout()
         ids = pr.ids(runner.tok)
-        G = MultiGeometry(runner, pr, ids, S)
-        base, ro = G.base_split, G.ro
+        G0 = MultiGeometry(runner, pr, ids, routes[""][0])
+        geoms = {"": G0}
+        for p in prefixes:
+            geoms[p] = MultiGeometry(runner, pr, ids, routes[p][0], baseline=G0.baseline)
+        base, ro = G0.base_split, G0.ro
         own = capture(runner, ids, attn_eager=True)
         rng, gen = graph_rng(base_seed, gi), graph_gen(base_seed, gi)
         cells, meta = {}, {"readout": {k: v for k, v in ro.items() if k != "node_by_name"}}
@@ -191,84 +230,105 @@ def run(runner, recips, train, S, rung, base_seed=0):
             cell("same_answer_donor/intermediates", measure(fixed(sth, intermediates(K))))
             cell("same_answer_donor/all", measure(fixed(sth, all_passes(K))))
 
-        # the removal: directions from the unedited run, one answer-path edge per search pass
-        on = on_path_nodes(pr)
-        steps = []
-        for k in range(pr.L - 1):
-            qk = L["latents"][k]
-            pe = [j for j, (s_, t) in enumerate(pr.edges) if on.get(s_) == k + 1 and on.get(t) == k + 2]
-            if not pe:
-                steps = None
-                break
-            slot = max(pe, key=lambda j: G.total_attention(qk, j))
-            steps.append((k, slot, G.directions(qk, slot)))
-        removal = None
-        if steps is None:
-            for nm in ("qk_removal", "qk_random"):
-                skip(nm, "no_path_edge_at_some_step")
-        else:
-            removal = per_pass_edit({k: span_removal(dirs) for k, _, dirs in steps})
-            rand = per_pass_edit({k: span_removal(dirs, rand=rand_orthonormal(len(dirs), dirs[0].numel(), gen, dirs[0].device))
-                                  for k, _, dirs in steps})
-            for name, edit in (("qk_removal", removal), ("qk_random", rand)):
-                logits, rec, _ = recorded_run(runner, ids, edit)
-                before = [G.total_attention(L["latents"][k], slot) for k, slot, _ in steps]
-                after = [G.total_attention(L["latents"][k], slot, rec) for k, slot, _ in steps]
-                cell(name, split(logits), attn_path_before_per_step=before, attn_path_after_per_step=after,
-                     attn_edges_before_per_step=[G.edge_mass(L["latents"][k]) for k, _, _ in steps],
-                     attn_edges_after_per_step=[G.edge_mass(L["latents"][k], rec) for k, _, _ in steps],
-                     n_directions=len(steps[0][2]))
-            meta["removal_steps"] = [{"pass": k, "slot": slot} for k, slot, _ in steps]
-            meta["coef_frac_per_step"] = [float(torch.stack(dirs, 1).T.matmul(own[k]).norm() / own[k].norm())
-                                          for k, _, dirs in steps]
-
-        # calibration mask: the route's heads at every latent query, path edges' tokens
-        path, off = path_and_offpath_slots(pr, G)
-        meta["path_slots"], meta["offpath_slots"] = path, off
-        for tgt, slots in (("path", path), ("offpath", off)):
-            if not slots:
-                skip(f"latents_mask/{tgt}/alone", "no_slots")
-                continue
-            with AttnHooks(runner.model.base_causallm) as h:
-                h.record_weights = True
-                ks = route_mask(h, S, L, L["latents"], slots)
-                logits = run_ids(runner, ids, attn_eager=True)
-                leak = max(sum(G.per_head(h, q, ks).values()) for q in L["latents"])
-            cell(f"latents_mask/{tgt}/alone", split(logits), masked_attention_max=leak)
-
-        # carry-over: the donor's final thought at pass K-1, alone and after the removal
-        def both(name, te):
-            cell(f"{name}/alone", measure(te))
-            if removal is None:
-                skip(f"{name}/plus_removal", "no_path_edge_at_some_step")
-            else:
-                cell(f"{name}/plus_removal", measure(lambda k, t, te=te: te(k, removal(k, t))))
-
+        # carry-over alone cells (route-independent)
         if sth is not None:
-            both("thoughtK/same_answer", fixed(sth, [K - 1]))
+            cell("thoughtK/same_answer/alone", measure(fixed(sth, [K - 1])))
         else:
             skip("thoughtK/same_answer/alone", "no_same_answer_donor")
-            skip("thoughtK/same_answer/plus_removal", "no_same_answer_donor")
-        both("thoughtK/random", fixed(rth, [K - 1]))
+        cell("thoughtK/random/alone", measure(fixed(rth, [K - 1])))
+
+        on = on_path_nodes(pr)
+        for p, (S, rung) in routes.items():
+            G = geoms[p]
+            # the removal: directions from the unedited run, one answer-path edge per search pass
+            steps = []
+            for k in range(pr.L - 1):
+                qk = L["latents"][k]
+                pe = [j for j, (s_, t) in enumerate(pr.edges) if on.get(s_) == k + 1 and on.get(t) == k + 2]
+                if not pe:
+                    steps = None
+                    break
+                slot = max(pe, key=lambda j: G.total_attention(qk, j))
+                steps.append((k, slot, G.directions(qk, slot)))
+            removal = None
+            if steps is None:
+                for nm in ("qk_removal", "qk_random"):
+                    skip(p + nm, "no_path_edge_at_some_step")
+            else:
+                removal = per_pass_edit({k: span_removal(dirs) for k, _, dirs in steps})
+                rand = per_pass_edit({k: span_removal(dirs, rand=rand_orthonormal(len(dirs), dirs[0].numel(), gen, dirs[0].device))
+                                      for k, _, dirs in steps})
+                for name, edit in (("qk_removal", removal), ("qk_random", rand)):
+                    logits, rec, _ = recorded_run(runner, ids, edit)
+                    before = [G.total_attention(L["latents"][k], slot) for k, slot, _ in steps]
+                    after = [G.total_attention(L["latents"][k], slot, rec) for k, slot, _ in steps]
+                    cell(p + name, split(logits), attn_path_before_per_step=before, attn_path_after_per_step=after,
+                         attn_edges_before_per_step=[G.edge_mass(L["latents"][k]) for k, _, _ in steps],
+                         attn_edges_after_per_step=[G.edge_mass(L["latents"][k], rec) for k, _, _ in steps],
+                         n_directions=len(steps[0][2]))
+                meta[p + "removal_steps"] = [{"pass": k, "slot": slot} for k, slot, _ in steps]
+                meta[p + "coef_frac_per_step"] = [float(torch.stack(dirs, 1).T.matmul(own[k]).norm() / own[k].norm())
+                                                  for k, _, dirs in steps]
+
+            # calibration mask: the route's heads at every latent query, path edges' tokens
+            path, off = path_and_offpath_slots(pr, G)
+            meta[p + "path_slots"], meta[p + "offpath_slots"] = path, off
+            for tgt, slots in (("path", path), ("offpath", off)):
+                if not slots:
+                    skip(f"{p}latents_mask/{tgt}/alone", "no_slots")
+                    continue
+                with AttnHooks(runner.model.base_causallm) as h:
+                    h.record_weights = True
+                    ks = route_mask(h, S, L, L["latents"], slots)
+                    logits = run_ids(runner, ids, attn_eager=True)
+                    leak = max(sum(G.per_head(h, q, ks).values()) for q in L["latents"])
+                cell(f"{p}latents_mask/{tgt}/alone", split(logits), masked_attention_max=leak)
+
+            # carry-over after the removal
+            for name, th in (("thoughtK/same_answer", sth), ("thoughtK/random", rth)):
+                if th is None:
+                    skip(f"{p}{name}/plus_removal", "no_same_answer_donor")
+                elif removal is None:
+                    skip(f"{p}{name}/plus_removal", "no_path_edge_at_some_step")
+                else:
+                    te = fixed(th, [K - 1])
+                    cell(f"{p}{name}/plus_removal", measure(lambda k, t, te=te, rm=removal: te(k, rm(k, t))))
 
         rows.append({"gi": gi, "K": K, "L": pr.L, "cov": covariates(pr), "baseline": base, "meta": meta,
                      "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None, "cells": cells})
         show = ["reserialized", "same_answer_donor/intermediates", "qk_removal", "qk_random", "latents_mask/path/alone",
                 "thoughtK/same_answer/plus_removal", "thoughtK/random/alone"]
         att = ""
-        if steps is not None:
+        if not cells["qk_removal"].get("skipped"):
             c = cells["qk_removal"]
             att = f"  path attn {c['attn_path_before_per_step'][-1]:.2f}->{c['attn_path_after_per_step'][-1]:.2f}"
         print(f"graph {gi}: L={pr.L} base T {base['T']:.1f} e {base['e']:.2f}{att}  " + "  ".join(
-            f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in show if n in cells and not cells[n].get("skipped")))
+            f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in show if n in cells and not cells[n].get("skipped")), flush=True)
 
     summary = summarize(rows, cell_names)
-    summary["fallback_line"] = fallback_line(rows, cell_names)
-    summary["attention"] = attention_summary(rows)
+    for p in routes:
+        view_rows, view_names = route_view(rows, cell_names, p, prefixes)
+        summary[p + "fallback_line"] = fallback_line(view_rows, view_names)
+        summary[p + "attention"] = attention_summary(view_rows)
     return {"rows": rows, "summary": summary, "cells": cell_names,
-            "head_set": {"rung": rung, "heads": [head_name(l, h) for l, h in S], "n": len(S)},
-            "cutoffs": {"edge_head_cut": EDGE_HEAD_CUT, "class_cut": CLASS_CUT, "top_k": TOP_K,
+            "routes": {p or "primary": {"prefix": p, "rung": rung, "heads": [head_name(l, h) for l, h in S], "n": len(S)}
+                       for p, (S, rung) in routes.items()},
+            "cutoffs": {"edge_head_cut": EDGE_HEAD_CUT, "class_cut": CLASS_CUT, "content_cut": CONTENT_CUT, "top_k": TOP_K,
                         "decoy_weaken_cut": DECOY_WEAKEN_CUT}}
+
+
+def route_view(rows, cell_names, p, prefixes):
+    """The rows as one route sees them: its own prefixed cells with the prefix
+    stripped, plus the shared unprefixed cells."""
+    def strip(cells):
+        view = {k: v for k, v in cells.items() if not any(k.startswith(q) for q in prefixes)}
+        if p:
+            view.update({k[len(p):]: v for k, v in cells.items() if k.startswith(p)})
+        return view
+    names = [n for n in cell_names if not any(n.startswith(q) for q in prefixes)]
+    if p:
+        names = names + [n[len(p):] for n in cell_names if n.startswith(p) and n[len(p):] not in names]
+    return [dict(r, cells=strip(r["cells"])) for r in rows], names
 
 
 def attention_summary(rows):
@@ -283,6 +343,7 @@ def attention_summary(rows):
             "mean_step_drop": bootstrap([float(np.mean([b - a for b, a in zip(c["attn_path_before_per_step"], c["attn_path_after_per_step"])])) for c in rs], np.mean),
             "edges_before_last": bootstrap([c["attn_edges_before_per_step"][-1] for c in rs], np.mean),
             "edges_after_last": bootstrap([c["attn_edges_after_per_step"][-1] for c in rs], np.mean),
+            "n_directions": rs[0]["n_directions"],
         }
     for name in ("latents_mask/path/alone", "latents_mask/offpath/alone"):
         rs = [r["cells"][name] for r in rows if name in r["cells"] and not r["cells"][name].get("skipped")]
@@ -307,12 +368,14 @@ def main():
     if args.part in ("cells", "both"):
         hp = require_file(ROOT / "results" / args.run_name / f"heads_{args.mode}.json", "gpt2_cells.py --part heads")
         H = json.load(open(hp))
-        S, rung, mass = head_set(H["summary"], H["n_layers"], H["n_heads"])
-        print(f"route ({rung}): {[head_name(l, h) for l, h in S]}")
+        S, rung, sc = head_set(H["summary"], H["n_layers"], H["n_heads"])
+        S2, rung2, _ = head_set_content(H["summary"], H["n_layers"], H["n_heads"])
+        print(f"primary route ({rung}, {len(S)} heads): {[head_name(l, h) for l, h in S]}")
+        print(f"content route ({rung2}, {len(S2)} heads): {[head_name(l, h) for l, h in S2]}")
         train = load_train()
         result = header(args, "cells", checkpoint_source=src, heads_file=str(hp.relative_to(ROOT)))
-        result.update(run(runner, recips, train, S, rung, args.seed))
-        result["head_set"]["search_latent_mass"] = {head_name(l, h): m for (l, h), m in mass.items()}
+        result.update(run(runner, recips, train, {"": (S, rung), "content/": (S2, rung2)}, args.seed))
+        result["head_scores_search_latent"] = {head_name(l, h): v for (l, h), v in sc.items()}
         finish(args, "cells", result)
 
 

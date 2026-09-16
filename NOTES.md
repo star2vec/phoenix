@@ -1484,6 +1484,126 @@ same regime check, thought cache, bases, winner probe, and the n=100 heads
 and cells directly (no pilot: the design is frozen), as a second column of
 the table. Its route is picked by the same rungs from its own heads file.
 
+Regime check outcome (gpt2_dilgren, 2026-09-16,
+`results/gpt2_dilgren/evaluation.json`; exact match as run.py scores it,
+95 percent intervals over items):
+- Original test set (500): six latents 98.0 [96.6, 99.2]; the
+  markers with no latent 98.0 [96.6, 99.2]; no markers
+  95.4 [93.6, 97.2]. Dilgren and Wiegreffe report 98.0 for this
+  checkpoint; the paper's COCONUT number is 97.0. The model is in the
+  literature's regime: removing the latents costs nothing with the markers
+  kept and 2.6 points with the markers gone.
+- Vendor test set (419, our held-out graphs): six latents
+  98.1 [96.7, 99.3]; markers only 98.1 [96.7, 99.3]; no
+  markers 95.7 [93.8, 97.6].
+- What "no latents" produced: with the markers the model goes straight to
+  the answer (8.2 tokens, step sentences on 0 percent); without the markers it
+  sometimes writes a fragment first (8.8 tokens, step sentences on 11 percent). So
+  "unchanged without latents" here means the answer is produced directly
+  from the prompt, not through textual chain of thought.
+- Two-candidate readout on the vendor test set (teacher-forced, at the first
+  name token after "### Root is a"; the frame is four tokens, five on the 43
+  graphs whose root is Fae or Wren; on 3 graphs the two candidates share
+  their first token and the readout is at the second; on 107 graphs a third
+  name shares a candidate's first token, so that token's mass is not the
+  candidate's alone): accuracy 98.1 with the model's own
+  thoughts, 98.3 with every recycled thought replaced by the zero
+  vector; median change in T under zeroing +0.0 [+0.0, +0.0],
+  mean -0.0 [-0.2, +0.1], flips 0 percent, median e
+  0.000 (own thoughts 0.000). From-scratch zeroing at every
+  step (`results/seed0/necessity_n100.json`, `results/seed1/necessity_n100.json`,
+  cell zero/all): median change in T -25.4 and -19.1, flips
+  34 and 39 percent. The thoughts of the fine-tuned model
+  are not necessary for its answer; the from-scratch model's are.
+- Held-out check: 110 of 110 recipients are in the original test set,
+  0 in the original training set; the whole vendor test set is inside
+  the original test set.
+Gate passed (six-latent exact match on the 500 at the literature's number).
+
+Pilot outcome, heads (seed gpt2_dilgren, test graphs 400-409,
+`results/gpt2_dilgren/heads_pilot.json`; run before the regime check had
+finished, since it decides nothing about the model's validity):
+- The pre-registered route rule saturates instead of emptying: 84 of the 144
+  heads put at least 0.5 of their attention on edge sentences at the search
+  latents (112 at 0.2). In a natural-language prompt the sentences are nearly
+  the whole prompt, as the edge slots were in the symbol prompt, so mass alone
+  says little; on the from-scratch model it identified the route only because
+  mass and content coincided there (every layer-2 head had content 0.85 to
+  0.94).
+- None of these heads follows the edges when the sentences move. Among the
+  fifteen heads with the most edge mass (layers 2 and 3, mass 0.97 to 1.00)
+  the content scores are -0.08 to +0.07 and the position scores 0.43 to 0.99;
+  the highest content score of any edge-reading head is 0.22 (layer 9 head
+  8, position 0.21). Per layer, the mean edge mass at the search latents runs
+  0.91 and 0.97 in layers 2 and 3, 0.5 to 0.6 in layers 4, 5, 8 and 9, and
+  0.15 to 0.46 elsewhere. Sink mass (position 0) is small at the latents in
+  layers 1 to 5 (0.00 to 0.08) and 0.16 to 0.20 in layers 6 to 8 and 12.
+- Read against the predictions: the literature's line ("no head set follows
+  edge content at the latents") holds on ten graphs; the from-scratch line
+  (content near 0.9) does not.
+
+What the pilot changed (heads). One addition, before the pilot cells ran. The
+route rule as written picks 84 position-following heads, and the removal's
+directions (a head's query matrix applied to an edge's key) only mean
+something for heads whose attention tracks edge content. The pre-registered
+rule stays the primary route (cells keep the from-scratch names), and a
+second, content-filtered route runs as exploration with cells prefixed
+"content/": heads that read edges (mass at least 0.5) and follow them by
+content (content score at least 0.5; the cutoff protects "this head follows
+the edge when it moves"); if none qualifies, the eight most content-following
+edge readers, labelled top8_content_exploration. Both routes get the
+removal, the random control, the calibration mask and the plus-removal
+carry-over cells; the standing controls and the alone cells are shared.
+Head sets, rungs and scores are recorded in the cells file.
+
+Pilot outcome, cells (gpt2_dilgren, test graphs 400-409,
+`results/gpt2_dilgren/cells_pilot.json`; run after the regime check passed):
+- Baseline: T = 100.0 and e = 0.000 on all ten graphs; the readout is
+  saturated, so a cell can only show a drop.
+- Routes: primary rung edge_head_cut_0.5 with 84 heads; content route rung
+  content_cut_0.5 with 2 heads (L4H4, L4H5; mass 0.82, 0.51, content
+  0.74, 0.55, position 0.04, 0.26), whose attention onto the
+  answer-path edge is 0.02 at the last search pass (they follow
+  content, but not the path).
+- Every cell is exactly zero on every graph: median and mean change in T
+  0.0, no flips, no escapes, e 0.000 throughout, for the reserialized
+  control, the random donor at the intermediates, the same-answer donor at
+  the intermediates and at all K, the removal and its random control on both
+  routes, the calibration masks (masked attention verified at 0.0) on both
+  routes, and the final-thought carry-over from either donor alone and after
+  the removal. Self-transplant exactly zero.
+- The removal does act on the route's attention, partially: the primary
+  route's attention onto the answer-path edge at the last search pass falls
+  from 2.32 to 1.72 (mean per-step drop 0.68; the random
+  84-direction control 2.32 to 2.33); the route's total edge mass
+  63.9 to 61.1. On the from-scratch model the same construction
+  emptied the attention (1.79 to 0.31). The removed component is about 0.3
+  of the thought's norm per pass (84 of 768 directions), and the answer does
+  not move; nor does it move under the matched random removal.
+- Read against the predictions: the literature's line holds on every cell
+  of the pilot; the from-scratch line holds on none.
+
+What the pilot changed (cells): nothing in the design. The n=100 runs the
+same two routes, each picked from the n=100 heads file by the recorded
+rungs.
+
+Winner probe on the from-scratch seeds, recomputed by the shared script
+(`results/seed0/winner_probe.json`, `results/seed1/winner_probe.json`; seed 0
+/ seed 1; last 500 training graphs; step 4 exists on the 252 four-step
+graphs):
+  step 1: input-embedding 0.46/0.42, probe basis 0.44/0.41, Jacobian basis 0.51/0.45, learned probe AUC 0.67/0.71 (n 500)
+  step 2: input-embedding 0.57/0.56, probe basis 0.33/0.34, Jacobian basis 0.55/0.49, learned probe AUC 0.81/0.78 (n 500)
+  step 3: input-embedding 0.89/0.85, probe basis 0.52/0.61, Jacobian basis 0.94/0.88, learned probe AUC 0.94/0.91 (n 500)
+  step 4: input-embedding 1.00/0.99, probe basis 0.56/0.81, Jacobian basis 1.00/1.00, learned probe AUC 1.00/1.00 (n 252)
+The pattern recorded in check 3 of experiment 6 holds (near chance at steps
+1 and 2, high at step 3, complete at step 4); the earlier ad hoc numbers
+(0.92/0.88 at step 3, paired probe 0.99/0.98) came from a differently built
+probe and are superseded by these file-backed ones. The probe basis, fit on
+step-1 thoughts for depth-1 membership, does not separate the winner at
+later steps (0.33 to 0.61 on seed 0), which is expected of a basis fit for a
+different step and label; the Jacobian basis tracks the input-embedding
+readout.
+
 ## Next run
 
 Device on this Mac: `cpu` (measured 2026-09-06: 25 ms per batch-one forward

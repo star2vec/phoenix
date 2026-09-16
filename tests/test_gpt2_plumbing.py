@@ -153,13 +153,15 @@ def main():
     except ImportError:
         gpt2_cells = None
     if gpt2_cells is not None:
-        sets = [(0, 0), (1, 1)]
-        res = gpt2_cells.run(r, recips, train[:400], sets, "smoke", base_seed=0)
+        routes = {"": ([(0, 0), (1, 1)], "smoke"), "content/": ([(1, 0)], "smoke2")}
+        res = gpt2_cells.run(r, recips, train[:400], routes, base_seed=0)
         assert {"qk_removal", "qk_random", "latents_mask/path/alone", "latents_mask/offpath/alone",
                 "thoughtK/same_answer/alone", "thoughtK/same_answer/plus_removal", "thoughtK/random/plus_removal",
-                "same_answer_donor/intermediates", "reserialized"} <= set(res["cells"])
+                "same_answer_donor/intermediates", "reserialized", "content/qk_removal",
+                "content/latents_mask/path/alone", "content/thoughtK/same_answer/plus_removal"} <= set(res["cells"])
         assert all(abs(row["cells"]["self_transplant"]["dT"]) < 1e-6 for row in res["rows"])
-        assert "fallback_line" in res["summary"]
+        assert "fallback_line" in res["summary"] and "content/fallback_line" in res["summary"]
+        assert res["routes"]["primary"]["n"] == 2 and res["routes"]["content/"]["n"] == 1
         p = out_dir / "cells_smoke.json"
         json.dump(res, open(p, "w"), default=_default)
         json.load(open(p))

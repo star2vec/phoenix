@@ -1,0 +1,14 @@
+The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+`GPT2SdpaAttention` is used but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True` or `head_mask`. Falling back to the manual attention implementation, but specifying the manual implementation will be required from Transformers version v5.0.0 onwards. This warning can be removed using the argument `attn_implementation="eager"` when loading the model.
+load: {'n_keys': 150, 'stripped_prefixes': [], 'special_rows_min_gap_to_mean': 3.5601963996887207}
+graph 400: done (31 edges, K=6)
+graph 401: done (31 edges, K=6)
+graph 402: done (33 edges, K=6)
+graph 403: done (32 edges, K=6)
+graph 404: done (42 edges, K=6)
+graph 405: done (31 edges, K=6)
+graph 406: done (36 edges, K=6)
+graph 407: done (41 edges, K=6)
+graph 408: done (33 edges, K=6)
+graph 409: done (31 edges, K=6)
+written: /Users/ecaterina/Developer/phoenix/results/gpt2_dilgren/heads_pilot.json
