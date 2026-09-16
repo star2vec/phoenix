@@ -1701,7 +1701,9 @@ design frozen; `results/gpt2_aswal/heads_n100.json.gz`,
 
 Comparison table (built by `scripts/exp7_table.py` from the results files;
 seeds 2 and 3 ran only the headline cells, so their winner-probe and
-attention rows are empty):
+attention rows are empty; the carry-over row counts removal-flipped graphs
+that have a same-answer donor, which is why seeds 2 and 3 show 32 and 24
+rather than the 33 and 25 of the replication entry):
 
 <!-- exp7-table-start -->
 | Cell | seed0 | seed1 | seed2 | seed3 | gpt2_dilgren | gpt2_aswal |
