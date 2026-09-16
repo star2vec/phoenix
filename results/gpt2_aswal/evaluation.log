@@ -1,0 +1,13 @@
+The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+load: {'n_keys': 150, 'stripped_prefixes': [], 'special_rows_min_gap_to_mean': 3.552187442779541}
+resuming from /Users/ecaterina/Developer/phoenix/results/gpt2_aswal/evaluation.json: [('original_test', ['none', 'six', 'zero_markers']), ('vendor_test', ['none', 'six', 'zero_markers'])]
+held-out check: {'recipients': 110, 'recipients_in_original_train': 0, 'recipients_in_original_test': 110, 'vendor_test_in_original_train': 0, 'vendor_test_in_original_test': 419, 'n_vendor_test': 419}
+original_test/six: already done, kept
+original_test/zero_markers: already done, kept
+original_test/none: already done, kept
+vendor_test/six: already done, kept
+vendor_test/zero_markers: already done, kept
+vendor_test/none: already done, kept
+two-candidate accuracy own 0.979, zeroed 0.979, median dT zeroed +0.0, flipped 0.00
+written: /Users/ecaterina/Developer/phoenix/results/gpt2_aswal/evaluation.json
+written: /Users/ecaterina/Developer/phoenix/results/gpt2_aswal/evaluation.json

@@ -1520,6 +1520,17 @@ Regime check outcome (gpt2_dilgren, 2026-09-16,
   the original test set.
 Gate passed (six-latent exact match on the 500 at the literature's number).
 
+Regime check outcome, second model (gpt2_aswal, 2026-09-16,
+`results/gpt2_aswal/evaluation.json`): original test set six latents
+98.0 [96.6, 99.2], markers only 98.2 [97.0, 99.2], no markers
+97.8 [96.4, 99.0] (Aswal et al. report 98.0 with thoughts and 97.8 removed);
+vendor test set 97.9 [96.4, 99.0], 98.1 [96.9, 99.3], 97.6 [96.2, 98.8]. Step sentences
+on 0 percent of the markers-only outputs and 0 percent without
+markers. Two-candidate readout on the vendor test set: 97.9 with the model's
+own thoughts, 97.9 with every thought zeroed; median change in T
++0.0 [+0.0, +0.0], mean -0.1, flips 0 percent, median e 0.000.
+Gate passed; the same regime as the first model.
+
 Pilot outcome, heads (seed gpt2_dilgren, test graphs 400-409,
 `results/gpt2_dilgren/heads_pilot.json`; run before the regime check had
 finished, since it decides nothing about the model's validity):

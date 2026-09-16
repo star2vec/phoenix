@@ -1,0 +1,244 @@
+{
+ "n_names_probed": 38,
+ "median_holdout_auc": 0.643,
+ "min_holdout_auc": 0.4834,
+ "recipe": {
+  "step": 1,
+  "label": "bfs_depth==1",
+  "fit": "train[500:2500]",
+  "holdout_last_n": 500,
+  "l2": 0.001,
+  "lbfgs_iters": 200,
+  "min_pos": 50
+ },
+ "per_name": {
+  "bompus": {
+   "n_fit": 1075,
+   "n_pos_fit": 155,
+   "holdout_auc": 0.5831,
+   "token": 275
+  },
+  "boompus": {
+   "n_fit": 1080,
+   "n_pos_fit": 158,
+   "holdout_auc": 0.6233,
+   "token": 1489
+  },
+  "brimpus": {
+   "n_fit": 1044,
+   "n_pos_fit": 147,
+   "holdout_auc": 0.7544,
+   "token": 865
+  },
+  "chorpus": {
+   "n_fit": 1052,
+   "n_pos_fit": 165,
+   "holdout_auc": 0.6563,
+   "token": 442
+  },
+  "dumpus": {
+   "n_fit": 1036,
+   "n_pos_fit": 167,
+   "holdout_auc": 0.6588,
+   "token": 10285
+  },
+  "felpus": {
+   "n_fit": 1050,
+   "n_pos_fit": 161,
+   "holdout_auc": 0.6749,
+   "token": 10756
+  },
+  "fompus": {
+   "n_fit": 1027,
+   "n_pos_fit": 157,
+   "holdout_auc": 0.677,
+   "token": 277
+  },
+  "gerpus": {
+   "n_fit": 1086,
+   "n_pos_fit": 169,
+   "holdout_auc": 0.6387,
+   "token": 27602
+  },
+  "gorpus": {
+   "n_fit": 1048,
+   "n_pos_fit": 164,
+   "holdout_auc": 0.63,
+   "token": 308
+  },
+  "grimpus": {
+   "n_fit": 1074,
+   "n_pos_fit": 154,
+   "holdout_auc": 0.632,
+   "token": 1036
+  },
+  "gwompus": {
+   "n_fit": 1069,
+   "n_pos_fit": 173,
+   "holdout_auc": 0.5071,
+   "token": 308
+  },
+  "hilpus": {
+   "n_fit": 1071,
+   "n_pos_fit": 163,
+   "holdout_auc": 0.6529,
+   "token": 289
+  },
+  "impus": {
+   "n_fit": 1042,
+   "n_pos_fit": 166,
+   "holdout_auc": 0.6104,
+   "token": 848
+  },
+  "jelpus": {
+   "n_fit": 1072,
+   "n_pos_fit": 158,
+   "holdout_auc": 0.6113,
+   "token": 474
+  },
+  "jompus": {
+   "n_fit": 1065,
+   "n_pos_fit": 158,
+   "holdout_auc": 0.6288,
+   "token": 474
+  },
+  "kerpus": {
+   "n_fit": 1066,
+   "n_pos_fit": 143,
+   "holdout_auc": 0.7178,
+   "token": 41927
+  },
+  "lempus": {
+   "n_fit": 1068,
+   "n_pos_fit": 175,
+   "holdout_auc": 0.6965,
+   "token": 443
+  },
+  "lorpus": {
+   "n_fit": 1067,
+   "n_pos_fit": 171,
+   "holdout_auc": 0.5492,
+   "token": 300
+  },
+  "numpus": {
+   "n_fit": 1038,
+   "n_pos_fit": 158,
+   "holdout_auc": 0.7353,
+   "token": 299
+  },
+  "quimpus": {
+   "n_fit": 1045,
+   "n_pos_fit": 156,
+   "holdout_auc": 0.6615,
+   "token": 627
+  },
+  "rempus": {
+   "n_fit": 1046,
+   "n_pos_fit": 169,
+   "holdout_auc": 0.6334,
+   "token": 816
+  },
+  "rompus": {
+   "n_fit": 1088,
+   "n_pos_fit": 149,
+   "holdout_auc": 0.681,
+   "token": 374
+  },
+  "rorpus": {
+   "n_fit": 1087,
+   "n_pos_fit": 169,
+   "holdout_auc": 0.6622,
+   "token": 374
+  },
+  "scrompus": {
+   "n_fit": 1019,
+   "n_pos_fit": 164,
+   "holdout_auc": 0.6461,
+   "token": 629
+  },
+  "shumpus": {
+   "n_fit": 1137,
+   "n_pos_fit": 176,
+   "holdout_auc": 0.6972,
+   "token": 427
+  },
+  "sterpus": {
+   "n_fit": 1080,
+   "n_pos_fit": 187,
+   "holdout_auc": 0.6001,
+   "token": 12504
+  },
+  "storpus": {
+   "n_fit": 1102,
+   "n_pos_fit": 154,
+   "holdout_auc": 0.7716,
+   "token": 336
+  },
+  "terpus": {
+   "n_fit": 1074,
+   "n_pos_fit": 142,
+   "holdout_auc": 0.676,
+   "token": 1059
+  },
+  "timpus": {
+   "n_fit": 1083,
+   "n_pos_fit": 176,
+   "holdout_auc": 0.4834,
+   "token": 4628
+  },
+  "tumpus": {
+   "n_fit": 1050,
+   "n_pos_fit": 166,
+   "holdout_auc": 0.5896,
+   "token": 256
+  },
+  "vumpus": {
+   "n_fit": 1060,
+   "n_pos_fit": 152,
+   "holdout_auc": 0.6769,
+   "token": 410
+  },
+  "worpus": {
+   "n_fit": 1043,
+   "n_pos_fit": 153,
+   "holdout_auc": 0.8268,
+   "token": 476
+  },
+  "wumpus": {
+   "n_fit": 1017,
+   "n_pos_fit": 164,
+   "holdout_auc": 0.6105,
+   "token": 266
+  },
+  "yerpus": {
+   "n_fit": 1116,
+   "n_pos_fit": 172,
+   "holdout_auc": 0.5995,
+   "token": 331
+  },
+  "yimpus": {
+   "n_fit": 1055,
+   "n_pos_fit": 171,
+   "holdout_auc": 0.6791,
+   "token": 331
+  },
+  "yumpus": {
+   "n_fit": 1068,
+   "n_pos_fit": 173,
+   "holdout_auc": 0.4871,
+   "token": 331
+  },
+  "zhorpus": {
+   "n_fit": 1100,
+   "n_pos_fit": 162,
+   "holdout_auc": 0.6399,
+   "token": 1976
+  },
+  "zumpus": {
+   "n_fit": 1087,
+   "n_pos_fit": 147,
+   "holdout_auc": 0.637,
+   "token": 1976
+  }
+ }
+}

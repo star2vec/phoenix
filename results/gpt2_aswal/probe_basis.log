@@ -1,0 +1,45 @@
+The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+bompus     n_fit  1075 pos  155 holdout AUC 0.5831
+boompus    n_fit  1080 pos  158 holdout AUC 0.6233
+brimpus    n_fit  1044 pos  147 holdout AUC 0.7544
+chorpus    n_fit  1052 pos  165 holdout AUC 0.6563
+dumpus     n_fit  1036 pos  167 holdout AUC 0.6588
+felpus     n_fit  1050 pos  161 holdout AUC 0.6749
+fompus     n_fit  1027 pos  157 holdout AUC 0.6770
+gerpus     n_fit  1086 pos  169 holdout AUC 0.6387
+gorpus     n_fit  1048 pos  164 holdout AUC 0.6300
+grimpus    n_fit  1074 pos  154 holdout AUC 0.6320
+gwompus    n_fit  1069 pos  173 holdout AUC 0.5071
+hilpus     n_fit  1071 pos  163 holdout AUC 0.6529
+impus      n_fit  1042 pos  166 holdout AUC 0.6104
+jelpus     n_fit  1072 pos  158 holdout AUC 0.6113
+jompus     n_fit  1065 pos  158 holdout AUC 0.6288
+kerpus     n_fit  1066 pos  143 holdout AUC 0.7178
+lempus     n_fit  1068 pos  175 holdout AUC 0.6965
+lorpus     n_fit  1067 pos  171 holdout AUC 0.5492
+numpus     n_fit  1038 pos  158 holdout AUC 0.7353
+quimpus    n_fit  1045 pos  156 holdout AUC 0.6615
+rempus     n_fit  1046 pos  169 holdout AUC 0.6334
+rompus     n_fit  1088 pos  149 holdout AUC 0.6810
+rorpus     n_fit  1087 pos  169 holdout AUC 0.6622
+scrompus   n_fit  1019 pos  164 holdout AUC 0.6461
+shumpus    n_fit  1137 pos  176 holdout AUC 0.6972
+sterpus    n_fit  1080 pos  187 holdout AUC 0.6001
+storpus    n_fit  1102 pos  154 holdout AUC 0.7716
+terpus     n_fit  1074 pos  142 holdout AUC 0.6760
+timpus     n_fit  1083 pos  176 holdout AUC 0.4834
+tumpus     n_fit  1050 pos  166 holdout AUC 0.5896
+vumpus     n_fit  1060 pos  152 holdout AUC 0.6769
+worpus     n_fit  1043 pos  153 holdout AUC 0.8268
+wumpus     n_fit  1017 pos  164 holdout AUC 0.6105
+yerpus     n_fit  1116 pos  172 holdout AUC 0.5995
+yimpus     n_fit  1055 pos  171 holdout AUC 0.6791
+yumpus     n_fit  1068 pos  173 holdout AUC 0.4871
+zhorpus    n_fit  1100 pos  162 holdout AUC 0.6399
+zumpus     n_fit  1087 pos  147 holdout AUC 0.6370
+written: /Users/ecaterina/Developer/phoenix/results/gpt2_aswal/probe_basis_report.json
+probed 38 names; median holdout AUC 0.643, min 0.4834
