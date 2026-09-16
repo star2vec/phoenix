@@ -1650,8 +1650,18 @@ n=100 outcome, gpt2_dilgren (test graphs 0-99;
   <|start-latent|> after the question, at least as well as from the last;
   from scratch the same probe is at 0.67 and 0.71 at pass 1 and reaches
   0.999 only at the final pass. The input-embedding readout is flat around
-  0.65 to 0.73 across passes (from scratch 0.46 rising to 0.99). Jacobian
-  rows follow once the basis is fit.
+  0.65 to 0.73 across passes (from scratch 0.46 rising to 0.99).
+  Jacobian rows (basis fit on train[500:2500], 40 node tokens, all six
+  passes; `results/gpt2_dilgren/jlens_basis_report.json`): separation of the
+  target from the decoy in the Jacobian basis pass 1: 0.52, pass 2: 0.54, pass 3: 0.56, pass 4: 0.54, pass 5: 0.55, pass 6: 0.55
+  (from scratch, seed 0: 0.51 at pass 1 rising to 1.00 at pass 4). The
+  Jacobian directions are diffuse and unrelated to the input embeddings:
+  median concentration 0.33 to 0.33 across passes and median absolute
+  cosine to the embedding 0.05 to 0.06 (from scratch, seed 0: concentration
+  0.49 to 0.93, cosine 0.41 to 0.78). The gradient of the answer logit with
+  respect to a thought points nowhere consistent across graphs here; the
+  from-scratch Jacobians were both concentrated and aligned with the
+  identity readout.
 - Probe basis refit (step-1 thoughts, depth-1 membership, 38 names, fit
   train[500:2500], holdout the last 500): median holdout AUC 0.69, minimum
   0.57. From scratch the same probe reached 0.998: the fine-tuned model's
@@ -1720,7 +1730,7 @@ rather than the 33 and 25 of the replication entry):
 | Content-filtered route (GPT-2 only, exploration) | - | - | - | - | content_cut_0.5: L4H4; every cell zero | content_cut_0.5: L2H7; every cell zero |
 | Learned winner probe, held-out AUC | AUC 0.67 at pass 1, 0.94 at pass 3, 0.999 at pass 4 | AUC 0.71 at pass 1, 0.91 at pass 3, 0.999 at pass 4 | not run on this seed | not run on this seed | AUC 0.998 at pass 1, 0.973 at pass 3, 0.972 at pass 6 | AUC 0.999 at pass 1, 0.989 at pass 3, 0.988 at pass 6 |
 | Winner separation, input-embedding basis | 0.46 at pass 1, 1.00 at pass 4 | 0.42 at pass 1, 0.99 at pass 4 | not run on this seed | not run on this seed | 0.73 at pass 1, 0.65 at pass 6 | 0.74 at pass 1, 0.66 at pass 6 |
-| Winner separation, Jacobian basis | 0.51 at pass 1, 1.00 at pass 4 | 0.45 at pass 1, 1.00 at pass 4 | not run on this seed | not run on this seed | pending (Jacobian fit running) | pending (Jacobian fit running) |
+| Winner separation, Jacobian basis | 0.51 at pass 1, 1.00 at pass 4 | 0.45 at pass 1, 1.00 at pass 4 | not run on this seed | not run on this seed | 0.52 at pass 1, 0.55 at pass 6 | pending (Jacobian fit running) |
 | Frontier probe basis, median holdout AUC | 0.997 | 0.992 | - | - | 0.691 | 0.643 |
 <!-- exp7-table-end -->
 
