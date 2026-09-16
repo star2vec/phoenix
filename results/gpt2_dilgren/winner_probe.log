@@ -1,0 +1,14 @@
+The new embeddings will be initialized from a multivariate normal distribution that has old embeddings' mean and covariance. As described in this article: https://nlp.stanford.edu/~johnhew/vocab-expansion.html. To disable this, use `mean_resizing=False`
+huggingface/tokenizers: The current process just got forked, after parallelism has already been used. Disabling parallelism to avoid deadlocks...
+To disable this warning, you can either:
+	- Avoid using `tokenizers` before the fork if possible
+	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
+bases present: ['probe']
+step 1: input-embedding separation 0.726 (n 500), learned probe AUC 0.998
+step 2: input-embedding separation 0.682 (n 500), learned probe AUC 0.980
+step 3: input-embedding separation 0.664 (n 500), learned probe AUC 0.973
+step 4: input-embedding separation 0.652 (n 500), learned probe AUC 0.973
+step 5: input-embedding separation 0.650 (n 500), learned probe AUC 0.973
+step 6: input-embedding separation 0.650 (n 500), learned probe AUC 0.972
+written: /Users/ecaterina/Developer/phoenix/results/gpt2_dilgren/winner_probe.json
+written: /Users/ecaterina/Developer/phoenix/results/gpt2_dilgren/winner_probe.json

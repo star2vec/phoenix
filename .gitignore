@@ -18,3 +18,4 @@ data/prosqa_original/*.json
 results/*/thought_cache.pt
 results/*/jlens_partial.pt
 !data/prosqa_original/manifest.json
+results/gpt2_*/heads_n100.json

@@ -1587,6 +1587,62 @@ What the pilot changed (cells): nothing in the design. The n=100 runs the
 same two routes, each picked from the n=100 heads file by the recorded
 rungs.
 
+n=100 outcome, gpt2_dilgren (test graphs 0-99;
+`results/gpt2_dilgren/heads_n100.json`, `results/gpt2_dilgren/cells_n100.json`,
+`results/gpt2_dilgren/winner_probe.json`, `results/gpt2_dilgren/probe_basis_report.json`):
+- Heads. 81 of 144 heads put at least 0.5 of their attention on edge
+  sentences at the search latents (117 at 0.2). Among them the content
+  score has median 0.08 and maximum 0.71; the position score has
+  median 0.59. The three most content-following edge readers are
+  L4H4 (content 0.71, mass 0.82, position 0.12), L4H5 (content 0.45, mass 0.52, position 0.30), L8H6 (content 0.40, mass 0.89, position 0.15). Layers 2 and 3 carry
+  the most edge mass at the latents (0.90 and 0.97) with content +0.05 and +0.03
+  and position 0.89 and 0.83; content rises to +0.26 to +0.26 in layers 6 to 8
+  as position falls. Sink mass at the latents is 0.00 to 0.07 in layers 1 to
+  5 and 0.14 to 0.22 in layers 6 to 8 and 12. No head follows edge content
+  the way every from-scratch layer-2 head does (0.85 to 0.94, four seeds).
+- Routes. Primary (edge_head_cut_0.5): 81 heads. Content route
+  (content_cut_0.5): L4H4 alone, whose attention onto the
+  answer-path edge is 0.01 at the last search pass.
+- Baseline: median T 100.0, e median 0.0001 (maximum 0.010); 2 of 100
+  graphs are answered wrongly at baseline (T below 50).
+- Every cell is zero on 100 graphs, both routes: medians 0.0 with
+  intervals [0.0, 0.0], means within 0.1, flips 0.00, escapes 0.00, e
+  0.000: the removal and its random control, the calibration masks (masked
+  attention verified 0.0 on every graph), the final-thought carry-over from
+  either donor alone and after the removal, the random donor at the
+  intermediates, and the same-answer donor at the intermediates and at all
+  K. Self-transplant exactly zero. The only motion anywhere is the
+  reserialized control's mean -1.7 [-5.6, +1.9] with flips 0.02: a second
+  sentence order changes the answer on two graphs; nothing done to the
+  thoughts does.
+- The removal's action on attention: the primary route's attention onto the
+  answer-path edge at the last search pass 1.62 to 1.12 (mean per-step
+  drop 0.69; total edge mass 63.7 to 56.3); random 81 directions
+  1.62 to 1.63. About 0.32 of the thought's norm is removed per pass.
+  From scratch the same construction emptied the attention (1.79 to 0.31);
+  here it takes a third off, and the answer does not depend on it.
+- Winner probe (last 500 training graphs, 32 classes, 3 pairs dropped for a
+  shared first token):
+  pass 1: input-embedding 0.73, probe basis 0.19, learned probe AUC 0.998 (n 497)
+  pass 2: input-embedding 0.68, probe basis 0.30, learned probe AUC 0.980 (n 497)
+  pass 3: input-embedding 0.66, probe basis 0.34, learned probe AUC 0.973 (n 497)
+  pass 4: input-embedding 0.65, probe basis 0.35, learned probe AUC 0.973 (n 497)
+  pass 5: input-embedding 0.65, probe basis 0.35, learned probe AUC 0.973 (n 497)
+  pass 6: input-embedding 0.65, probe basis 0.35, learned probe AUC 0.972 (n 497)
+  The winner is decodable from the first thought, the hidden state at
+  <|start-latent|> after the question, at least as well as from the last;
+  from scratch the same probe is at 0.67 and 0.71 at pass 1 and reaches
+  0.999 only at the final pass. The input-embedding readout is flat around
+  0.65 to 0.73 across passes (from scratch 0.46 rising to 0.99). Jacobian
+  rows follow once the basis is fit.
+- Probe basis refit (step-1 thoughts, depth-1 membership, 38 names, fit
+  train[500:2500], holdout the last 500): median holdout AUC 0.69, minimum
+  0.57. From scratch the same probe reached 0.998: the fine-tuned model's
+  first thought barely encodes the frontier.
+- Read against the predictions: the literature's line holds on all four
+  cells at n=100; the from-scratch line on none. The circuit mapped on the
+  from-scratch model is absent from this model.
+
 Winner probe on the from-scratch seeds, recomputed by the shared script
 (`results/seed0/winner_probe.json`, `results/seed1/winner_probe.json`; seed 0
 / seed 1; last 500 training graphs; step 4 exists on the 252 four-step
