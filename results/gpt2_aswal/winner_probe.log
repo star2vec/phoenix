@@ -3,7 +3,7 @@ huggingface/tokenizers: The current process just got forked, after parallelism h
 To disable this warning, you can either:
 	- Avoid using `tokenizers` before the fork if possible
 	- Explicitly set the environment variable TOKENIZERS_PARALLELISM=(true | false)
-bases present: ['probe']
+bases present: ['jlens', 'probe']
 step 1: input-embedding separation 0.736 (n 500), learned probe AUC 0.999
 step 2: input-embedding separation 0.682 (n 500), learned probe AUC 0.992
 step 3: input-embedding separation 0.664 (n 500), learned probe AUC 0.989

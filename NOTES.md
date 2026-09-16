@@ -2,7 +2,7 @@
 
 Running notes for the position-vs-identity study. A fresh session should be
 able to pick up from this file alone. Literature is in `lit/NOTES.md`; the
-preliminary paper is `paper/v1.pdf`. Last updated 2026-09-16.
+preliminary paper is `paper/v1.pdf`. Last updated 2026-09-17.
 
 ## Amendments
 
@@ -42,9 +42,10 @@ the original checkpoints is needed.
   thought zeroed). At n=100 on both: no head at the latents follows edge
   content, the removal, the calibration mask and the final-thought
   carry-over change nothing on any graph, and the winner is decodable from
-  the first thought. The from-scratch circuit is absent from this regime.
-  Jacobian-basis rows of the winner probe pending (fits running). See the
-  experiment 7 block and its table.
+  the first thought; in the Jacobian basis the winner is at chance at every
+  pass. The from-scratch circuit is absent from this regime. Complete
+  (2026-09-17). See the experiment 7 block and its table. No further
+  experiments; the write-up is next.
 - Experiments 0 to 6 are complete at n=100 on both seeds. Experiment 5
   (2026-09-10): blocking every attention route onto the path edges adds
   nothing to the query-key removal. Experiment 6 (2026-09-11): the answer
@@ -1707,7 +1708,10 @@ design frozen; `results/gpt2_aswal/heads_n100.json.gz`,
   search pass (62 directions; random 1.24 to 1.26); masked attention 0.0.
 - Winner probe: learned AUC 0.999 at pass 1, 0.989 at pass 3, 0.988 at pass 6;
   input-embedding separation 0.74 at pass 1, 0.66 at pass 6. Probe basis
-  median holdout AUC 0.64. Jacobian rows pending.
+  median holdout AUC 0.64. Jacobian basis (train[500:2500],
+  40 node tokens; `results/gpt2_aswal/jlens_basis_report.json`): separation pass 1: 0.58, pass 2: 0.56, pass 3: 0.55, pass 4: 0.54, pass 5: 0.54, pass 6: 0.54;
+  concentration 0.27 to 0.29, cosine to the embedding 0.04 to 0.05. Chance
+  level and diffuse, as on the first model.
 
 Comparison table (built by `scripts/exp7_table.py` from the results files;
 seeds 2 and 3 ran only the headline cells, so their winner-probe and
@@ -1730,12 +1734,12 @@ rather than the 33 and 25 of the replication entry):
 | Content-filtered route (GPT-2 only, exploration) | - | - | - | - | content_cut_0.5: L4H4; every cell zero | content_cut_0.5: L2H7; every cell zero |
 | Learned winner probe, held-out AUC | AUC 0.67 at pass 1, 0.94 at pass 3, 0.999 at pass 4 | AUC 0.71 at pass 1, 0.91 at pass 3, 0.999 at pass 4 | not run on this seed | not run on this seed | AUC 0.998 at pass 1, 0.973 at pass 3, 0.972 at pass 6 | AUC 0.999 at pass 1, 0.989 at pass 3, 0.988 at pass 6 |
 | Winner separation, input-embedding basis | 0.46 at pass 1, 1.00 at pass 4 | 0.42 at pass 1, 0.99 at pass 4 | not run on this seed | not run on this seed | 0.73 at pass 1, 0.65 at pass 6 | 0.74 at pass 1, 0.66 at pass 6 |
-| Winner separation, Jacobian basis | 0.51 at pass 1, 1.00 at pass 4 | 0.45 at pass 1, 1.00 at pass 4 | not run on this seed | not run on this seed | 0.52 at pass 1, 0.55 at pass 6 | pending (Jacobian fit running) |
+| Winner separation, Jacobian basis | 0.51 at pass 1, 1.00 at pass 4 | 0.45 at pass 1, 1.00 at pass 4 | not run on this seed | not run on this seed | 0.52 at pass 1, 0.55 at pass 6 | 0.58 at pass 1, 0.54 at pass 6 |
 | Frontier probe basis, median holdout AUC | 0.997 | 0.992 | - | - | 0.691 | 0.643 |
 <!-- exp7-table-end -->
 
-Conclusion, experiment 7 (both fine-tuned models, n=100; the Jacobian-basis
-rows are added when the fits finish and change nothing below). The circuit
+Conclusion, experiment 7 (both fine-tuned models, n=100, every cell
+including the Jacobian-basis rows). The circuit
 mapped on the from-scratch model does not exist in COCONUT fine-tuned from
 GPT-2. Its latents are not necessary: removing them, zeroing every recycled
 thought, replacing them with a random graph's thoughts at every intermediate
