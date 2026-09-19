@@ -1,12 +1,6 @@
-# phoenix
+# Latent Reasoning Knows Where It Is, Not How It Got There
 
-What does a continuous thought encode? COCONUT-style models reason in latent
-chain-of-thought: the last hidden state is fed back as the next input embedding
-instead of a token. On graph reachability, a two-layer model trained from
-scratch this way is known to produce thoughts whose inner products with node
-embeddings trace a breadth-first wave over the graph. This project studies what
-those intermediate thoughts actually carry, by reading them out, editing them,
-and transplanting them between problems, and measuring what the answer does.
+Models can sidestep natural language and reason through latent chain of thought by bypassing the token-generation phase and feeding the last-layer hidden states back as the next input. Because the thought does not commit to a single token per pass, it can encode multiple candidate tokens at once. The superposition hypothesis treats it as a weighted sum of search branches, supported so far by theoretical construction and evidence that the branches are decodable. Readable does not mean used, so we causally test the theory in its own setting: a two-layer model trained from scratch on a graph reachability task, across four seeds. The thought is readable and necessary: we can decode almost perfectly which nodes the search has reached, and replacing it with an uninformative vector makes the model lose the correct answer. Branch arithmetic is not possible: subtracting a node that lies on a path leading to the winning candidate does not change the outcome, regardless of whether the node is defined by its embedding, by a probe, by the direction with the most influence on the answer, or by the direction used by the model’s own attention heads to identify the corresponding edge. In the last case, the attention on the edge is measurably gone, yet the answer survives. The thought encodes the nodes the search reached so far, not the path leading to them, and at the step before the final one it knows the winner, which the final feed-forward layer can decode. The answer can rely on two types of evidence: whether the winner is reachable or the other candidate is not. The COCONUT models fine-tuned from GPT-2 show none of this: thoughts can be zeroed with no change, no attention head follows edges by their content, and the winner is decodable before the first latent reasoning step. The ProsQA benchmark numbers its nodes in breadth-first order, and even though the model does not use the numbering to determine the winner, it cannot learn the task without it. Continuous thoughts encode their current position, not the path that led there.
 
 ## Setup
 
