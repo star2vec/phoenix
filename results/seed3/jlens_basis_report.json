@@ -1,0 +1,600 @@
+{
+  "fit_slice": [
+    500,
+    2500
+  ],
+  "only_K": null,
+  "n_fit_graphs": 2000,
+  "n_node_tokens": 28,
+  "k_max": 4,
+  "seed": 0,
+  "grads_batched": true,
+  "per_step": {
+    "0": {
+      "n_graphs": 2000,
+      "median_concentration": 0.6164,
+      "median_abs_cos_wte": 0.4427,
+      "median_abs_cos_probe": 0.0778
+    },
+    "1": {
+      "n_graphs": 2000,
+      "median_concentration": 0.5736,
+      "median_abs_cos_wte": 0.536,
+      "median_abs_cos_probe": 0.1001
+    },
+    "2": {
+      "n_graphs": 2000,
+      "median_concentration": 0.7188,
+      "median_abs_cos_wte": 0.8111,
+      "median_abs_cos_probe": 0.1887
+    },
+    "3": {
+      "n_graphs": 1062,
+      "median_concentration": 0.9265,
+      "median_abs_cos_wte": 0.8126,
+      "median_abs_cos_probe": 0.1916
+    }
+  },
+  "per_node": {
+    "v0_k0": {
+      "concentration": 0.6437,
+      "cos_wte": 0.0692,
+      "cos_probe": null
+    },
+    "v1_k0": {
+      "concentration": 0.7706,
+      "cos_wte": 0.1165,
+      "cos_probe": null
+    },
+    "v2_k0": {
+      "concentration": 0.4744,
+      "cos_wte": 0.3739,
+      "cos_probe": 0.0593
+    },
+    "v3_k0": {
+      "concentration": 0.4224,
+      "cos_wte": 0.1184,
+      "cos_probe": 0.0268
+    },
+    "v4_k0": {
+      "concentration": 0.4786,
+      "cos_wte": 0.3921,
+      "cos_probe": 0.1391
+    },
+    "v5_k0": {
+      "concentration": 0.5433,
+      "cos_wte": 0.3211,
+      "cos_probe": 0.0292
+    },
+    "v6_k0": {
+      "concentration": 0.5581,
+      "cos_wte": 0.4439,
+      "cos_probe": 0.1636
+    },
+    "v7_k0": {
+      "concentration": 0.475,
+      "cos_wte": 0.4798,
+      "cos_probe": 0.1216
+    },
+    "v8_k0": {
+      "concentration": 0.646,
+      "cos_wte": 0.3159,
+      "cos_probe": -0.0199
+    },
+    "v9_k0": {
+      "concentration": 0.6238,
+      "cos_wte": 0.4302,
+      "cos_probe": 0.047
+    },
+    "v10_k0": {
+      "concentration": 0.559,
+      "cos_wte": 0.5456,
+      "cos_probe": 0.0701
+    },
+    "v11_k0": {
+      "concentration": 0.633,
+      "cos_wte": 0.4867,
+      "cos_probe": 0.0811
+    },
+    "v12_k0": {
+      "concentration": 0.6199,
+      "cos_wte": 0.6528,
+      "cos_probe": 0.0778
+    },
+    "v13_k0": {
+      "concentration": 0.6387,
+      "cos_wte": 0.6859,
+      "cos_probe": 0.1307
+    },
+    "v14_k0": {
+      "concentration": 0.6213,
+      "cos_wte": 0.745,
+      "cos_probe": 0.2025
+    },
+    "v15_k0": {
+      "concentration": 0.5909,
+      "cos_wte": 0.5715,
+      "cos_probe": 0.1561
+    },
+    "v16_k0": {
+      "concentration": 0.616,
+      "cos_wte": 0.6769,
+      "cos_probe": -0.0184
+    },
+    "v17_k0": {
+      "concentration": 0.6021,
+      "cos_wte": 0.5061,
+      "cos_probe": 0.0214
+    },
+    "v18_k0": {
+      "concentration": 0.658,
+      "cos_wte": 0.4605,
+      "cos_probe": 0.0427
+    },
+    "v19_k0": {
+      "concentration": 0.5125,
+      "cos_wte": 0.5797,
+      "cos_probe": -0.1024
+    },
+    "v20_k0": {
+      "concentration": 0.5461,
+      "cos_wte": 0.5539,
+      "cos_probe": -0.0304
+    },
+    "v21_k0": {
+      "concentration": 0.5602,
+      "cos_wte": 0.4416,
+      "cos_probe": -0.0902
+    },
+    "v22_k0": {
+      "concentration": 0.5647,
+      "cos_wte": 0.517,
+      "cos_probe": 0.037
+    },
+    "v23_k0": {
+      "concentration": 0.6249,
+      "cos_wte": 0.3137,
+      "cos_probe": -0.0981
+    },
+    "v24_k0": {
+      "concentration": 0.6771,
+      "cos_wte": 0.2923,
+      "cos_probe": -0.1066
+    },
+    "v25_k0": {
+      "concentration": 0.6168,
+      "cos_wte": 0.3232,
+      "cos_probe": null
+    },
+    "v26_k0": {
+      "concentration": 0.682,
+      "cos_wte": 0.1343,
+      "cos_probe": null
+    },
+    "v27_k0": {
+      "concentration": 0.6829,
+      "cos_wte": 0.2103,
+      "cos_probe": null
+    },
+    "v0_k1": {
+      "concentration": 0.4897,
+      "cos_wte": 0.0775,
+      "cos_probe": null
+    },
+    "v1_k1": {
+      "concentration": 0.6009,
+      "cos_wte": 0.2161,
+      "cos_probe": null
+    },
+    "v2_k1": {
+      "concentration": 0.6738,
+      "cos_wte": 0.3,
+      "cos_probe": 0.1945
+    },
+    "v3_k1": {
+      "concentration": 0.4452,
+      "cos_wte": 0.1794,
+      "cos_probe": 0.1135
+    },
+    "v4_k1": {
+      "concentration": 0.506,
+      "cos_wte": 0.4278,
+      "cos_probe": 0.1729
+    },
+    "v5_k1": {
+      "concentration": 0.5673,
+      "cos_wte": 0.3348,
+      "cos_probe": 0.0181
+    },
+    "v6_k1": {
+      "concentration": 0.562,
+      "cos_wte": 0.5022,
+      "cos_probe": 0.1595
+    },
+    "v7_k1": {
+      "concentration": 0.4713,
+      "cos_wte": 0.5689,
+      "cos_probe": 0.1079
+    },
+    "v8_k1": {
+      "concentration": 0.5367,
+      "cos_wte": 0.6379,
+      "cos_probe": 0.0751
+    },
+    "v9_k1": {
+      "concentration": 0.5964,
+      "cos_wte": 0.485,
+      "cos_probe": 0.037
+    },
+    "v10_k1": {
+      "concentration": 0.5375,
+      "cos_wte": 0.5758,
+      "cos_probe": 0.1001
+    },
+    "v11_k1": {
+      "concentration": 0.5672,
+      "cos_wte": 0.5765,
+      "cos_probe": 0.0821
+    },
+    "v12_k1": {
+      "concentration": 0.5405,
+      "cos_wte": 0.689,
+      "cos_probe": 0.0902
+    },
+    "v13_k1": {
+      "concentration": 0.6128,
+      "cos_wte": 0.7003,
+      "cos_probe": 0.1051
+    },
+    "v14_k1": {
+      "concentration": 0.5976,
+      "cos_wte": 0.7649,
+      "cos_probe": 0.2006
+    },
+    "v15_k1": {
+      "concentration": 0.5703,
+      "cos_wte": 0.7023,
+      "cos_probe": 0.1767
+    },
+    "v16_k1": {
+      "concentration": 0.5754,
+      "cos_wte": 0.6511,
+      "cos_probe": -0.0427
+    },
+    "v17_k1": {
+      "concentration": 0.5594,
+      "cos_wte": 0.6991,
+      "cos_probe": -0.0044
+    },
+    "v18_k1": {
+      "concentration": 0.5935,
+      "cos_wte": 0.5974,
+      "cos_probe": 0.0477
+    },
+    "v19_k1": {
+      "concentration": 0.5539,
+      "cos_wte": 0.6486,
+      "cos_probe": -0.0751
+    },
+    "v20_k1": {
+      "concentration": 0.6042,
+      "cos_wte": 0.5032,
+      "cos_probe": -0.0675
+    },
+    "v21_k1": {
+      "concentration": 0.5952,
+      "cos_wte": 0.6278,
+      "cos_probe": -0.0666
+    },
+    "v22_k1": {
+      "concentration": 0.6197,
+      "cos_wte": 0.4816,
+      "cos_probe": -0.1263
+    },
+    "v23_k1": {
+      "concentration": 0.5995,
+      "cos_wte": 0.5744,
+      "cos_probe": -0.1327
+    },
+    "v24_k1": {
+      "concentration": 0.6698,
+      "cos_wte": 0.3238,
+      "cos_probe": -0.1055
+    },
+    "v25_k1": {
+      "concentration": 0.5718,
+      "cos_wte": 0.4235,
+      "cos_probe": null
+    },
+    "v26_k1": {
+      "concentration": 0.645,
+      "cos_wte": 0.1792,
+      "cos_probe": null
+    },
+    "v27_k1": {
+      "concentration": 0.6322,
+      "cos_wte": 0.2856,
+      "cos_probe": null
+    },
+    "v0_k2": {
+      "concentration": 0.657,
+      "cos_wte": 0.0358,
+      "cos_probe": null
+    },
+    "v1_k2": {
+      "concentration": 0.7089,
+      "cos_wte": 0.2067,
+      "cos_probe": null
+    },
+    "v2_k2": {
+      "concentration": 0.729,
+      "cos_wte": 0.6994,
+      "cos_probe": 0.2261
+    },
+    "v3_k2": {
+      "concentration": 0.608,
+      "cos_wte": 0.6948,
+      "cos_probe": 0.2721
+    },
+    "v4_k2": {
+      "concentration": 0.6517,
+      "cos_wte": 0.7176,
+      "cos_probe": 0.2274
+    },
+    "v5_k2": {
+      "concentration": 0.6844,
+      "cos_wte": 0.7649,
+      "cos_probe": 0.1528
+    },
+    "v6_k2": {
+      "concentration": 0.7298,
+      "cos_wte": 0.7867,
+      "cos_probe": 0.2763
+    },
+    "v7_k2": {
+      "concentration": 0.6745,
+      "cos_wte": 0.811,
+      "cos_probe": 0.2622
+    },
+    "v8_k2": {
+      "concentration": 0.7271,
+      "cos_wte": 0.8587,
+      "cos_probe": 0.2409
+    },
+    "v9_k2": {
+      "concentration": 0.726,
+      "cos_wte": 0.8111,
+      "cos_probe": 0.2012
+    },
+    "v10_k2": {
+      "concentration": 0.7161,
+      "cos_wte": 0.8366,
+      "cos_probe": 0.2474
+    },
+    "v11_k2": {
+      "concentration": 0.7165,
+      "cos_wte": 0.8413,
+      "cos_probe": 0.2564
+    },
+    "v12_k2": {
+      "concentration": 0.7254,
+      "cos_wte": 0.8368,
+      "cos_probe": 0.216
+    },
+    "v13_k2": {
+      "concentration": 0.7529,
+      "cos_wte": 0.858,
+      "cos_probe": 0.2115
+    },
+    "v14_k2": {
+      "concentration": 0.7336,
+      "cos_wte": 0.8441,
+      "cos_probe": 0.1887
+    },
+    "v15_k2": {
+      "concentration": 0.7313,
+      "cos_wte": 0.837,
+      "cos_probe": 0.1867
+    },
+    "v16_k2": {
+      "concentration": 0.7191,
+      "cos_wte": 0.8459,
+      "cos_probe": -0.0565
+    },
+    "v17_k2": {
+      "concentration": 0.7207,
+      "cos_wte": 0.8431,
+      "cos_probe": -0.0569
+    },
+    "v18_k2": {
+      "concentration": 0.7116,
+      "cos_wte": 0.8505,
+      "cos_probe": 0.0196
+    },
+    "v19_k2": {
+      "concentration": 0.6982,
+      "cos_wte": 0.8351,
+      "cos_probe": -0.0909
+    },
+    "v20_k2": {
+      "concentration": 0.7094,
+      "cos_wte": 0.8431,
+      "cos_probe": -0.0616
+    },
+    "v21_k2": {
+      "concentration": 0.7347,
+      "cos_wte": 0.8416,
+      "cos_probe": -0.0606
+    },
+    "v22_k2": {
+      "concentration": 0.7185,
+      "cos_wte": 0.7833,
+      "cos_probe": -0.1
+    },
+    "v23_k2": {
+      "concentration": 0.7335,
+      "cos_wte": 0.8039,
+      "cos_probe": -0.1818
+    },
+    "v24_k2": {
+      "concentration": 0.77,
+      "cos_wte": 0.6974,
+      "cos_probe": -0.0965
+    },
+    "v25_k2": {
+      "concentration": 0.702,
+      "cos_wte": 0.6318,
+      "cos_probe": null
+    },
+    "v26_k2": {
+      "concentration": 0.7081,
+      "cos_wte": 0.5799,
+      "cos_probe": null
+    },
+    "v27_k2": {
+      "concentration": 0.7264,
+      "cos_wte": 0.5117,
+      "cos_probe": null
+    },
+    "v0_k3": {
+      "concentration": 0.8361,
+      "cos_wte": 0.0485,
+      "cos_probe": null
+    },
+    "v1_k3": {
+      "concentration": 0.8815,
+      "cos_wte": 0.187,
+      "cos_probe": null
+    },
+    "v2_k3": {
+      "concentration": 0.9204,
+      "cos_wte": 0.6907,
+      "cos_probe": 0.1994
+    },
+    "v3_k3": {
+      "concentration": 0.9125,
+      "cos_wte": 0.693,
+      "cos_probe": 0.2747
+    },
+    "v4_k3": {
+      "concentration": 0.8975,
+      "cos_wte": 0.7235,
+      "cos_probe": 0.2263
+    },
+    "v5_k3": {
+      "concentration": 0.923,
+      "cos_wte": 0.7627,
+      "cos_probe": 0.1547
+    },
+    "v6_k3": {
+      "concentration": 0.9398,
+      "cos_wte": 0.7886,
+      "cos_probe": 0.276
+    },
+    "v7_k3": {
+      "concentration": 0.9296,
+      "cos_wte": 0.8104,
+      "cos_probe": 0.2644
+    },
+    "v8_k3": {
+      "concentration": 0.9549,
+      "cos_wte": 0.8567,
+      "cos_probe": 0.2397
+    },
+    "v9_k3": {
+      "concentration": 0.9477,
+      "cos_wte": 0.8148,
+      "cos_probe": 0.2086
+    },
+    "v10_k3": {
+      "concentration": 0.9526,
+      "cos_wte": 0.8411,
+      "cos_probe": 0.251
+    },
+    "v11_k3": {
+      "concentration": 0.9532,
+      "cos_wte": 0.8425,
+      "cos_probe": 0.2621
+    },
+    "v12_k3": {
+      "concentration": 0.9482,
+      "cos_wte": 0.8409,
+      "cos_probe": 0.219
+    },
+    "v13_k3": {
+      "concentration": 0.9613,
+      "cos_wte": 0.8567,
+      "cos_probe": 0.2198
+    },
+    "v14_k3": {
+      "concentration": 0.9494,
+      "cos_wte": 0.8466,
+      "cos_probe": 0.1916
+    },
+    "v15_k3": {
+      "concentration": 0.9358,
+      "cos_wte": 0.8374,
+      "cos_probe": 0.1907
+    },
+    "v16_k3": {
+      "concentration": 0.9265,
+      "cos_wte": 0.8474,
+      "cos_probe": -0.054
+    },
+    "v17_k3": {
+      "concentration": 0.9132,
+      "cos_wte": 0.8461,
+      "cos_probe": -0.0534
+    },
+    "v18_k3": {
+      "concentration": 0.9009,
+      "cos_wte": 0.8503,
+      "cos_probe": 0.0137
+    },
+    "v19_k3": {
+      "concentration": 0.8823,
+      "cos_wte": 0.8349,
+      "cos_probe": -0.0944
+    },
+    "v20_k3": {
+      "concentration": 0.8823,
+      "cos_wte": 0.8446,
+      "cos_probe": -0.0591
+    },
+    "v21_k3": {
+      "concentration": 0.883,
+      "cos_wte": 0.8446,
+      "cos_probe": -0.0549
+    },
+    "v22_k3": {
+      "concentration": 0.9006,
+      "cos_wte": 0.7817,
+      "cos_probe": -0.0842
+    },
+    "v23_k3": {
+      "concentration": 0.904,
+      "cos_wte": 0.8008,
+      "cos_probe": -0.1775
+    },
+    "v24_k3": {
+      "concentration": 0.9264,
+      "cos_wte": 0.6981,
+      "cos_probe": -0.0911
+    },
+    "v25_k3": {
+      "concentration": 0.9394,
+      "cos_wte": 0.6329,
+      "cos_probe": null
+    },
+    "v26_k3": {
+      "concentration": 0.9401,
+      "cos_wte": 0.5863,
+      "cos_probe": null
+    },
+    "v27_k3": {
+      "concentration": 0.9394,
+      "cos_wte": 0.5178,
+      "cos_probe": null
+    }
+  }
+}

@@ -93,6 +93,9 @@ def main():
     p.add_argument("--run-name", default="seed0")
     p.add_argument("--device", default="cuda")
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--only-K", type=int, default=None,
+                   help="experiment 8: fit on the slice's graphs with this solution length only; "
+                        "writes jlens_basis_K<K>.pt and jlens_basis_K<K>_report.json")
     args = p.parse_args()
 
     torch.manual_seed(args.seed)
@@ -103,20 +106,23 @@ def main():
     runner.model.eval()
 
     data = json.load(open(VENDOR / "data/prosqa_train_graph_4_coconut.json"))
-    fit = data[FIT_START:FIT_END]
+    fit_pairs = [(gi, data[gi]) for gi in range(FIT_START, FIT_END)
+                 if args.only_K is None or len(data[gi]["steps"]) == args.only_K]
+    fit = [s for _, s in fit_pairs]
     nodes = sorted(set().union(*(graph_nodes(s) for s in fit)))
     k_max = max(len(s["steps"]) for s in fit)
     vocab = runner.wte.shape[0]
     dev = runner.device
-    print(f"fit graphs {FIT_START}:{FIT_END}, {len(nodes)} node tokens, K={k_max}")
+    suffix = f"_K{args.only_K}" if args.only_K is not None else ""
+    print(f"fit graphs {FIT_START}:{FIT_END}{' with K=' + str(args.only_K) if args.only_K else ''} ({len(fit)}), "
+          f"{len(nodes)} node tokens, K={k_max}")
 
     gsum = torch.zeros(k_max, vocab, 768, device=dev)
     usum = torch.zeros(k_max, vocab, 768, device=dev)
     kcount = torch.zeros(k_max, device=dev)
 
     batched_ok = True
-    for i, sample in enumerate(fit):
-        gi = FIT_START + i
+    for i, (gi, sample) in enumerate(fit_pairs):
         sample["edges"] = [list(e) for e in sample["edges"]]
         edges0 = [list(e) for e in sample["edges"]]
         sample["edges"] = edges0
@@ -190,6 +196,8 @@ def main():
 
     summary = {
         "fit_slice": [FIT_START, FIT_END],
+        "only_K": args.only_K,
+        "n_fit_graphs": len(fit),
         "n_node_tokens": len(nodes),
         "k_max": k_max,
         "seed": args.seed,
@@ -197,11 +205,11 @@ def main():
         "per_step": report["per_step"],
         "per_node": report["per_node"],
     }
-    torch.save(basis, out_dir / "jlens_basis.pt")
-    with open(out_dir / "jlens_basis_report.json", "w") as f:
+    torch.save(basis, out_dir / f"jlens_basis{suffix}.pt")
+    with open(out_dir / f"jlens_basis{suffix}_report.json", "w") as f:
         json.dump(summary, f, indent=2)
     print(json.dumps(report["per_step"], indent=2))
-    print(f"written: {out_dir / 'jlens_basis.pt'}")
+    print(f"written: {out_dir / f'jlens_basis{suffix}.pt'}")
 
 
 if __name__ == "__main__":

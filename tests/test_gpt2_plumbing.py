@@ -171,7 +171,7 @@ def main():
     except ImportError:
         winner_probe = None
     if winner_probe is not None:
-        res = winner_probe.run(r, "gpt2", train, fit_idx=list(range(0, 40)), eval_idx=list(range(len(train) - 20, len(train))),
+        res, weights = winner_probe.run(r, "gpt2", train, fit_idx=list(range(0, 40)), eval_idx=list(range(len(train) - 20, len(train))),
                                bases={}, cache=None)
         assert "learned_probe" in res and "input_embedding" in res["separation"]
         p = out_dir / "winner_smoke.json"

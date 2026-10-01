@@ -79,6 +79,7 @@ def scratch_column(run):
         c["removal"] = f"flips {pct(q['frac_flipped'])}, beyond reference {pt(fb, '{:+.2f}')} [{pt(fb['lo'] if fb else None, '{:+.2f}')}, {pt(fb['hi'] if fb else None, '{:+.2f}')}]"
         m = mk["summary"]["l2_latents_mask/path/alone"]
         c["mask"] = f"flips {pct(m['frac_flipped'])} (removal {pct(q['frac_flipped'])})"
+        c.update(baseline_rows(mk["rows"]))
     else:
         c["removal"] = c["mask"] = "-"
     rc = load(run, "recovery_n100.json")
@@ -106,6 +107,25 @@ def scratch_column(run):
     pb = load(run, "probe_basis_report.json")
     c["probe"] = f"{pb['median_holdout_auc']:.3f}" if pb else "-"
     return c
+
+
+def baseline_rows(rows):
+    """Experiment 8 reporting rows from per-graph rows that carry a baseline
+    and a qk_removal cell: graphs wrong at baseline (T below 50, which cannot
+    flip), the removal's flips over the baseline-correct graphs, and where the
+    removal's flips go (escape, or over half the mass on the decoy)."""
+    ok = [r for r in rows if r["baseline"]["T"] >= 50]
+    rem = [r for r in rows if r["cells"].get("qk_removal") and not r["cells"]["qk_removal"].get("skipped")]
+    fl = [r for r in rem if r["cells"]["qk_removal"]["dT"] <= -50]
+    fl_ok = [r for r in fl if r["baseline"]["T"] >= 50]
+    esc = sum(1 for r in fl if r["cells"]["qk_removal"]["e"] >= 0.5)
+    dec = sum(1 for r in fl if r["cells"]["qk_removal"]["p_decoy"] > 0.5)
+    n_ok_rem = sum(1 for r in rem if r["baseline"]["T"] >= 50)
+    return {
+        "baseline_wrong": f"{len(rows) - len(ok)} of {len(rows)}",
+        "removal_correct": f"{len(fl_ok)} of {n_ok_rem} ({len(fl_ok) / n_ok_rem:.0%})" if n_ok_rem else "-",
+        "removal_where": f"{dec} of {len(fl)} flips put over half the mass on the decoy; {esc} escape" if fl else "no flips",
+    }
 
 
 def gpt2_column(run):
@@ -142,6 +162,10 @@ def gpt2_column(run):
         fl = S["fallback_line"]["n_removal_flipped"]
         rnd = S["thoughtK/random/alone"]
         c["carry"] = f"{fl} removal-flipped graphs (nothing to restore); random donor escape {pct(rnd['frac_escaped'])}"
+        try:
+            c.update(baseline_rows(ce["rows"]))
+        except (KeyError, TypeError):
+            pass
         cr = ce["routes"]["content/"]
         c["content_route"] = f"{cr['rung']}: {', '.join(cr['heads'])}; every cell zero"
     else:
@@ -170,6 +194,9 @@ ROWS = [
     ("attn", "Removal: attention onto the answer-path edge, before to after"),
     ("removal", "Removal: the answer"),
     ("mask", "Calibration mask on the path edges"),
+    ("baseline_wrong", "Recipients wrong at baseline (T below 50; cannot flip)"),
+    ("removal_correct", "Removal: flips over the baseline-correct graphs"),
+    ("removal_where", "Removal: where the flips go"),
     ("carry", "Final-thought carry-over"),
     ("content_route", "Content-filtered route (GPT-2 only, exploration)"),
     ("winner", "Learned winner probe, held-out AUC"),

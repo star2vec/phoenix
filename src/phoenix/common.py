@@ -25,7 +25,8 @@ from stats import flag_rows, is_split, redirection, split_by_flag, summarize_cel
 from thoughts import find_donor  # noqa: E402
 
 SPLIT_COVARIATES = ["K", "n_branches", "first_parent_slot", "first_parent_slot_frac",
-                    "n_parent_edges", "n_edges", "target_first"]
+                    "n_parent_edges", "n_edges", "target_first",
+                    "parent_out_degree", "decoy_in_degree", "target_in_degree"]
 
 
 def make_parser(desc):
@@ -33,7 +34,8 @@ def make_parser(desc):
     p.add_argument("--run-name", default="seed0")
     p.add_argument("--device", default="mps")
     p.add_argument("--mode", choices=MODES, default="pilot",
-                   help="pilot = test graphs 400-409; n100 = test graphs 0-99")
+                   help="pilot = test graphs 400-409; n100 = test graphs 0-99; "
+                        "heldout = test graphs 100-399 (experiment 8's held-out check)")
     p.add_argument("--seed", type=int, default=0,
                    help="base seed for pinned serializations and random draws")
     return p

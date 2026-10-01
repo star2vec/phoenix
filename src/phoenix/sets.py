@@ -2,7 +2,8 @@
 
 Recipients for every new experiment come from the paper's held-out test
 split (419 graphs, never trained on). Pilot = test graphs 400-409; n=100 =
-test graphs 0-99. Donors, averages and fits use training graphs.
+test graphs 0-99; heldout = test graphs 100-399 (experiment 8's held-out
+check, untouched before it). Donors, averages and fits use training graphs.
 
 Pinned serialization: test graph gi uses pin_seed(gi + TEST_OFFSET, base);
 training graph gi uses pin_seed(gi, base). The offset keeps the two
@@ -22,7 +23,9 @@ EVAL_GRAPHS = ROOT / "data" / "eval_graphs.json"
 TEST_OFFSET = 1_000_000
 PILOT = list(range(400, 410))
 N100 = list(range(0, 100))
-MODES = ("pilot", "n100")
+HELDOUT = list(range(100, 400))
+MODES = ("pilot", "n100", "heldout")
+SETS = {"pilot": PILOT, "n100": N100, "heldout": HELDOUT}
 
 
 def load_train():
@@ -41,7 +44,7 @@ def recipients(mode):
     """[(gi, sample)] from the test split for the given mode."""
     assert mode in MODES, mode
     data = load_test()
-    idx = PILOT if mode == "pilot" else N100
+    idx = SETS[mode]
     return [(gi, data[gi]) for gi in idx]
 
 

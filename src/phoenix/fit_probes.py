@@ -6,6 +6,14 @@ label 1 iff BFS-depth_g(v) == 1, over training graphs containing v. The last
 
 Writes results/<run>/probe_basis.pt  (tensor (vocab, 768); zero rows = no probe)
    and results/<run>/probe_basis_report.json.
+
+Experiment 8: --score-test scores the saved basis on the 419 test graphs
+(pinned test serialization, step-1 thoughts; the per-node AUC is rank based,
+so the saved unit directions need no bias) and writes
+results/<run>/probe_basis_test_report.json.
+
+    python src/phoenix/fit_probes.py --run-name seed0 --device cpu
+    python src/phoenix/fit_probes.py --run-name seed0 --device cpu --score-test
 """
 
 import argparse
@@ -47,11 +55,53 @@ def auc(scores_pos, scores_neg):
     return float((r_pos - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg))
 
 
+@torch.no_grad()
+def score_test(runner, basis, seed, n_graphs=None):
+    """Score a probe basis on the test split: per node with a probe row, the
+    ROC-AUC of <step-1 thought, direction> for depth-1 membership over the
+    test graphs that contain the node. Pinned test serialization; the first
+    n_graphs test graphs when given (tests), else all 419."""
+    from measure import capture
+    from prompts import Prompt
+    from sets import load_test, test_pin
+    test = load_test()
+    idx = list(range(len(test)))[:n_graphs]
+    X = torch.zeros(len(idx), basis.shape[1])
+    present, depth1 = [], []
+    for row, i in enumerate(idx):
+        s = test[i]
+        pr = Prompt.from_sample(s, test_pin(i, seed))
+        X[row] = capture(runner, pr.ids(runner.tok))[0].float().cpu()
+        present.append(graph_nodes(s))
+        depth1.append({v for v, d in bfs_depths(s["edges"], s["root"]).items() if d == 1})
+    report = {}
+    for v in range(basis.shape[0]):
+        if float(basis[v].norm()) == 0:
+            continue
+        rows = [r for r in range(len(idx)) if v in present[r]]
+        if not rows:
+            continue
+        scores = X[rows] @ basis[v].float()
+        y = torch.tensor([1.0 if v in depth1[r] else 0.0 for r in rows])
+        a = auc(scores[y == 1], scores[y == 0])
+        report[str(v)] = {"n": len(rows), "n_pos": int(y.sum()), "test_auc": None if a != a else round(a, 4)}
+    aucs = [r["test_auc"] for r in report.values() if r["test_auc"] is not None]
+    return {
+        "n_graphs": len(idx), "split": "test", "serialization": "pinned test seeds", "step": 1, "label": "bfs_depth==1",
+        "n_nodes_scored": len(aucs),
+        "median_test_auc": round(sorted(aucs)[len(aucs) // 2], 4) if aucs else None,
+        "min_test_auc": round(min(aucs), 4) if aucs else None,
+        "per_node": report,
+    }
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--run-name", default="seed0")
     p.add_argument("--device", default="cuda")
     p.add_argument("--seed", type=int, default=0)
+    p.add_argument("--score-test", action="store_true",
+                   help="experiment 8: score the saved probe_basis.pt on the test split and exit")
     args = p.parse_args()
 
     torch.manual_seed(args.seed)
@@ -59,6 +109,14 @@ def main():
     runner = Runner(
         ROOT / "ckpts" / args.run_name / "best.pt", device=args.device
     )
+    if args.score_test:
+        basis = torch.load(out_dir / "probe_basis.pt", map_location="cpu", weights_only=True)
+        rep = score_test(runner, basis, args.seed)
+        with open(out_dir / "probe_basis_test_report.json", "w") as f:
+            json.dump(rep, f, indent=2)
+        print(f"test split: {rep['n_nodes_scored']} nodes, median AUC {rep['median_test_auc']}, min {rep['min_test_auc']}")
+        print(f"written: {out_dir / 'probe_basis_test_report.json'}")
+        return
     data = json.load(open(VENDOR / "data/prosqa_train_graph_4_coconut.json"))
     print(f"extracting step-1 thoughts from {len(data)} training graphs ...")
 

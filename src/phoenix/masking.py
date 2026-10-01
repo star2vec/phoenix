@@ -11,7 +11,17 @@ the path edges (every shortest-path edge from depth k+1 to depth k+2, all
 steps) or on a matched set of off-path edges (the most attended frontier
 edges off the path, same count).
 
+Experiment 8 adds, in the pilot and n100 modes: all_masks/<path|offpath>/alone
+(the layer-1 latent heads, the answer heads and all eight layer-2 heads at the
+latents masked at once, no removal) and isolation/<path|offpath>/<alone|
+plus_removal> (every query outside a slot blocked from that slot's three
+tokens, both layers, all heads; the reads inside the slot are kept). The
+heldout mode (test graphs 100-399) runs only the removal, its random control
+and the layer-2 mask, with no donors: the held-out check of two predictors
+found on test graphs 0-99.
+
     python src/phoenix/masking.py --run-name seed0 --device cpu --mode pilot
+    python src/phoenix/masking.py --run-name seed0 --device cpu --mode heldout
 """
 
 import json
@@ -33,6 +43,8 @@ from edits import rand_orthonormal  # noqa: E402
 from sets import ROOT, require_file, test_pin  # noqa: E402
 
 EDGE_HEAD_CUT = 0.5  # protects "this head reads edges" (stricter than experiment 2's 0.2 scoring cutoff)
+HELDOUT_CELLS = ("reserialized", "self_transplant", "qk_removal", "qk_random",
+                 "l2_latents_mask/path/alone", "l2_latents_mask/offpath/alone")
 
 
 def head_sets(run_name, cut=EDGE_HEAD_CUT):
@@ -77,10 +89,13 @@ def mask_positions(L, slots):
 
 
 def apply_masks(hooks, sets, which, L, K, slots):
-    """which: subset of {'latents', 'answer'}; masks the heads of each layer
-    at the given queries onto the slots' tokens. AttnHooks masks all heads of
-    a layer, so head selection is done by masking only in layers where the
-    set is non-empty and recording the selected heads; see note in run()."""
+    """which: subset of {'latents', 'answer', 'l2_latents', 'isolation'}.
+    latents / answer: the selected heads of each layer at the latent queries /
+    the answer query, blocked from the slots' tokens. l2_latents: all eight
+    layer-2 heads at the latent queries. isolation (experiment 8): every query
+    after a slot and outside it is blocked from that slot's tokens, in both
+    layers and all heads; queries inside the slot (the separator's copy of its
+    own edge) are left alone, and queries before the slot cannot see it anyway."""
     ks = mask_positions(L, slots)
     if "latents" in which:
         for layer, heads in sets["latents"].items():
@@ -90,11 +105,21 @@ def apply_masks(hooks, sets, which, L, K, slots):
             hooks.add_mask([layer], [L["a"]], ks, heads=heads)
     if "l2_latents" in which:
         hooks.add_mask([1], L["latents"], ks, heads=list(range(8)))
+    if "isolation" in which:
+        for j in slots:
+            own = slot_tokens(L["slots"][j])
+            qs = [q for q in range(max(own) + 1, L["n"]) if q not in own]
+            hooks.add_mask([0, 1], qs, own)
 
 
-def run(runner, recips, train, sets, base_seed=0):
+def run(runner, recips, train, sets, base_seed=0, cells="all"):
+    """cells: 'all' (every cell) or 'heldout' (experiment 8's held-out check:
+    the removal, its random control and the layer-2 mask only, no donors)."""
+    assert cells in ("all", "heldout"), cells
+    cell_set = cells  # the per-graph dict below reuses the name `cells`
     rows, cell_names = [], []
     n_heads = 8
+    headline_only = cell_set == "heldout"
     for gi, sample, pr in recips:
         K, L = pr.K, pr.layout()
         ids = pr.ids(runner.tok)
@@ -126,16 +151,18 @@ def run(runner, recips, train, sets, base_seed=0):
         cell("reserialized", answer_split(run_ids(runner, Prompt.from_sample(sample, test_pin(gi, base_seed, True)).ids(runner.tok), attn_eager=True), pr.target, pr.decoy))
         cell("self_transplant", measure_with((), [], fixed(own, all_passes(K))))
         assert abs(cells["self_transplant"]["dT"]) < 1e-6
-        d_gi, _ = random_donor(train, K, rng)
-        donor = donor_run(runner, train, d_gi, base_seed, attn_eager=True)[1]
-        cell("random_donor/intermediates", measure_with((), [], fixed(donor, intermediates(K))))
-        sad = same_answer_donor(train, pr.target, pr.decoy, K)
-        if sad is None:
-            skip("same_answer_donor/intermediates", "no_same_answer_donor"); skip("same_answer_donor/all", "no_same_answer_donor")
-        else:
-            sth = donor_run(runner, train, sad[0], base_seed, attn_eager=True)[1]
-            cell("same_answer_donor/intermediates", measure_with((), [], fixed(sth, intermediates(K))))
-            cell("same_answer_donor/all", measure_with((), [], fixed(sth, all_passes(K))))
+        d_gi, sad = None, None
+        if not headline_only:
+            d_gi, _ = random_donor(train, K, rng)
+            donor = donor_run(runner, train, d_gi, base_seed, attn_eager=True)[1]
+            cell("random_donor/intermediates", measure_with((), [], fixed(donor, intermediates(K))))
+            sad = same_answer_donor(train, pr.target, pr.decoy, K)
+            if sad is None:
+                skip("same_answer_donor/intermediates", "no_same_answer_donor"); skip("same_answer_donor/all", "no_same_answer_donor")
+            else:
+                sth = donor_run(runner, train, sad[0], base_seed, attn_eager=True)[1]
+                cell("same_answer_donor/intermediates", measure_with((), [], fixed(sth, intermediates(K))))
+                cell("same_answer_donor/all", measure_with((), [], fixed(sth, all_passes(K))))
 
         # the query-key every-step removal, rebuilt here (directions from the unedited run)
         on = on_path_nodes(pr)
@@ -148,9 +175,12 @@ def run(runner, recips, train, sets, base_seed=0):
             slot = max(pe, key=lambda j: G.total_attention(qk, j))
             steps.append((k, G.directions(qk, slot)))
         if steps is None:
-            for nm in ("qk_removal", "qk_random", "l1_latents/path/plus_removal", "answer_heads/path/plus_removal",
-                       "all_routes/path/plus_removal", "l1_latents/offpath/plus_removal", "answer_heads/offpath/plus_removal",
-                       "all_routes/offpath/plus_removal"):
+            names = ["qk_removal", "qk_random"]
+            if not headline_only:
+                names += ["l1_latents/path/plus_removal", "answer_heads/path/plus_removal",
+                          "all_routes/path/plus_removal", "l1_latents/offpath/plus_removal", "answer_heads/offpath/plus_removal",
+                          "all_routes/offpath/plus_removal", "isolation/path/plus_removal", "isolation/offpath/plus_removal"]
+            for nm in names:
                 skip(nm, "no_path_edge_at_some_step")
             removal = None
         else:
@@ -160,26 +190,37 @@ def run(runner, recips, train, sets, base_seed=0):
             cell("qk_random", measure_with((), [], rand))
 
         # masks alone and plus removal, on path and off-path slots
-        for route, which in (("l1_latents", ("latents",)), ("answer_heads", ("answer",)), ("all_routes", ("latents", "answer"))):
-            if all(not sets[w] for w in which):
-                for tgt in ("path", "offpath"):
-                    skip(f"{route}/{tgt}/alone", "no_heads_selected"); skip(f"{route}/{tgt}/plus_removal", "no_heads_selected")
-                continue
-            for tgt, slots in (("path", path), ("offpath", off)):
-                cell(f"{route}/{tgt}/alone", measure_with(which, slots))
-                if removal is not None:
-                    cell(f"{route}/{tgt}/plus_removal", measure_with(which, slots, removal))
+        if not headline_only:
+            for route, which in (("l1_latents", ("latents",)), ("answer_heads", ("answer",)), ("all_routes", ("latents", "answer"))):
+                if all(not sets[w] for w in which):
+                    for tgt in ("path", "offpath"):
+                        skip(f"{route}/{tgt}/alone", "no_heads_selected"); skip(f"{route}/{tgt}/plus_removal", "no_heads_selected")
+                    continue
+                for tgt, slots in (("path", path), ("offpath", off)):
+                    cell(f"{route}/{tgt}/alone", measure_with(which, slots))
+                    if removal is not None:
+                        cell(f"{route}/{tgt}/plus_removal", measure_with(which, slots, removal))
         cell("l2_latents_mask/path/alone", measure_with(("l2_latents",), path))
         cell("l2_latents_mask/offpath/alone", measure_with(("l2_latents",), off))
+        if not headline_only:
+            # experiment 8: every mask at once (no removal), and the isolation mask
+            for tgt, slots in (("path", path), ("offpath", off)):
+                cell(f"all_masks/{tgt}/alone", measure_with(("latents", "answer", "l2_latents"), slots))
+                cell(f"isolation/{tgt}/alone", measure_with(("isolation",), slots))
+                if removal is not None:
+                    cell(f"isolation/{tgt}/plus_removal", measure_with(("isolation",), slots, removal))
 
         rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base, "meta": meta,
                      "random_donor_gi": d_gi, "same_answer_donor_gi": sad[0] if sad else None, "cells": cells})
         show = ["qk_removal", "l1_latents/path/alone", "l1_latents/path/plus_removal", "answer_heads/path/alone",
-                "answer_heads/path/plus_removal", "all_routes/path/plus_removal", "all_routes/offpath/plus_removal", "l2_latents_mask/path/alone"]
+                "answer_heads/path/plus_removal", "all_routes/path/plus_removal", "all_routes/offpath/plus_removal", "l2_latents_mask/path/alone",
+                "all_masks/path/alone", "isolation/path/alone", "isolation/path/plus_removal", "isolation/offpath/alone"]
         print(f"graph {gi}: base T {base['T']:.1f}  " + "  ".join(
             f"{n} {cells[n]['dT']:+.1f}/e{cells[n]['e']:.2f}" for n in show if n in cells and not cells[n].get("skipped")))
+    if headline_only:
+        assert set(cell_names) <= set(HELDOUT_CELLS), cell_names
     return {"rows": rows, "summary": summarize(rows, cell_names), "cells": cell_names, "head_sets": sets,
-            "edge_head_cut": EDGE_HEAD_CUT}
+            "edge_head_cut": EDGE_HEAD_CUT, "cells_mode": cell_set}
 
 
 def main():
@@ -190,7 +231,7 @@ def main():
     train = load_train()
     recips = recipient_prompts(args.mode, args.seed)
     result = header(args, "masking")
-    result.update(run(runner, recips, train, sets, args.seed))
+    result.update(run(runner, recips, train, sets, args.seed, cells="heldout" if args.mode == "heldout" else "all"))
     finish(args, "masking", result)
 
 

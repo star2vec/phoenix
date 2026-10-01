@@ -107,9 +107,43 @@ def main():
     sets = {"latents": {0: [3, 4, 6, 7]}, "answer": {0: [2, 5, 6], 1: [0, 1, 2, 5, 6, 7]}}
     res = masking.run(runner, recips, train, sets)
     assert {"qk_removal", "l1_latents/path/alone", "l1_latents/path/plus_removal", "answer_heads/offpath/alone",
-            "all_routes/path/plus_removal", "l2_latents_mask/path/alone"} <= set(res["cells"])
+            "all_routes/path/plus_removal", "l2_latents_mask/path/alone",
+            "all_masks/path/alone", "all_masks/offpath/alone", "isolation/path/alone", "isolation/offpath/alone"} <= set(res["cells"])
     assert all(abs(r["cells"]["self_transplant"]["dT"]) < 1e-6 for r in res["rows"])
+    assert "parent_out_degree" in res["rows"][0]["cov"] and "decoy_in_degree" in res["rows"][0]["cov"]
     dump("masking", res)
+    print("masking (heldout cells only)")
+    res_h = masking.run(runner, recips, train, sets, cells="heldout")
+    assert set(res_h["cells"]) == set(masking.HELDOUT_CELLS), res_h["cells"]
+    assert res_h["rows"][0]["same_answer_donor_gi"] is None and res_h["cells_mode"] == "heldout"
+    from sets import recipients
+    held = recipients("heldout")
+    assert len(held) == 300 and held[0][0] == 100 and held[-1][0] == 399
+
+    print("winner_probe (tiny fit, train and test scoring) and winner_margin (its weights)")
+    import winner_probe, winner_margin
+    wp, weights = winner_probe.run(runner, "symbol", train, range(0, 60), range(60, 90), {}, None)
+    assert {"separation", "learned_probe", "by_K"} <= set(wp) and wp["eval_split"] == "train"
+    assert "3" in wp["by_K"] and "learned_probe" in wp["by_K"]["3"] and any(k.startswith("K3/") for k in weights)
+    assert "pooled/k0" in weights and set(weights["pooled/k0"]) == {"W", "b", "classes"}
+    wp_t, _ = winner_probe.run(runner, "symbol", train, range(0, 60), [400, 401], {}, None, eval_data=test, eval_split="test")
+    assert wp_t["eval_split"] == "test" and wp_t["n_eval_graphs"] == 2
+    res = winner_margin.run(runner, recips, weights)
+    assert set(res["cells"]) == {"none", "removal", "removal_orth", "random"}
+    live = [r for r in res["rows"] if not r.get("skipped")]
+    assert live and all(abs(r["cells"]["none"]["dT"]) < 1e-4 for r in live)
+    assert all(f"pass{r['K'] - 2}" in r["span_shares"] for r in live)
+    assert all(r["span_shares"][f"pass{r['K'] - 2}"]["winner_in_orth_span"] < 1e-4 for r in live)
+    assert all(len(r["cells"]["removal"]["attn_path_per_step"]) == r["K"] - 1 for r in live)
+    assert "auc_removal_flip" in res["summary"] and "baseline_p_decoy" in res["summary"]["auc_removal_flip"]
+    assert "attention_drop_orth_over_removal" in res["summary"] and "removal_orth" in res["summary"]["flips"]
+    assert wp["learned_probe"]["1"].get("n_eval_correct") is not None
+    dump("winner_margin", res)
+
+    print("fit_probes.score_test (random basis, 20 test graphs)")
+    import fit_probes
+    rep = fit_probes.score_test(runner, torch.randn(40, 768), 0, n_graphs=20)
+    assert rep["n_graphs"] == 20 and "median_test_auc" in rep
 
     print("recovery (experiment 6)")
     import recovery

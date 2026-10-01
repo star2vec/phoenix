@@ -1762,6 +1762,359 @@ other than the addition of the content-filtered route, which is as empty of
 effect as the primary one.
 
 
+## Experiment 8: the removal's flipped graphs, the carried winner, and a held-out check (written 2026-10-01, before any run)
+
+Why. A review of the n=100 files, recomputed per graph in
+`results/gaps_reanalysis.json` (`scripts/reanalysis_gaps.py`), found that
+the query-key removal is not a null in the sense experiments 5 and 6 use. It
+flips 19, 22, 33 and 25 of 100 graphs on seeds 0 to 3 (almost always to the
+decoy: 18, 22, 30 and 20 of those flips put over half the mass on the decoy;
+1, 0, 3 and 3 escape) while the matched random directions flip none. Its
+flipped graphs overlap the same-answer donor's only at chance on seeds 1 to 3
+(6 of 22, 7 of 32, 7 of 24 shared; 5.6, 8.2, 6.6 expected) and above chance
+on seed 0 (10 of 19; 3.7 expected). The same test graphs flip across seeds
+(12 graphs on at least 3 of 4 seeds; 4.8 expected if independent). Baseline
+p_decoy predicts the removal's flips (AUC 0.72, 0.75, 0.72, 0.71) and not
+the donor's (0.54, 0.57, 0.49, 0.45); the target's parent's out-degree does
+too, weakly (0.67, 0.59, 0.63, 0.68). The donor's intermediate thoughts
+carry the shared winner (its K-1 thought alone flips 13 to 28 percent of
+removal-correct graphs, `recovery_n100.json`), so its rate is not a
+"broken search" reference. Four other points from the same review: the
+winner probe pools K=3 and K=4 at each absolute pass and is scored on
+training graphs; no mask cell blocks queries at edge-token positions, and
+target-token queries keep only 0.05 to 0.11 of their attention inside their
+own slot (`heads_n100.json`); no cell masks every route onto all path edges
+at once (layer 2 at the latents was covered by the removal, which takes one
+edge per step); 9, 4, 6 and 7 recipients are wrong at baseline and cannot
+flip. Four parts, all analysis on the existing checkpoints; the user
+launches every run. The reading rules are those of experiments 5 and 6
+(flip, escape, "collapses"); "baseline-correct" means baseline T above 50
+(protects "the baseline answer was the target").
+
+8a. Winner margins per graph (`src/phoenix/winner_margin.py`; files
+`results/<run>/winner_margin_<mode>.json`; needs the per-K probe weights
+that `winner_probe.py` now saves). Per recipient, the removal and its random
+control are rebuilt as in experiment 5; three runs (unedited, removal,
+random) record every recycled thought as the model reads it. Two readouts
+give a winner margin, target minus decoy, on thought K-1 and thought K: the
+learned per-K probe (fit on training graphs) and the input-embedding
+readout. Read first, before any margin: the share of each readout direction
+inside the removed eight-direction span at each pass (squared projection;
+the random span's share, about 0.01, is the reference).
+- Share cutoff: a probe-direction share at or below 0.05 at pass K-2
+  protects "the removal does not aim at the winner readout". If the share is
+  above 0.2 on the flipped graphs, the removal takes the winner out directly
+  and the damage line below is the reading, whatever the margins say.
+- Two-route line (the match covers where the carried winner is weak): the
+  unedited K-1 margin predicts the removal's flips with an AUC above baseline
+  p_decoy's (0.72 to 0.75 on these graphs); the removal lowers the K-1
+  margin no more than the random control does (paired difference, interval
+  covering zero); the K margin under the removal predicts the answer under
+  the removal (AUC above 0.95).
+- Damage line (the removal corrupts the carried winner): the K-1 margin
+  falls under the removal on the flipped graphs and not under the random
+  control (interval of the difference below zero on the flipped graphs,
+  covering zero on the unflipped).
+- Parent out-degree is reported again here (found on these graphs, AUC 0.59
+  to 0.68); its test is 8b.
+
+8b. Held-out check (`masking.py --mode heldout`: test graphs 100-399, 148
+with K=3 and 152 with K=4, untouched until now; cells reserialized,
+self-transplant, the removal, its random control and the layer-2 mask on
+path and off-path slots; no donors; file `results/<run>/masking_heldout.json`,
+read by `scripts/reanalysis_gaps.py`). Only the two predictors found on test
+graphs 0-99 are tested there, baseline p_decoy and the parent out-degree;
+nothing else is read from these graphs. Predictions, per seed: removal flip
+rate between 0.15 and 0.40, random control at most 0.02; AUC of baseline
+p_decoy for the removal's flip among baseline-correct graphs between 0.65
+and 0.80; AUC of the parent out-degree between 0.55 and 0.75 with the
+interval above 0.5; the layer-2 mask's flipped set shared with the removal's
+above chance (hypergeometric P below 0.01). A predictor whose interval
+covers 0.5 on two or more seeds is dropped from the paper.
+
+8c. Every mask at once, and the isolation mask (`masking.py`, pilot then
+n100 on all four seeds; the experiment 5 files are rerun and keep their
+names). New cells: `all_masks/<path|offpath>/alone` (the layer-1 latent
+heads, the answer heads and all eight layer-2 heads at the latents masked
+together on the slots, no removal); `isolation/<path|offpath>/alone` and
+`/plus_removal` (every query after a slot and outside it blocked from the
+slot's three tokens, both layers, all heads; the separator's copy of its own
+edge is kept). Root edges (depth 0 to 1) stay out of the path set, as in
+experiment 5; recorded here as a decision. Predictions:
+- Carried-winner line: all_masks flips at the layer-2 mask's level (paired
+  flips beyond `l2_latents_mask/path/alone` with the interval covering
+  zero); isolation adds nothing beyond all_masks (same); isolation plus
+  removal equals the removal; off-path isolation flips at most 0.05.
+- Leak line (masked edge content reaches the latents through other edge
+  tokens' layer-1 residuals): isolation on the path slots flips beyond the
+  layer-2 mask with the interval above zero, and off-path isolation does not.
+
+8d. Winner probe per K and on the test split (`winner_probe.py`: the pooled
+numbers are unchanged and a `by_K` block is added; `--eval test` writes
+`winner_probe_test.json` for the 419 test graphs; `fit_probes.py
+--score-test` writes `probe_basis_test_report.json`; `fit_jlens.py --only-K
+3` and `4` write `jlens_basis_K<K>.pt`, which the per-K Jacobian readout
+uses when present). Predictions: on the test split the learned probe's AUC
+at thought K-1 (K=4 at step 3; K=3 at step 2) is between 0.70 and 0.90 for
+both K, the final step above 0.99 for both K, and every test number within
+0.05 of its training-holdout twin; the frontier probe's median test AUC is
+above 0.99. An AUC below 0.6 at K-1 means the K-1 donor thought's partial
+restoration in experiment 6b carried the frontier, not the winner. The
+sentence "largely present in K-1" is not used until these numbers exist.
+
+Reporting (numbers only): `scripts/exp7_table.py` gains three rows
+(recipients wrong at baseline; the removal's flips over baseline-correct
+graphs; where the flips go), and `common.SPLIT_COVARIATES` gains
+parent_out_degree, decoy_in_degree and target_in_degree. The zero-cost split
+of the last-hop rewrite by the decoy's remaining in-degree (seeds 0 and 1,
+`counterfactuals_n100.json`) is in `gaps_reanalysis.json` and is a side
+result, not a headline.
+
+Order, each after the user says so (all `--device cpu`):
+
+```
+.venv/bin/python scripts/reanalysis_gaps.py
+# seeds 2 and 3 first need the two bases:
+.venv/bin/python src/phoenix/fit_probes.py --run-name seed2 --device cpu
+.venv/bin/python src/phoenix/fit_jlens.py --run-name seed2 --device cpu
+# then per seed (seed0 shown):
+.venv/bin/python src/phoenix/fit_jlens.py --run-name seed0 --device cpu --only-K 3
+.venv/bin/python src/phoenix/fit_jlens.py --run-name seed0 --device cpu --only-K 4
+.venv/bin/python src/phoenix/winner_probe.py --model symbol --run-name seed0 --device cpu
+.venv/bin/python src/phoenix/winner_probe.py --model symbol --run-name seed0 --device cpu --eval test
+.venv/bin/python src/phoenix/fit_probes.py --run-name seed0 --device cpu --score-test
+.venv/bin/python src/phoenix/winner_margin.py --run-name seed0 --device cpu --mode pilot
+.venv/bin/python src/phoenix/masking.py --run-name seed0 --device cpu --mode pilot
+# pilots read against the predictions above, then on every seed:
+.venv/bin/python src/phoenix/winner_margin.py --run-name seed0 --device cpu --mode n100
+.venv/bin/python src/phoenix/masking.py --run-name seed0 --device cpu --mode n100
+.venv/bin/python src/phoenix/masking.py --run-name seed0 --device cpu --mode heldout
+.venv/bin/python scripts/reanalysis_gaps.py
+```
+
+Pilot outcome (seed 0, test graphs 400-409, 2026-10-01; files
+`results/seed0/winner_margin_pilot_v1_before_orth.json`,
+`results/seed0/masking_pilot.json`, `results/seed0/winner_probe.json`,
+`results/seed0/winner_probe_test.json`,
+`results/seed0/probe_basis_test_report.json`):
+- 8a. The probe's winner direction holds a median 0.088 [0.061, 0.124] of
+  its norm in the removed span at pass K-2 (0.04 to 0.17 per graph), nine
+  times the random span's 0.008; the input-embedding direction 0.059. That
+  is above the 0.05 line and below the 0.2 damage trigger. The removal
+  lowers the probe's K-1 margin by 2.3 [0.6, 4.1] logits and the K margin
+  by 5.9 [3.6, 7.8], on flipped and unflipped graphs alike (K-1: -2.9 and
+  -2.0; K: -6.9 and -5.4); the random control lowers neither (+0.4, +0.2).
+  The removal flips 3 of 10, the random control none. The K margin under
+  the removal predicts the answer under the removal (AUC 0.86 [0.54, 1.00],
+  n=10). Neither prediction line as written: the margin falls, so this is
+  not a pure attention edit, but it falls on every graph, not on the flipped
+  ones in particular. At n=10 nothing separates the predictors (AUC 0.67 to
+  0.86 with intervals from 0.2 to 1).
+- 8c. All masks at once flips the layer-2 mask's three graphs and no other
+  (per-graph dT within 7 points); isolation flips two of them (graph 406:
+  -6.8 under isolation, -62.2 under the layer-2 mask), off-path isolation
+  none, isolation plus removal the removal's three. No leak signature.
+- 8d. Training holdout, per K: learned-probe AUC at K-1 is 0.842 (K=3) and
+  0.892 (K=4), final 0.999 for both; input-embedding separation at K-1 0.66
+  and 0.79 (the pooled step-3 number, 0.89, mixed K=3 finals in). Test
+  split (419): K-1 AUC 0.719 and 0.765, final 0.976 and 0.955; separation
+  at K-1 0.61 and 0.69. The K-1 prediction holds (0.70 to 0.90, barely for
+  K=3); "final above 0.99" and "test within 0.05 of training" fail on the
+  test split. The frontier probe's median test AUC is 0.995 (minimum 0.75);
+  that prediction holds.
+What the pilot changed, with predictions written before the rerun:
+- 8a gains one cell, `removal_orth`: the same eight-direction span at every
+  pass with its component along the winner readout direction (the probe's
+  target-minus-decoy direction at that pass; the input-embedding one when
+  the probe has no row for a candidate) taken out before the removal, so
+  the edit leaves that direction alone. Every condition now also records
+  the layer-2 attention from each search query onto its answer-path edge,
+  and the orthogonal removal's attention drop as a fraction of the
+  removal's is the gate. Match line (the flips come from losing the
+  match): the orthogonal removal keeps at least 0.8 of the removal's
+  attention drop at the last step, flips the same graphs (paired difference
+  of flip indicators against the removal with the interval covering zero,
+  on at least 0.8 of the removal's flipped graphs) and changes the K-1
+  probe margin no more than the random control. Damage line (the flips come
+  from the tenth of the winner direction the span carries): the attention
+  drop is kept and the flips fall to the random control's level (paired
+  difference interval below zero) with the K margin change shrinking toward
+  zero. The share cutoff of 0.05 stays as the line that says the span is not
+  independent of the winner readout; the orthogonal cell is what decides
+  whether that matters.
+- 8d: because the model answers about 5 percent of test graphs wrongly and a
+  thought on such a graph carries the decoy, every readout is also reported
+  over the graphs the model answers correctly (`auc_correct_only`,
+  `frac_target_higher_correct_only`, from one extra forward per graph). The
+  prediction "final above 0.99" is re-read on that subset; the "within
+  0.05" prediction stands as written and is already failed at K-1 on seed
+  0. Nothing else in 8b, 8c or 8d changes.
+Pilot outcome, 8a rerun with `removal_orth` (seed 0, test graphs 400-409;
+`results/seed0/winner_margin_pilot.json`): the orthogonal removal keeps the
+removal's attention drop at the last search step in full (2.09 to 0.15,
+against 0.14 under the removal; ratio of drops 1.00 [0.98, 1.00]), flips the
+same three graphs (paired difference 0.00 [0.00, 0.00]), and changes the
+K-1 probe margin by +0.1 [-1.5, +1.7], as the random control does (+0.4),
+where the removal changed it by -2.3. The winner direction's share in the
+orthogonal span is zero on every graph. Thought K still loses 5.4 [3.1,
+7.3] logits of probe margin under the orthogonal removal (5.9 under the
+removal), so that loss follows from losing the match at the last step, not
+from the span clipping the winner direction. The match line, on all three
+counts; design frozen, n=100 next.
+n=100 outcome, 8a, seeds 0 and 1 (`results/seed0/winner_margin_n100.json`,
+`results/seed1/winner_margin_n100.json`; 9 and 4 recipients wrong at
+baseline, none skipped):
+- The removal flips 0.19 and 0.22 (0.21 and 0.23 over baseline-correct
+  graphs); the orthogonal removal 0.16 and 0.20, the same graphs (16 of 19
+  and 20 of 22 shared; paired difference -0.03 [-0.07, 0.00] and -0.02
+  [-0.05, 0.00]); the random control 0.00. The orthogonal removal keeps the
+  removal's attention drop at the last search step (1.79 to 0.13 against
+  0.16, and 2.54 to 0.13 against 0.15; ratio 0.99 [0.99, 1.00] and 1.00).
+  Match line on both seeds: at most two or three of the flips come from the
+  span clipping the winner direction.
+- The probe's winner direction holds a median 0.087 and 0.062 of its norm
+  in the removed span (random span 0.009 and 0.008), the same on flipped
+  and unflipped graphs (0.081 vs 0.088; 0.068 vs 0.067); the share does
+  not predict the flip (AUC 0.46 and 0.49).
+- K-1 probe margin: the removal lowers it by 2.4 [1.8, 2.9] and 2.6 [1.9,
+  3.3]; the orthogonal removal by +0.3 [-0.3, +0.8] and -0.1 [-0.9, +0.7],
+  within the random control's (-0.3 and -0.6). Thought K loses 4.9 [4.2,
+  5.6] and 6.2 [5.6, 6.9] logits under the removal and 4.3 and 5.8 under
+  the orthogonal removal, more on the flipped graphs (7.7 and 8.7) than on
+  the unflipped (4.3 and 5.5); the random control changes neither.
+- Which graphs flip: the unedited K-1 probe margin is -1.7 [-3.2, -0.3] and
+  -0.9 [-2.8, +1.1] on the graphs the removal flips and +4.2 [2.9, 5.3] and
+  +4.8 [3.5, 6.0] on the rest. It predicts the flip with AUC 0.80 [0.71,
+  0.88] and 0.80 [0.69, 0.91] (0.85 and 0.83 over baseline-correct
+  graphs), above baseline p_decoy's 0.72 and 0.75 (0.81 and 0.79) on both
+  seeds, with overlapping intervals; the parent out-degree gives 0.67 and
+  0.59; the input-embedding readout at K-1 0.60 and 0.68. Under the
+  removal, the thought-K margin predicts the model's answer with AUC 0.95
+  [0.91, 0.98] and 0.94 [0.89, 0.98] (predicted above 0.95; at the line).
+Reading. The removal takes away the thought's match to the answer-path
+edges and nothing else that matters: a removal that spares the winner
+direction empties the attention just as completely and flips the same
+graphs. Without the match, thought K is produced with 5 to 6 logits less
+winner margin on every graph; the answer survives where thought K-1 already
+carried the winner and flips where it did not. The two routes of
+experiment 6's account are both real and are used on different graphs: the
+last-step match carries the graphs whose K-1 thought has not settled the
+winner, and the carried winner covers the loss of the match on the rest.
+Seeds 2 and 3 (`results/seed{2,3}/winner_margin_n100.json`; 6 and 7
+wrong at baseline, none skipped):
+- The removal flips 0.33 and 0.25; the orthogonal removal 0.32 and 0.22,
+  the same graphs (32 of 33 and 22 of 25 shared; paired -0.01 [-0.03,
+  0.00] and -0.03 [-0.07, 0.00]); random 0.00. Attention drop kept in full
+  (ratio 1.00 on both). Probe direction's share in the removed span 0.041
+  and 0.067 (random 0.011 and 0.009), equal on flipped and unflipped graphs.
+- K-1 probe margin: removal -2.1 [-2.8, -1.4] and -3.7 [-4.4, -3.0];
+  orthogonal removal -0.3 [-0.9, +0.3] and -0.7 [-1.3, -0.03]; random -0.6
+  and -0.2. On seed 3 the orthogonal removal lowers the K-1 margin by about
+  half a logit more than the random control, small beside the removal's
+  3.7. Thought K loses 6.6 and 6.2 logits under the removal (6.2 and 5.6
+  orthogonal), 9.0 and 8.6 on flipped graphs.
+- Which graphs flip: the unedited K-1 margin is lower on flipped graphs
+  (1.9 vs 5.4; 1.3 vs 3.2) but predicts the flip with AUC 0.66 [0.56, 0.77]
+  and 0.57 [0.44, 0.69] only, below baseline p_decoy's 0.72 and 0.71 (0.79
+  and 0.79 over baseline-correct graphs). The thought-K margin under the
+  removal predicts the answer under the removal with AUC 0.93 and 0.95.
+Four-seed reading of 8a. The match line holds on all four seeds: sparing
+the winner direction leaves the attention drop and the flipped graphs
+unchanged, so the removal's flips come from losing the match, not from
+clipping the carried winner. The two-route reading by graph holds in
+direction on all four (lower K-1 margin on the flipped graphs) but the K-1
+margin beats baseline p_decoy as a predictor on seeds 0 and 1 only; on
+seeds 2 and 3 it is weaker. The per-graph claim the paper can make is
+baseline p_decoy (four seeds, and held out on 300 more graphs each), not
+the K-1 margin.
+
+n=100 outcome, 8c, four seeds (`results/seed{0,1,2,3}/masking_n100.json`;
+the experiment 5 files are kept as `masking_n100_v1_exp5.json`, and every
+shared cell reproduces them to the last digit on all four seeds):
+- Every mask at once (`all_masks/path/alone`) flips 0.15, 0.19, 0.31, 0.24
+  against the layer-2 mask's 0.15, 0.20, 0.33, 0.24 (paired difference
+  +0.00 [0.00, 0.00], -0.01 [-0.03, 0.00], -0.02 [-0.05, 0.00], +0.00
+  [-0.03, +0.03]; 15, 19, 31, 23 graphs shared). Off-path 0.00, 0.00, 0.00,
+  0.01. Blocking layer 1 at the latents and the answer position's heads on
+  top of layer 2 adds no flip on any seed.
+- Isolation (`isolation/path/alone`) flips 0.14, 0.21, 0.28, 0.27: against
+  the layer-2 mask -0.01 [-0.03, 0.00], +0.01 [-0.02, +0.05], -0.05
+  [-0.09, -0.01], +0.03 [-0.01, +0.08]; against every mask at once -0.01,
+  +0.02 [0.00, +0.05], -0.03, +0.03 [-0.01, +0.08]. Off-path isolation
+  0.00, 0.00, 0.01, 0.01. Isolation plus removal against the removal:
+  +0.03 [-0.03, +0.09], +0.01 [-0.06, +0.08], +0.05 [-0.03, +0.13], +0.04
+  [-0.04, +0.11].
+Reading: the carried-winner line on all four seeds. No interval for
+isolation beyond the layer-2 mask lies above zero (seed 2's lies below it:
+isolating the path slots from every reader flips fewer graphs than masking
+the latents' layer-2 reads alone); the leak line's signature is absent.
+Blocking every reader of the path edges, in both layers, leaves the answer
+exactly where blocking the layer-2 latent reads leaves it.
+
+n=100 outcome, 8b, the held-out check, four seeds
+(`results/seed{0,1,2,3}/masking_heldout.json`, 300 test graphs 100-399
+each; 12, 13, 11, 8 wrong at baseline; read in `results/gaps_reanalysis.json`,
+key `heldout`):
+- Removal flips 0.22 [0.18, 0.27], 0.29 [0.24, 0.34], 0.39 [0.33, 0.44],
+  0.27 [0.22, 0.32] (predicted 0.15 to 0.40; seed 2 at the edge); random
+  directions 0.00 on all four; the layer-2 mask 0.15, 0.23, 0.30, 0.22,
+  sharing 32 of 66, 49 of 86, 73 of 116, 49 of 81 removal-flipped graphs
+  (10.1, 19.8, 34.4, 17.6 expected if independent; P below 1e-13 on each).
+- Baseline p_decoy predicts the removal's flip among baseline-correct
+  graphs with AUC 0.81 [0.75, 0.86], 0.80 [0.74, 0.85], 0.68 [0.62, 0.74],
+  0.78 [0.72, 0.84] (predicted 0.65 to 0.80; seed 0 a point above the
+  upper line; every interval above 0.5). Holds.
+- Parent out-degree: 0.54 [0.46, 0.62], 0.53 [0.45, 0.60], 0.46 [0.40,
+  0.53], 0.50 [0.43, 0.58]. Every interval covers 0.5; by the rule written
+  above the predictor is dropped. The 0.59 to 0.68 on test graphs 0-99 was
+  noise.
+Nothing else was read from graphs 100-399.
+
+Seeds 2 and 3, 8d (`results/seed{2,3}/winner_probe.json`,
+`winner_probe_test.json`, `probe_basis_test_report.json`): training
+holdout at K-1 0.742 and 0.748 (K=3), 0.864 and 0.821 (K=4), final 0.997 to
+1.000. Test split at K-1 0.703 and 0.640 (K=3), 0.801 and 0.755 (K=4);
+over correctly answered graphs 0.724 and 0.654, 0.816 and 0.775. Final
+step on test 0.966 and 0.987 (K=3), 0.980 and 0.985 (K=4); over correct
+graphs 0.981 to 0.997. Frontier probe test median 0.990 and 0.996. Jacobian
+basis fit per K, at K-1: training 0.52 and 0.61 (K=3), 0.65 and 0.66
+(K=4); test 0.46 and 0.54, 0.62 and 0.59; final step 1.00 and 0.99 to 1.00
+on training, 0.95 to 0.99 on test. The K-1
+prediction (0.70 to 0.90 on test) holds for K=4 on both and for K=3 on seed
+2 at the line; it fails for K=3 on seed 3 (0.64). Across four seeds, K-1
+on test: K=3 0.64 to 0.72, K=4 0.76 to 0.80.
+
+n=100 outcome, 8d, seeds 0 and 1 (`results/seed{0,1}/winner_probe.json`,
+`winner_probe_test.json`, `probe_basis_test_report.json`; per-K Jacobian
+bases `jlens_basis_K{3,4}.pt` on both seeds; seeds 2 and 3 pending):
+- Learned probe, per K, training holdout (last 500 training graphs, 499 to
+  500 answered correctly): at thought K-1, 0.842 and 0.778 (K=3, step 2),
+  0.892 and 0.876 (K=4, step 3); final step 0.999 and 0.998 for both K. The
+  pooled step-3 number (0.941, 0.910) mixed K=3 finals in.
+- Learned probe, test split (419 graphs; 398 and 402 answered correctly):
+  at K-1, 0.719 and 0.707 (K=3), 0.765 and 0.781 (K=4); over the correctly
+  answered graphs 0.739 and 0.726, 0.809 and 0.811. Final step 0.976 and
+  0.973 (K=3), 0.955 and 0.976 (K=4); over correct graphs 0.986 and 0.990,
+  0.984 and 0.996.
+- Input-embedding separation at K-1: training 0.66 and 0.62 (K=3), 0.79
+  and 0.70 (K=4); test 0.61 and 0.57, 0.69 and 0.65. Jacobian basis fit per
+  K, at K-1: training 0.67 and 0.51 (K=3), 0.77 and 0.67 (K=4); test 0.56
+  and 0.54, 0.70 and 0.66; final step 1.00 on training, 0.93 to 0.96 on
+  test (0.97 to 1.00 over correct graphs).
+- Frontier probe on the test split: median AUC 0.995 and 0.992, minimum
+  0.75 and 0.79.
+Against the predictions: K-1 between 0.70 and 0.90 on the test split holds
+on both seeds for both K (K=3 by a hair). "Final above 0.99" fails on the
+test split (0.955 to 0.976) and holds over correctly answered graphs on
+seed 1 only (seed 0: 0.984 and 0.986). "Test within 0.05 of training"
+fails at K-1 on both seeds (gaps of 0.10 to 0.12, also over correct
+graphs), so the probe fit on training graphs partly fits those graphs,
+not only the winner. The frontier probe's line holds. For the paper: the
+winner is complete in thought K (0.998 to 0.999 held-out training, 0.98 to
+1.00 over correctly answered test graphs) and partial in thought K-1 (0.71
+to 0.81 on test graphs, 0.78 to 0.89 on training graphs); the old sentence
+"largely present in K-1" overstated it.
+
 ## Next run
 
 Device on this Mac: `cpu` (measured 2026-09-06: 25 ms per batch-one forward

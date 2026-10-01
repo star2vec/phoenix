@@ -422,6 +422,10 @@ def covariates(prompt):
     d = prompt.depths()
     E = len(prompt.edges)
     parents = prompt.parent_slots()
+    parent_nodes = sorted({prompt.edges[j][0] for j in parents})
+    out_degree = {}
+    for s, t in prompt.edges:
+        out_degree[s] = out_degree.get(s, 0) + 1
     return {
         "K": prompt.K,
         "n_edges": E,
@@ -432,4 +436,9 @@ def covariates(prompt):
         "first_parent_slot": parents[0] if parents else None,
         "first_parent_slot_frac": (parents[0] / E) if parents else None,
         "target_first": prompt.cands[0] == prompt.target,
+        # experiment 8: the mean out-degree of the target's depth-(K-1)
+        # parents, and the candidates' in-degrees (every incoming edge)
+        "parent_out_degree": (sum(out_degree[p] for p in parent_nodes) / len(parent_nodes)) if parent_nodes else None,
+        "decoy_in_degree": sum(1 for s, t in prompt.edges if t == prompt.decoy),
+        "target_in_degree": sum(1 for s, t in prompt.edges if t == prompt.target),
     }
