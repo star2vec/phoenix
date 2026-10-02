@@ -6,7 +6,11 @@ two context managers, so tests/test_fast_equivalence.py stays bit-exact.
 AttnHooks wraps the eager `_attn` method of each GPT-2 attention layer to
   (i)   record attention weights per layer and query position,
   (ii)  overwrite cached keys or values at chosen (layer, head, position),
-  (iii) add an attention mask for chosen query -> key pairs.
+  (iii) add an attention mask for chosen query -> key pairs,
+  (iv)  record, or put back, the part of a layer's per-head attention output
+        at chosen queries that comes from chosen keys (experiment 9's
+        restore test; the part is sum over those keys of weight x value,
+        taken before c_proj, which is linear).
 The SDPA attention class falls back to the eager path whenever attention
 weights are requested, so FastCoconut must run with attn_eager=True for these
 hooks to see any traffic (drivers pass it; the equivalence test reports the
@@ -36,6 +40,9 @@ class AttnHooks:
         self.n_layers = len(self.blocks)
         self.kv_patches = []
         self.masks = []
+        self.partial_specs = []   # (name, layer, q_positions, keys) to record
+        self.partials = {}        # name -> {q_abs: (heads, head_dim)}
+        self.restores = []        # (layer, q_positions, keys, stored) to put back
         self.record_weights = False
         self.record_kv = False
         self.weights = []   # dicts: layer, offset, w (heads, q_len, k_len)
@@ -60,6 +67,19 @@ class AttnHooks:
         self.masks.append({"layers": set(layers), "q": list(q_positions), "k": list(k_positions),
                            "heads": None if heads is None else list(heads)})
 
+    def record_partial(self, name, layer, q_positions, k_positions):
+        """Store, under `name`, the per-head attention output at each query
+        that comes from the given keys. k_positions may be "all" (every key
+        the query sees, i.e. the whole output)."""
+        self.partial_specs.append((name, layer, list(q_positions), k_positions))
+        self.partials.setdefault(name, {})
+
+    def add_restore(self, layer, q_positions, k_positions, stored):
+        """At each query, replace the part of the per-head attention output
+        that comes from the given keys by stored[q] (from record_partial):
+        out += stored[q] - current part."""
+        self.restores.append((layer, list(q_positions), k_positions, stored))
+
     def clear_records(self):
         self.weights = []
         self.kv = {}
@@ -67,10 +87,12 @@ class AttnHooks:
     def clear(self):
         self.kv_patches = []
         self.masks = []
+        self.partial_specs, self.restores, self.partials = [], [], {}
         self.clear_records()
 
     def active(self):
-        return bool(self.kv_patches or self.masks or self.record_weights or self.record_kv)
+        return bool(self.kv_patches or self.masks or self.record_weights or self.record_kv
+                    or self.partial_specs or self.restores)
 
     # --- install / remove ------------------------------------------------
     def __enter__(self):
@@ -132,6 +154,31 @@ class AttnHooks:
                 attention_mask = add if attention_mask is None else attention_mask + add
 
             out, w = orig(query, key, value, attention_mask, head_mask)
+
+            if hooks.partial_specs or hooks.restores:
+                def part(qi, ks):
+                    if ks == "all":
+                        return out[0, :, qi, :]
+                    ks = [k for k in ks if k < k_len]
+                    return torch.einsum("hk,hkd->hd", w[0, :, qi, ks], value[0, :, ks, :])
+                for name, layer, qs, ks in hooks.partial_specs:
+                    if layer != li:
+                        continue
+                    for q in qs:
+                        qi = q - offset
+                        if 0 <= qi < q_len:
+                            hooks.partials[name][q] = part(qi, ks).detach().clone()
+                cloned_out = False
+                for layer, qs, ks, stored in hooks.restores:
+                    if layer != li:
+                        continue
+                    for q in qs:
+                        qi = q - offset
+                        if 0 <= qi < q_len:
+                            if not cloned_out:
+                                out = out.clone()
+                                cloned_out = True
+                            out[0, :, qi, :] = out[0, :, qi, :] + (stored[q].to(out) - part(qi, ks))
 
             if hooks.record_weights:
                 hooks.weights.append({"layer": li, "offset": offset, "w": w[0].detach().clone()})

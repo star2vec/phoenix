@@ -2115,6 +2115,126 @@ winner is complete in thought K (0.998 to 0.999 held-out training, 0.98 to
 to 0.81 on test graphs, 0.78 to 0.89 on training graphs); the old sentence
 "largely present in K-1" overstated it.
 
+## Experiment 9: the restore test, and four zero-cost reads (written 2026-10-02, before the restore runs)
+
+Zero-cost reads on existing files (numbers in `results/gaps_reanalysis.json`,
+keys `substitutes_p_decoy_auc`, `last_step_vs_every_step`,
+`decoy_edges_among_removal_correct`; item 5 in `winner_margin_n100.json`):
+- Baseline p_decoy as a predictor of flips under the substitutes
+  (`necessity_n100.json`, baseline-correct graphs): AUC 0.46 to 0.72 across
+  zero, noise, mean thought, random donor, thought removed and the
+  same-answer donor, at all passes and at the intermediates; one or two
+  cells per seed have an interval above 0.5, never the same cell on every
+  seed. The removal: 0.79 to 0.85 on all four. The link is specific to the
+  removal (and the layer-2 mask).
+- Last-step-only vs every-step removal (`counterfactuals_n100.json`, seeds
+  0 and 1): 17 vs 19 and 15 vs 22 flips, 12 and 11 shared (3.2 and 3.3
+  expected). Most of the effect is the last step; the earlier steps add 7
+  and 11 graphs.
+- Graphs the removal leaves correct (baseline-correct), the decoy's incoming
+  edges also masked at every latent and the answer position
+  (`recovery_n100.json`): 30 of 72, 20 of 74, 4 of 61, 27 of 68 flip
+  (0.42, 0.27, 0.07, 0.40); matched control edges 1, 1, 0, 0; the same mask
+  at the final positions only 1, 4, 0, 3.
+- Thought K against the model's own answer, all 100 graphs including the
+  baseline-wrong ones: the probe margin's sign agrees with the answer on 98,
+  97, 95, 98 of 99 (AUC 0.98 to 1.00) unedited and on 86, 85, 83, 87 of 99
+  (AUC 0.93 to 0.95) under the removal. The same readout on the whole test
+  split is `auc_own_answer` in `winner_probe_test.json`.
+
+9a. The restore test (`src/phoenix/restore.py`; files
+`results/<run>/restore_<mode>.json`). The every-step removal is run, and at
+every latent query part of layer 2's attention output is put back from the
+unedited run: the per-head sum over chosen keys of weight x value, before
+c_proj. Edge tokens precede the latents, so their keys and values are the
+same in both runs and putting the part back undoes exactly the change in
+how much those keys were read. Restores: the path-edge tokens (masking.py's
+path set: every shortest-path edge from depth 1 on); the matched off-path
+edge tokens (control); every edge token; the whole output (edges, earlier
+thoughts, question tokens). The path restore on the unedited run must be
+exactly zero.
+
+Measure: the rescue share, the fraction of the removal's flipped graphs
+that a restore brings back to unflipped, with a bootstrap interval, per
+seed and pooled over the four seeds (about 100 flipped graphs). Also the
+new flips a restore creates among graphs the removal left alone. No
+pass/fail cutoff.
+
+Reading ranges for the path restore, applied to the interval and not the
+point alone:
+- 90 percent or more: the lost read of the path edges is the whole story.
+- 50 to 90 percent: it is most of the story; the rest is located by the
+  other restores.
+- 10 to 50 percent: it is part of the story.
+- Below 10 percent: the flips do not come through the read of the path
+  edges.
+How the ranges were chosen: round fractions fixed before any restore ran;
+the 90 and 10 percent lines leave room for the two or three graphs per
+seed (about 10 percent of the flipped ones) that experiment 8's orthogonal
+removal already showed flip through another route.
+
+The other restores (paired over the removal's flipped graphs):
+`edges_all` minus `path` is what undoing the attention pushed onto other
+edges adds; `all` minus `edges_all` is what undoing changed reads of
+earlier thoughts and question tokens adds; `offpath` is the control
+(expected rescue near zero); whatever `all` leaves unrescued acts outside
+layer 2's attention at the latents (the thought's own residual, layer 1,
+the MLPs). Prediction from experiment 8 (the orthogonal removal flips the
+same graphs, so the winner is not the target): the path restore lands in
+the top or second range, `all` rescues at least as much as `path`, and
+`offpath` rescues under 10 percent.
+
+Pilot outcome (seed 0, test graphs 400-409, `results/seed0/restore_pilot.json`):
+the removal flips 3 graphs (400, 401, 403; dT -74.9, -96.5, -81.8); the path
+restore brings all three back (-0.1, -6.6, -0.6), as do every-edge and
+whole-output restores. The off-path restore leaves 400 and 401 flipped and
+brings 403 back (-7.1): one rescue in three, so the control is not clean on
+that graph. The path restore on the unedited run is zero on all ten. Graph
+408 (baseline T 81) moves by -27.5 under the every-edge restore and -23.2
+under the whole-output restore without flipping.
+What the pilot changed: nothing.
+n=100 outcome, four seeds (`results/seed{0,1,2,3}/restore_n100.json`; pooled
+in `results/gaps_reanalysis.json`, key `experiment9_restore_pooled`). The
+removal cell equals `masking_n100.json` on 100 of 100 graphs on every seed;
+the path restore on the unedited run is exactly zero everywhere.
+
+| Restore | seed 0 (19 flipped) | seed 1 (22) | seed 2 (33) | seed 3 (25) | pooled (99) |
+|---|---|---|---|---|---|
+| path | 0.89 [0.74, 1.00] | 0.95 [0.86, 1.00] | 0.85 [0.73, 0.97] | 0.80 [0.64, 0.96] | 0.87 [0.80, 0.93] |
+| off-path (control) | 0.16 [0.00, 0.32] | 0.14 [0.00, 0.27] | 0.06 [0.00, 0.15] | 0.16 [0.04, 0.32] | 0.12 [0.06, 0.19] |
+| every edge | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+| whole output | 1.00 | 1.00 | 1.00 | 1.00 | 1.00 |
+
+Rescue share = fraction of the removal's flipped graphs not flipped under
+the restore. Flipped graphs surviving the path restore: 2, 1, 5, 5 (13
+pooled). New flips among graphs the removal left unflipped: none under the
+path, every-edge and whole-output restores; 2, 3, 1, 1 under the off-path
+restore. Paired, pooled: every edge minus path +0.13 [0.07, 0.20]; whole
+output minus every edge 0.00; path minus off-path +0.75 [0.66, 0.84].
+
+Reading, by the ranges written above. The path restore's pooled interval,
+0.80 to 0.93, lies in the 50-90 range and crosses the 90 line: the lost
+read of the path edges is most of the story and may be all but a few
+graphs. The rest is located exactly: putting back every edge's part rescues
+every flipped graph on every seed, and putting back the reads of earlier
+thoughts and question tokens adds nothing. So the 13 graphs the path
+restore leaves flipped flip because the removal pushed layer-2 attention at
+the latents onto other edges, and nothing outside layer 2's reads of the
+edges is needed to explain any flip. The off-path restore (0.12) is not a
+clean zero for the same reason: on some graphs the matched off-path edges
+are where the pushed attention went. The prediction (path in the top or
+second range, whole output at least as high, off-path under 10 percent)
+holds except the off-path line, which is 0.06 to 0.16 per seed. For the
+paper: the removal's effect is the change in which edges layer 2 reads at
+the latents, about seven parts losing the path read to one part reading
+the wrong edges instead.
+
+Item 5 on the whole test split (`winner_probe_test.json`, `auc_own_answer`,
+419 graphs including the 17 to 21 the model answers wrongly): at the final
+thought the probe margin predicts the model's own answer with AUC 0.978,
+0.990, 0.974, 0.945 (K=3) and 0.984, 0.988, 0.994, 0.993 (K=4); its sign
+agrees with the answer on 192 to 198 of 201 and 199 to 206 of 209 graphs.
+
 ## Next run
 
 Device on this Mac: `cpu` (measured 2026-09-06: 25 ms per batch-one forward

@@ -208,6 +208,63 @@ def heldout_block(run, test):
     }
 
 
+SUBSTITUTES = ("zero/all", "zero/intermediates", "noise/all", "noise/intermediates", "average/all",
+               "average/intermediates", "random_donor/intermediates", "same_answer_donor/intermediates", "removed")
+
+
+def experiment9_block(run):
+    """Experiment 9 zero-cost reads: baseline p_decoy for flips under the
+    substitutes; last-step vs every-step removal; the decoy-edge mask on
+    graphs the removal leaves correct; the restore test, if run."""
+    out = {}
+    ne = load(run, "necessity_n100.json")
+    if ne is not None:
+        rows = ne["rows"]
+        ok = [r["baseline"]["T"] >= CORRECT_T for r in rows]
+        pdv = [r["baseline"]["p_decoy"] for r in rows]
+        out["substitutes_p_decoy_auc"] = {}
+        for c in SUBSTITUTES:
+            f = flips(rows, c)
+            out["substitutes_p_decoy_auc"][c] = auc_boot([p if x is not None and o else None for p, x, o in zip(pdv, f, ok)],
+                                                          [bool(x) for x in f])
+    cf = load(run, "counterfactuals_n100.json")
+    if cf is not None:
+        out["last_step_vs_every_step"] = overlap(flips(cf["rows"], "qk_subtract/answer_edge/all_heads"),
+                                                 flips(cf["rows"], "qk_every_step/answer_path/all_heads"))
+    rc = load(run, "recovery_n100.json")
+    if rc is not None:
+        rows = rc["rows"]
+        ok = [r["baseline"]["T"] >= CORRECT_T for r in rows]
+        rem = flips(rows, "qk_removal")
+        out["decoy_edges_among_removal_correct"] = {}
+        for c in ("allq_decoy_edges/path/plus_removal", "allq_decoy_edges/ctrl/plus_removal", "decoy_edges/path/plus_removal"):
+            x = flips(rows, c)
+            keep = [i for i in range(len(rows)) if ok[i] and rem[i] is False and x[i] is not None]
+            out["decoy_edges_among_removal_correct"][c] = {"n_flip": int(sum(x[i] for i in keep)), "of": len(keep),
+                                                            "frac": frac([x[i] for i in keep])}
+    rs = load(run, "restore_n100.json")
+    if rs is not None:
+        out["restore"] = rs["summary"]
+        out["restore_rows"] = [{"gi": r["gi"], "removal_flipped": r["cells"]["removal"]["dT"] <= FLIP_CUT,
+                                **{k: r["cells"][f"restore/{k}"]["dT"] <= FLIP_CUT for k in ("path", "offpath", "edges_all", "all")}}
+                               for r in rs["rows"] if not r["cells"]["removal"].get("skipped")]
+    return out
+
+
+def pooled_restore(blocks):
+    """Rescue shares pooled over seeds (each seed's removal-flipped graphs)."""
+    rows = [r for b in blocks for r in b.get("restore_rows", []) if r["removal_flipped"]]
+    if not rows:
+        return None
+    out = {"n_removal_flipped": len(rows)}
+    for k in ("path", "offpath", "edges_all", "all"):
+        out[k] = {"rescue_share": frac([not r[k] for r in rows]), "n_surviving": int(sum(r[k] for r in rows))}
+    out["edges_all_minus_path"] = bootstrap([float(not r["edges_all"]) - float(not r["path"]) for r in rows], np.mean)
+    out["all_minus_edges_all"] = bootstrap([float(not r["all"]) - float(not r["edges_all"]) for r in rows], np.mean)
+    out["path_minus_offpath"] = bootstrap([float(not r["path"]) - float(not r["offpath"]) for r in rows], np.mean)
+    return out
+
+
 def main():
     test, train = load_test(), load_train()
     result = {"cutoffs": {"flip_dT": FLIP_CUT, "escape_e": ESCAPE_CUT, "baseline_correct_T": CORRECT_T}, "seeds": {}, "heldout": {}}
@@ -223,6 +280,8 @@ def main():
         if ho is not None:
             result["heldout"][run] = ho
     result["recurrence_across_seeds"] = {"removal": recurrence(rem_sets), "same_answer_donor_intermediates": recurrence(don_sets)}
+    result["experiment9"] = {run: experiment9_block(run) for run in SEEDS}
+    result["experiment9_restore_pooled"] = pooled_restore(list(result["experiment9"].values()))
     result["rewrite_following_by_decoy_in_degree"] = {run: rewrite_split(run, test) for run in ("seed0", "seed1")}
     counts = []
     for gi in range(100):

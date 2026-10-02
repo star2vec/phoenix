@@ -140,6 +140,25 @@ def main():
     assert wp["learned_probe"]["1"].get("n_eval_correct") is not None
     dump("winner_margin", res)
 
+    print("restore (experiment 9a)")
+    import restore
+    from attn_hooks import AttnHooks
+    from measure import run_ids
+    pr0, ids0 = recips[0][2], recips[0][2].ids(runner.tok)
+    qs0 = pr0.layout()["latents"]
+    with AttnHooks(runner.model.base_causallm) as h:
+        h.record_partial("all", 1, qs0, "all")
+        h.record_partial("keys", 1, qs0, list(range(qs0[-1] + 1)))
+        base_logits = run_ids(runner, ids0, None, attn_eager=True)
+        st_all, st_keys = dict(h.partials["all"]), dict(h.partials["keys"])
+    assert all(float((st_all[q] - st_keys[q]).abs().max()) < 1e-4 for q in qs0)
+    res = restore.run(runner, recips)
+    assert {"removal", "restore/path", "restore/offpath", "restore/edges_all", "restore/all", "restore/path_unedited"} <= set(res["cells"])
+    live = [r for r in res["rows"] if not r["cells"]["removal"].get("skipped")]
+    assert all(abs(r["cells"]["restore/path_unedited"]["dT"]) < 1e-4 for r in live)
+    assert "paired_rescue_edges_all_minus_path" in res["summary"]
+    dump("restore", res)
+
     print("fit_probes.score_test (random basis, 20 test graphs)")
     import fit_probes
     rep = fit_probes.score_test(runner, torch.randn(40, 768), 0, n_graphs=20)

@@ -1792,6 +1792,4137 @@
    ]
   }
  },
+ "experiment9": {
+  "seed0": {
+   "substitutes_p_decoy_auc": {
+    "zero/all": {
+     "point": 0.6723426212590299,
+     "n": 91,
+     "n_pos": 34,
+     "n_missing": 9,
+     "lo": 0.5487586407845029,
+     "hi": 0.7839206856017282
+    },
+    "zero/intermediates": {
+     "point": 0.5185185185185185,
+     "n": 91,
+     "n_pos": 37,
+     "n_missing": 9,
+     "lo": 0.39804184392134623,
+     "hi": 0.6329522032255944
+    },
+    "noise/all": {
+     "point": 0.5814299900695135,
+     "n": 91,
+     "n_pos": 38,
+     "n_missing": 9,
+     "lo": 0.4619220468675275,
+     "hi": 0.6908367389809793
+    },
+    "noise/intermediates": {
+     "point": 0.5903381642512078,
+     "n": 91,
+     "n_pos": 46,
+     "n_missing": 9,
+     "lo": 0.4748548607693452,
+     "hi": 0.7050612600440873
+    },
+    "average/all": {
+     "point": 0.5898989898989899,
+     "n": 91,
+     "n_pos": 36,
+     "n_missing": 9,
+     "lo": 0.4684411676758616,
+     "hi": 0.7032725078058604
+    },
+    "average/intermediates": {
+     "point": 0.717741935483871,
+     "n": 91,
+     "n_pos": 31,
+     "n_missing": 9,
+     "lo": 0.6020307795249247,
+     "hi": 0.8258176653336773
+    },
+    "random_donor/intermediates": {
+     "point": 0.5453551912568306,
+     "n": 91,
+     "n_pos": 30,
+     "n_missing": 9,
+     "lo": 0.4176441920854363,
+     "hi": 0.6682885569765222
+    },
+    "same_answer_donor/intermediates": {
+     "point": 0.6067669172932331,
+     "n": 89,
+     "n_pos": 19,
+     "n_missing": 11,
+     "lo": 0.4586936611409357,
+     "hi": 0.7391890429390429
+    },
+    "removed": {
+     "point": 0.5735294117647058,
+     "n": 91,
+     "n_pos": 40,
+     "n_missing": 9,
+     "lo": 0.4568737318048164,
+     "hi": 0.6871910529355735
+    }
+   },
+   "last_step_vs_every_step": {
+    "n": 100,
+    "a": 17,
+    "b": 19,
+    "both": 12,
+    "expected_if_independent": 3.23,
+    "p_at_least_both": 2.0107356261744603e-07
+   },
+   "decoy_edges_among_removal_correct": {
+    "allq_decoy_edges/path/plus_removal": {
+     "n_flip": 30,
+     "of": 72,
+     "frac": {
+      "point": 0.4166666666666667,
+      "lo": 0.3055555555555556,
+      "hi": 0.5277777777777778,
+      "n": 72
+     }
+    },
+    "allq_decoy_edges/ctrl/plus_removal": {
+     "n_flip": 1,
+     "of": 72,
+     "frac": {
+      "point": 0.013888888888888888,
+      "lo": 0.0,
+      "hi": 0.041666666666666664,
+      "n": 72
+     }
+    },
+    "decoy_edges/path/plus_removal": {
+     "n_flip": 1,
+     "of": 72,
+     "frac": {
+      "point": 0.013888888888888888,
+      "lo": 0.0,
+      "hi": 0.041666666666666664,
+      "n": 72
+     }
+    }
+   },
+   "restore": {
+    "n": 100,
+    "n_skipped": 0,
+    "cutoffs": {
+     "flip_dT": -50.0
+    },
+    "removal_frac_flipped": {
+     "point": 0.19,
+     "lo": 0.12,
+     "hi": 0.27,
+     "n": 100
+    },
+    "n_removal_flipped": 19,
+    "restore/path": {
+     "rescue_share": {
+      "point": 0.8947368421052632,
+      "lo": 0.7368421052631579,
+      "hi": 1.0,
+      "n": 19
+     },
+     "n_rescued": 17,
+     "n_surviving": 2,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 81,
+     "frac_flipped": {
+      "point": 0.02,
+      "lo": 0.0,
+      "hi": 0.05,
+      "n": 100
+     }
+    },
+    "restore/offpath": {
+     "rescue_share": {
+      "point": 0.15789473684210525,
+      "lo": 0.0,
+      "hi": 0.3157894736842105,
+      "n": 19
+     },
+     "n_rescued": 3,
+     "n_surviving": 16,
+     "new_flips_among_removal_unflipped": 2,
+     "n_removal_unflipped": 81,
+     "frac_flipped": {
+      "point": 0.18,
+      "lo": 0.11,
+      "hi": 0.26,
+      "n": 100
+     }
+    },
+    "restore/edges_all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 19
+     },
+     "n_rescued": 19,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 81,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "restore/all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 19
+     },
+     "n_rescued": 19,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 81,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "paired_rescue_edges_all_minus_path": {
+     "point": 0.10526315789473684,
+     "lo": 0.0,
+     "hi": 0.2631578947368421,
+     "n": 19
+    },
+    "paired_rescue_all_minus_edges_all": {
+     "point": 0.0,
+     "lo": 0.0,
+     "hi": 0.0,
+     "n": 19
+    },
+    "paired_rescue_path_minus_offpath": {
+     "point": 0.7368421052631579,
+     "lo": 0.47368421052631576,
+     "hi": 0.9473684210526315,
+     "n": 19
+    }
+   },
+   "restore_rows": [
+    {
+     "gi": 0,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 1,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 2,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 3,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 4,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 5,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 6,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 7,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 8,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 9,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 10,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 11,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 12,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 13,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 14,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 15,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 16,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 17,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 18,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 19,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 20,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 21,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 22,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 23,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 24,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 25,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 26,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 27,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 28,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 29,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 30,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 31,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 32,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 33,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 34,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 35,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 36,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 37,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 38,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 39,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 40,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 41,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 42,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 43,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 44,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 45,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 46,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 47,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 48,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 49,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 50,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 51,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 52,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 53,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 54,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 55,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 56,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 57,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 58,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 59,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 60,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 61,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 62,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 63,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 64,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 65,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 66,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 67,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 68,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 69,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 70,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 71,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 72,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 73,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 74,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 75,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 76,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 77,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 78,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 79,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 80,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 81,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 82,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 83,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 84,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 85,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 86,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 87,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 88,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 89,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 90,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 91,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 92,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 93,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 94,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 95,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 96,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 97,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 98,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 99,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    }
+   ]
+  },
+  "seed1": {
+   "substitutes_p_decoy_auc": {
+    "zero/all": {
+     "point": 0.45614035087719296,
+     "n": 96,
+     "n_pos": 39,
+     "n_missing": 4,
+     "lo": 0.3408285858497723,
+     "hi": 0.5687890812890813
+    },
+    "zero/intermediates": {
+     "point": 0.5303819444444444,
+     "n": 96,
+     "n_pos": 48,
+     "n_missing": 4,
+     "lo": 0.4117607366833373,
+     "hi": 0.649500034539928
+    },
+    "noise/all": {
+     "point": 0.5366621682411156,
+     "n": 96,
+     "n_pos": 39,
+     "n_missing": 4,
+     "lo": 0.4272855392156863,
+     "hi": 0.6538921656132902
+    },
+    "noise/intermediates": {
+     "point": 0.5231643356643356,
+     "n": 96,
+     "n_pos": 44,
+     "n_missing": 4,
+     "lo": 0.40827841716396707,
+     "hi": 0.6415048363095238
+    },
+    "average/all": {
+     "point": 0.628125,
+     "n": 96,
+     "n_pos": 40,
+     "n_missing": 4,
+     "lo": 0.5080526565464896,
+     "hi": 0.7382151029748282
+    },
+    "average/intermediates": {
+     "point": 0.52046783625731,
+     "n": 96,
+     "n_pos": 39,
+     "n_missing": 4,
+     "lo": 0.40115906084656083,
+     "hi": 0.6337546773402036
+    },
+    "random_donor/intermediates": {
+     "point": 0.4989144594007816,
+     "n": 96,
+     "n_pos": 47,
+     "n_missing": 4,
+     "lo": 0.39127729166845915,
+     "hi": 0.6152155884541273
+    },
+    "same_answer_donor/intermediates": {
+     "point": 0.6040579710144928,
+     "n": 94,
+     "n_pos": 25,
+     "n_missing": 6,
+     "lo": 0.4864707681017612,
+     "hi": 0.7213717085119412
+    },
+    "removed": {
+     "point": 0.5119047619047619,
+     "n": 96,
+     "n_pos": 42,
+     "n_missing": 4,
+     "lo": 0.3979101184659261,
+     "hi": 0.6306927447552447
+    }
+   },
+   "last_step_vs_every_step": {
+    "n": 100,
+    "a": 15,
+    "b": 22,
+    "both": 11,
+    "expected_if_independent": 3.3,
+    "p_at_least_both": 4.1721217505090445e-06
+   },
+   "decoy_edges_among_removal_correct": {
+    "allq_decoy_edges/path/plus_removal": {
+     "n_flip": 20,
+     "of": 74,
+     "frac": {
+      "point": 0.2702702702702703,
+      "lo": 0.17567567567567569,
+      "hi": 0.36486486486486486,
+      "n": 74
+     }
+    },
+    "allq_decoy_edges/ctrl/plus_removal": {
+     "n_flip": 1,
+     "of": 74,
+     "frac": {
+      "point": 0.013513513513513514,
+      "lo": 0.0,
+      "hi": 0.04054054054054054,
+      "n": 74
+     }
+    },
+    "decoy_edges/path/plus_removal": {
+     "n_flip": 4,
+     "of": 74,
+     "frac": {
+      "point": 0.05405405405405406,
+      "lo": 0.013513513513513514,
+      "hi": 0.10810810810810811,
+      "n": 74
+     }
+    }
+   },
+   "restore": {
+    "n": 100,
+    "n_skipped": 0,
+    "cutoffs": {
+     "flip_dT": -50.0
+    },
+    "removal_frac_flipped": {
+     "point": 0.22,
+     "lo": 0.14,
+     "hi": 0.30024999999999863,
+     "n": 100
+    },
+    "n_removal_flipped": 22,
+    "restore/path": {
+     "rescue_share": {
+      "point": 0.9545454545454546,
+      "lo": 0.8636363636363636,
+      "hi": 1.0,
+      "n": 22
+     },
+     "n_rescued": 21,
+     "n_surviving": 1,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 78,
+     "frac_flipped": {
+      "point": 0.01,
+      "lo": 0.0,
+      "hi": 0.03,
+      "n": 100
+     }
+    },
+    "restore/offpath": {
+     "rescue_share": {
+      "point": 0.13636363636363635,
+      "lo": 0.0,
+      "hi": 0.2727272727272727,
+      "n": 22
+     },
+     "n_rescued": 3,
+     "n_surviving": 19,
+     "new_flips_among_removal_unflipped": 3,
+     "n_removal_unflipped": 78,
+     "frac_flipped": {
+      "point": 0.22,
+      "lo": 0.14,
+      "hi": 0.31,
+      "n": 100
+     }
+    },
+    "restore/edges_all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 22
+     },
+     "n_rescued": 22,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 78,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "restore/all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 22
+     },
+     "n_rescued": 22,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 78,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "paired_rescue_edges_all_minus_path": {
+     "point": 0.045454545454545456,
+     "lo": 0.0,
+     "hi": 0.13636363636363635,
+     "n": 22
+    },
+    "paired_rescue_all_minus_edges_all": {
+     "point": 0.0,
+     "lo": 0.0,
+     "hi": 0.0,
+     "n": 22
+    },
+    "paired_rescue_path_minus_offpath": {
+     "point": 0.8181818181818182,
+     "lo": 0.5909090909090909,
+     "hi": 1.0,
+     "n": 22
+    }
+   },
+   "restore_rows": [
+    {
+     "gi": 0,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 1,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 2,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 3,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 4,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 5,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 6,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 7,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 8,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 9,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 10,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 11,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 12,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 13,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 14,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 15,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 16,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 17,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 18,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 19,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 20,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 21,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 22,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 23,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 24,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 25,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 26,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 27,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 28,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 29,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 30,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 31,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 32,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 33,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 34,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 35,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 36,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 37,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 38,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 39,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 40,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 41,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 42,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 43,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 44,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 45,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 46,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 47,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 48,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 49,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 50,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 51,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 52,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 53,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 54,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 55,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 56,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 57,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 58,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 59,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 60,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 61,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 62,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 63,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 64,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 65,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 66,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 67,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 68,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 69,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 70,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 71,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 72,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 73,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 74,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 75,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 76,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 77,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 78,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 79,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 80,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 81,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 82,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 83,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 84,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 85,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 86,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 87,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 88,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 89,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 90,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 91,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 92,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 93,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 94,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 95,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 96,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 97,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 98,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 99,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    }
+   ]
+  },
+  "seed2": {
+   "substitutes_p_decoy_auc": {
+    "zero/all": {
+     "point": 0.5092592592592593,
+     "n": 94,
+     "n_pos": 40,
+     "n_missing": 6,
+     "lo": 0.3849150154154468,
+     "hi": 0.6341641688681162
+    },
+    "zero/intermediates": {
+     "point": 0.5555555555555556,
+     "n": 94,
+     "n_pos": 45,
+     "n_missing": 6,
+     "lo": 0.43373281443551404,
+     "hi": 0.6760094072594072
+    },
+    "noise/all": {
+     "point": 0.563858695652174,
+     "n": 94,
+     "n_pos": 46,
+     "n_missing": 6,
+     "lo": 0.43955421842650105,
+     "hi": 0.6780121912895591
+    },
+    "noise/intermediates": {
+     "point": 0.4816729323308271,
+     "n": 94,
+     "n_pos": 38,
+     "n_missing": 6,
+     "lo": 0.35801160577480856,
+     "hi": 0.6028545076099032
+    },
+    "average/all": {
+     "point": 0.5996025832091406,
+     "n": 94,
+     "n_pos": 33,
+     "n_missing": 6,
+     "lo": 0.4643627450980392,
+     "hi": 0.7283476142473116
+    },
+    "average/intermediates": {
+     "point": 0.5738610216290843,
+     "n": 94,
+     "n_pos": 41,
+     "n_missing": 6,
+     "lo": 0.45510814542107686,
+     "hi": 0.6948447418965663
+    },
+    "random_donor/intermediates": {
+     "point": 0.5352047860101242,
+     "n": 94,
+     "n_pos": 41,
+     "n_missing": 6,
+     "lo": 0.42376740376740374,
+     "hi": 0.6604523249738766
+    },
+    "same_answer_donor/intermediates": {
+     "point": 0.5307462686567164,
+     "n": 92,
+     "n_pos": 25,
+     "n_missing": 8,
+     "lo": 0.40256264512383905,
+     "hi": 0.6675456483814692
+    },
+    "removed": {
+     "point": 0.5641025641025641,
+     "n": 94,
+     "n_pos": 42,
+     "n_missing": 6,
+     "lo": 0.44381067745376956,
+     "hi": 0.6862828564467665
+    }
+   },
+   "decoy_edges_among_removal_correct": {
+    "allq_decoy_edges/path/plus_removal": {
+     "n_flip": 4,
+     "of": 61,
+     "frac": {
+      "point": 0.06557377049180328,
+      "lo": 0.01639344262295082,
+      "hi": 0.13114754098360656,
+      "n": 61
+     }
+    },
+    "allq_decoy_edges/ctrl/plus_removal": {
+     "n_flip": 0,
+     "of": 61,
+     "frac": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 61
+     }
+    },
+    "decoy_edges/path/plus_removal": {
+     "n_flip": 0,
+     "of": 61,
+     "frac": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 61
+     }
+    }
+   },
+   "restore": {
+    "n": 100,
+    "n_skipped": 0,
+    "cutoffs": {
+     "flip_dT": -50.0
+    },
+    "removal_frac_flipped": {
+     "point": 0.33,
+     "lo": 0.24,
+     "hi": 0.42,
+     "n": 100
+    },
+    "n_removal_flipped": 33,
+    "restore/path": {
+     "rescue_share": {
+      "point": 0.8484848484848485,
+      "lo": 0.7272727272727273,
+      "hi": 0.9696969696969697,
+      "n": 33
+     },
+     "n_rescued": 28,
+     "n_surviving": 5,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 67,
+     "frac_flipped": {
+      "point": 0.05,
+      "lo": 0.01,
+      "hi": 0.1,
+      "n": 100
+     }
+    },
+    "restore/offpath": {
+     "rescue_share": {
+      "point": 0.06060606060606061,
+      "lo": 0.0,
+      "hi": 0.15151515151515152,
+      "n": 33
+     },
+     "n_rescued": 2,
+     "n_surviving": 31,
+     "new_flips_among_removal_unflipped": 1,
+     "n_removal_unflipped": 67,
+     "frac_flipped": {
+      "point": 0.32,
+      "lo": 0.23,
+      "hi": 0.41,
+      "n": 100
+     }
+    },
+    "restore/edges_all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 33
+     },
+     "n_rescued": 33,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 67,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "restore/all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 33
+     },
+     "n_rescued": 33,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 67,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "paired_rescue_edges_all_minus_path": {
+     "point": 0.15151515151515152,
+     "lo": 0.030303030303030304,
+     "hi": 0.2727272727272727,
+     "n": 33
+    },
+    "paired_rescue_all_minus_edges_all": {
+     "point": 0.0,
+     "lo": 0.0,
+     "hi": 0.0,
+     "n": 33
+    },
+    "paired_rescue_path_minus_offpath": {
+     "point": 0.7878787878787878,
+     "lo": 0.6363636363636364,
+     "hi": 0.9090909090909091,
+     "n": 33
+    }
+   },
+   "restore_rows": [
+    {
+     "gi": 0,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 1,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 2,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 3,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 4,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 5,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 6,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 7,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 8,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 9,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 10,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 11,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 12,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 13,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 14,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 15,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 16,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 17,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 18,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 19,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 20,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 21,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 22,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 23,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 24,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 25,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 26,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 27,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 28,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 29,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 30,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 31,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 32,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 33,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 34,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 35,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 36,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 37,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 38,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 39,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 40,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 41,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 42,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 43,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 44,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 45,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 46,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 47,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 48,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 49,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 50,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 51,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 52,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 53,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 54,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 55,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 56,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 57,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 58,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 59,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 60,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 61,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 62,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 63,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 64,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 65,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 66,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 67,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 68,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 69,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 70,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 71,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 72,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 73,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 74,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 75,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 76,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 77,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 78,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 79,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 80,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 81,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 82,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 83,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 84,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 85,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 86,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 87,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 88,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 89,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 90,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 91,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 92,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 93,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 94,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 95,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 96,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 97,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 98,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 99,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    }
+   ]
+  },
+  "seed3": {
+   "substitutes_p_decoy_auc": {
+    "zero/all": {
+     "point": 0.5618604651162791,
+     "n": 93,
+     "n_pos": 43,
+     "n_missing": 7,
+     "lo": 0.4425426976346094,
+     "hi": 0.6758393363584798
+    },
+    "zero/intermediates": {
+     "point": 0.561624649859944,
+     "n": 93,
+     "n_pos": 51,
+     "n_missing": 7,
+     "lo": 0.43516203703703704,
+     "hi": 0.6904365145304826
+    },
+    "noise/all": {
+     "point": 0.637701804368471,
+     "n": 93,
+     "n_pos": 39,
+     "n_missing": 7,
+     "lo": 0.52183924996425,
+     "hi": 0.7476650943396225
+    },
+    "noise/intermediates": {
+     "point": 0.5260617760617761,
+     "n": 93,
+     "n_pos": 37,
+     "n_missing": 7,
+     "lo": 0.40235247606462904,
+     "hi": 0.6443217957362692
+    },
+    "average/all": {
+     "point": 0.6343434343434343,
+     "n": 93,
+     "n_pos": 33,
+     "n_missing": 7,
+     "lo": 0.5166413961936349,
+     "hi": 0.7515708569371478
+    },
+    "average/intermediates": {
+     "point": 0.5592672413793104,
+     "n": 93,
+     "n_pos": 29,
+     "n_missing": 7,
+     "lo": 0.4358483917039245,
+     "hi": 0.679131274131274
+    },
+    "random_donor/intermediates": {
+     "point": 0.5379867046533713,
+     "n": 93,
+     "n_pos": 39,
+     "n_missing": 7,
+     "lo": 0.4064680799220273,
+     "hi": 0.6598484517208608
+    },
+    "same_answer_donor/intermediates": {
+     "point": 0.4994212962962963,
+     "n": 91,
+     "n_pos": 27,
+     "n_missing": 9,
+     "lo": 0.36052447356630823,
+     "hi": 0.6343069807600942
+    },
+    "removed": {
+     "point": 0.5818604651162791,
+     "n": 93,
+     "n_pos": 50,
+     "n_missing": 7,
+     "lo": 0.4605640439699673,
+     "hi": 0.6944502801120448
+    }
+   },
+   "decoy_edges_among_removal_correct": {
+    "allq_decoy_edges/path/plus_removal": {
+     "n_flip": 27,
+     "of": 68,
+     "frac": {
+      "point": 0.39705882352941174,
+      "lo": 0.29411764705882354,
+      "hi": 0.5147058823529411,
+      "n": 68
+     }
+    },
+    "allq_decoy_edges/ctrl/plus_removal": {
+     "n_flip": 0,
+     "of": 68,
+     "frac": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 68
+     }
+    },
+    "decoy_edges/path/plus_removal": {
+     "n_flip": 3,
+     "of": 68,
+     "frac": {
+      "point": 0.04411764705882353,
+      "lo": 0.0,
+      "hi": 0.10294117647058823,
+      "n": 68
+     }
+    }
+   },
+   "restore": {
+    "n": 100,
+    "n_skipped": 0,
+    "cutoffs": {
+     "flip_dT": -50.0
+    },
+    "removal_frac_flipped": {
+     "point": 0.25,
+     "lo": 0.17,
+     "hi": 0.34,
+     "n": 100
+    },
+    "n_removal_flipped": 25,
+    "restore/path": {
+     "rescue_share": {
+      "point": 0.8,
+      "lo": 0.64,
+      "hi": 0.96,
+      "n": 25
+     },
+     "n_rescued": 20,
+     "n_surviving": 5,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 75,
+     "frac_flipped": {
+      "point": 0.05,
+      "lo": 0.01,
+      "hi": 0.1,
+      "n": 100
+     }
+    },
+    "restore/offpath": {
+     "rescue_share": {
+      "point": 0.16,
+      "lo": 0.04,
+      "hi": 0.32,
+      "n": 25
+     },
+     "n_rescued": 4,
+     "n_surviving": 21,
+     "new_flips_among_removal_unflipped": 1,
+     "n_removal_unflipped": 75,
+     "frac_flipped": {
+      "point": 0.22,
+      "lo": 0.14,
+      "hi": 0.3,
+      "n": 100
+     }
+    },
+    "restore/edges_all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 25
+     },
+     "n_rescued": 25,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 75,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "restore/all": {
+     "rescue_share": {
+      "point": 1.0,
+      "lo": 1.0,
+      "hi": 1.0,
+      "n": 25
+     },
+     "n_rescued": 25,
+     "n_surviving": 0,
+     "new_flips_among_removal_unflipped": 0,
+     "n_removal_unflipped": 75,
+     "frac_flipped": {
+      "point": 0.0,
+      "lo": 0.0,
+      "hi": 0.0,
+      "n": 100
+     }
+    },
+    "paired_rescue_edges_all_minus_path": {
+     "point": 0.2,
+     "lo": 0.04,
+     "hi": 0.36,
+     "n": 25
+    },
+    "paired_rescue_all_minus_edges_all": {
+     "point": 0.0,
+     "lo": 0.0,
+     "hi": 0.0,
+     "n": 25
+    },
+    "paired_rescue_path_minus_offpath": {
+     "point": 0.64,
+     "lo": 0.44,
+     "hi": 0.8,
+     "n": 25
+    }
+   },
+   "restore_rows": [
+    {
+     "gi": 0,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 1,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 2,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 3,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 4,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 5,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 6,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 7,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 8,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 9,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 10,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 11,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 12,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 13,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 14,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 15,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 16,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 17,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 18,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 19,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 20,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 21,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 22,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 23,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 24,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 25,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 26,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 27,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 28,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 29,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 30,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 31,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 32,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 33,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 34,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 35,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 36,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 37,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 38,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 39,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 40,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 41,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 42,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 43,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 44,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 45,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 46,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 47,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 48,
+     "removal_flipped": true,
+     "path": true,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 49,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 50,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 51,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 52,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 53,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 54,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 55,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 56,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 57,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 58,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 59,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 60,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 61,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 62,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 63,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 64,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 65,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 66,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 67,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 68,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 69,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 70,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 71,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 72,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 73,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 74,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 75,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 76,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 77,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 78,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 79,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 80,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 81,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 82,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 83,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 84,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 85,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 86,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 87,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 88,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 89,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 90,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 91,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 92,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 93,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 94,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 95,
+     "removal_flipped": true,
+     "path": false,
+     "offpath": true,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 96,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 97,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 98,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    },
+    {
+     "gi": 99,
+     "removal_flipped": false,
+     "path": false,
+     "offpath": false,
+     "edges_all": false,
+     "all": false
+    }
+   ]
+  }
+ },
+ "experiment9_restore_pooled": {
+  "n_removal_flipped": 99,
+  "path": {
+   "rescue_share": {
+    "point": 0.8686868686868687,
+    "lo": 0.797979797979798,
+    "hi": 0.9292929292929293,
+    "n": 99
+   },
+   "n_surviving": 13
+  },
+  "offpath": {
+   "rescue_share": {
+    "point": 0.12121212121212122,
+    "lo": 0.06060606060606061,
+    "hi": 0.1919191919191919,
+    "n": 99
+   },
+   "n_surviving": 87
+  },
+  "edges_all": {
+   "rescue_share": {
+    "point": 1.0,
+    "lo": 1.0,
+    "hi": 1.0,
+    "n": 99
+   },
+   "n_surviving": 0
+  },
+  "all": {
+   "rescue_share": {
+    "point": 1.0,
+    "lo": 1.0,
+    "hi": 1.0,
+    "n": 99
+   },
+   "n_surviving": 0
+  },
+  "edges_all_minus_path": {
+   "point": 0.13131313131313133,
+   "lo": 0.0707070707070707,
+   "hi": 0.20202020202020202,
+   "n": 99
+  },
+  "all_minus_edges_all": {
+   "point": 0.0,
+   "lo": 0.0,
+   "hi": 0.0,
+   "n": 99
+  },
+  "path_minus_offpath": {
+   "point": 0.7474747474747475,
+   "lo": 0.6565656565656566,
+   "hi": 0.8383838383838383,
+   "n": 99
+  }
+ },
  "rewrite_following_by_decoy_in_degree": {
   "seed0": {
    "n": 68,

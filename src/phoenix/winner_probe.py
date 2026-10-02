@@ -234,6 +234,10 @@ def probe_block(th_fit, info_fit, fit, th_ev, info_ev, ev, k, classes, correct=N
             sel = torch.tensor(ok)
             entry["auc_correct_only"] = auc(pos[sel], neg[sel]) if sel.any() else None
             entry["n_eval_correct"] = int(sel.sum())
+            # experiment 9: the margin against the model's own answer, all graphs
+            m = pos - neg
+            entry["auc_own_answer"] = auc(m[sel], m[~sel]) if sel.any() and (~sel).any() else None
+            entry["own_answer_sign_agrees"] = int(((m > 0) == sel).sum())
     else:
         entry = {"auc": None, "frac_target_higher": None}
     entry.update({"n_eval": int(len(pos)), "n_dropped": dropped, "n_fit": len(fit), "n_classes": len(classes)})
