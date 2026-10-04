@@ -36,6 +36,12 @@ the original checkpoints is needed.
 
 ## Status
 
+- Experiment 10 (2026-10-05): the leftover under 8c's isolation mask. Of
+  the share still right above chance, the candidates' incoming edges carry
+  0.76 [0.59, 0.96] pooled over four seeds, mostly the decoy's own; with
+  them hidden too the answer goes with the label-id order (G 0.63) and a
+  remainder of 0.18 [-0.01, 0.35] is neither shown nor excluded. No
+  further experiments; the write-up is next.
 - Experiment 7 (2026-09-16): the four headline measurements on two released
   fine-tuned GPT-2 COCONUT checkpoints (no training). Both pass the regime
   check (98.0 with six latents; unchanged with the latents removed or every
@@ -1345,6 +1351,13 @@ K-2. The label cue does not enter: accuracy differs by 1 to 3 points across
 candidate id order and an ids-only probe reaches AUC 0.64 against the
 thought's 0.99 at step 3.
 
+Amendment (2026-10-05): the last sentence above ("The label cue does not
+enter") is too strong. Under the both-candidates mask alone, over
+baseline-correct graphs, "target id below the decoy's" predicts a wrong
+answer with AUC 0.63, 0.71, 0.64, 0.59 on seeds 0 to 3
+(`gaps_reanalysis.json`, key `experiment10_zero_cost`). With the evidence
+hidden, the id order goes with the model's choice; see experiment 10.
+
 Earlier notes for this slot (checkpoints along training via `train.py
 --save-every`; three- and four-layer models) remain optional extras.
 
@@ -2234,6 +2247,203 @@ Item 5 on the whole test split (`winner_probe_test.json`, `auc_own_answer`,
 thought the probe margin predicts the model's own answer with AUC 0.978,
 0.990, 0.974, 0.945 (K=3) and 0.984, 0.988, 0.994, 0.993 (K=4); its sign
 agrees with the answer on 192 to 198 of 201 and 199 to 206 of 209 graphs.
+
+## Experiment 10: how much of the isolation leftover each source carries (written 2026-10-05, before any run)
+
+Why. Under 8c's isolation mask (every query outside a path slot blocked from
+it, both layers, all heads) 0.82, 0.77, 0.69, 0.71 of baseline-correct graphs
+stay right on seeds 0 to 3 (`masking_n100.json`; recomputed in
+`gaps_reanalysis.json`, key `experiment10_zero_cost`). Two known contributors,
+neither measured as a share of that leftover: the decoy's incoming edges
+(6b; seeds 0, 1, 3, not 2) and the label-id order. Under 6b's
+both-candidates mask alone, over baseline-correct graphs, "target id below
+the decoy's" predicts a wrong answer with AUC 0.63, 0.71, 0.64, 0.59 (same
+key). This contradicts 6b's sentence "the label cue does not enter the
+trained model's choice"; see the amendment line at the end of the 6b block.
+No training; the existing checkpoints only.
+
+What the task structure forces. On test graphs 0-99 and 400-409 both
+candidates are sinks (no outgoing edge on any graph), the decoy is never
+reachable, and every edge precedes the question line. So a candidate's
+label appears only in its incoming-edge slots and its question token. With
+the path slots and every incoming edge of both candidates isolated, no
+position after them can read any token that pairs a candidate with another
+node: the graph no longer says which candidate is reachable. What remains is
+the question tokens' ids, the ids of the nodes still visible, and the
+candidates' order in the question line. The forced prediction is that
+survival falls to what those non-graph cues allow. The id cue cannot be
+manipulated on-manifold: under this mask an edge-list-only label swap
+touches only unreadable slots, and renaming a candidate to a fresh id breaks
+the breadth-first numbering (v1 label-swap problem). So the numbering read
+below is correlational.
+
+On 78 of 100 graphs the target's only incoming edges are its depth-(K-1)
+parent edges, already in the path set; there cell 1 adds only the decoy's
+incoming edges, which gives the decoy's edges their own share without a
+second cell. The other 22 mix the decoy's edges and the target's extra
+incoming edges and are read pooled only.
+
+Cells (`masking.py --part leftover`, file `masking_leftover_<mode>.json`):
+- `isolation/path/alone`: 8c's cell, rerun; must equal `masking_n100.json`
+  on every graph (pairs the leftover with cell 1).
+- `isolation/path_cand/alone` (cell 1): path slots plus every incoming edge
+  of both candidates (all depths), isolated in both layers, all heads.
+- `isolation/offpath_matched/alone` (control): the same number of slots per
+  graph, the most attended edges (summed over the latent queries) with a
+  reachable source at depth 1 or more, outside the path, not into a
+  candidate; a shortfall is recorded per graph.
+- `invariance`: cell 1 with the two candidate labels swapped inside cell 1's
+  slots only. Answer logits must equal cell 1's (max difference below 1e-6,
+  the self-transplant tolerance): checks that the mask is complete, on which
+  the forced prediction rests. Also a random-weights test.
+- Standing: `reserialized`, `self_transplant`. No plus-removal variant, no
+  donors.
+Every wrong answer is classified as a switch (T at or below 50, e below 0.5)
+or an escape (e at or above 0.5). Cells 1 and 8c report T as in 6b (median,
+mean, 20-point histogram, share between 20 and 80). The split covariates
+gain `target_id_below_decoy`; `target_first` is read too.
+
+Measure, over baseline-correct graphs (baseline T above 50), paired bootstrap
+over graphs, per seed and pooled over the four seeds
+(`reanalysis_gaps.py`, key `experiment10`):
+- s_iso, s_1: share right (T above 50) under 8c isolation and under cell 1.
+- Leftover = s_iso - 0.5. The 0.5 is what a model with no evidence that
+  still names a candidate gets (6b: escape never above 0.03).
+- Edge share E = (s_iso - s_1) / leftover.
+- Within cell 1, s_above and s_below are the shares right when the target's
+  id is above / below the decoy's; s_bal is their average.
+- Numbering share N = (s_1 - s_bal) / leftover; unexplained U = (s_bal -
+  0.5) / leftover. E + N + U = 1.
+- N has a ceiling: it equals (share of target-above graphs - 0.5) x (s_above
+  - s_below), and the target is above on 51-53 of 91-96 baseline-correct
+  graphs, so even pure use of the id order gives N of at most about 0.2-0.3.
+  The numbering verdict therefore rests on U and on G.
+- G: share of cell-1 answers naming the higher-id candidate (1 = follows the
+  id order, 0.5 = does not use it). Correlational.
+- E on the 78-graph subset (decoy's edges only) and on the 22, pooled.
+
+Reading ranges, applied to the interval, crossings reported as crossings:
+- E at or above 0.9: the edges explain it. 0.5-0.9: most of it. 0.1-0.5:
+  part of it. Below 0.1: none of it.
+- The numbering cue goes with it: E below 0.9, U's interval reaches 0.1 or
+  below, and G's interval is above 0.5.
+- Unexplained: U's interval above 0.1.
+- How the lines were chosen: the leftover is 19 to 30 graphs per seed, so
+  0.1 of it is 2 to 3 graphs, the size of the escapes under 8c isolation (1
+  to 3 per seed); 0.5 separates most from part, as in experiment 9.
+- Guard on the 0.5 reference: if escapes under cell 1 exceed 0.05 of
+  baseline-correct graphs, the decomposition is not read and the cell is
+  reported as an escape result.
+
+Predictions:
+- Forced by the structure: s_1 between 0.45 and 0.65 on every seed; E at or
+  above 0.5 on every seed, pooled interval reaching 0.9; U at or below 0.1;
+  escapes at most 0.05; T bimodal as under 6b's both-candidates mask.
+- From the files: G between 0.6 and 0.8; the gap s_above - s_below larger
+  than under 8c isolation (0.14, 0.13, 0.35, 0.38 there; same key).
+- Decoy's edges on the 78-graph subset: a positive share on seeds 0, 1, 3,
+  smaller on seed 2.
+- Controls: off-path matched isolation flips at most 0.05; self-transplant
+  exactly zero; invariance passes on every graph.
+
+What each outcome means:
+- E at or above 0.9, G near 0.5: the candidates' incoming edges carry the
+  whole leftover; the id order does nothing once they are hidden.
+- E 0.5-0.9, U at or below 0.1, G above 0.5: the edges carry most of it and
+  the rest goes with the id order (a correlation only).
+- U above 0.1 with invariance passing: the model picks the target with no
+  readable edge; the remaining candidate is a finer id cue (candidate id
+  against the visible nodes' ids; the 6b ids-only probe, AUC 0.64, never
+  saved, would need a refit).
+- Invariance fails: the mask leaks; nothing else is read until fixed.
+- E below 0.1: the leftover never ran through the edges; it is id-driven
+  already under 8c.
+
+Order: zero-cost reads to `gaps_reanalysis.json`; code and tests; pilot on
+seed 0, test graphs 400-409 (3 target-below graphs: checks plumbing, the
+exact rerun match, invariance and the rough survival level, not the id
+split); n=100 on all four seeds; reanalysis.
+
+```
+.venv/bin/python src/phoenix/masking.py --run-name seed0 --device cpu --mode pilot --part leftover
+.venv/bin/python src/phoenix/masking.py --run-name seed0 --device cpu --mode n100 --part leftover   # and seed1-3
+.venv/bin/python scripts/reanalysis_gaps.py
+```
+
+Pilot outcome (seed 0, test graphs 400-409,
+`results/seed0/masking_leftover_pilot.json`): the 8c cell reproduces
+`masking_pilot.json` to the last digit; invariance holds exactly (maximum
+logit difference 0.0 on all ten); the matched off-path isolation flips none;
+no escapes. Right under 8c isolation 8 of 10, under cell 1 7 of 10 (403 and
+408 lost; 401 gained: wrong under path isolation, T 1.5, right once its
+single decoy edge is also hidden, T 81.6, so hiding the decoy's edge can
+also help the target when the path is gone). Too few graphs for the id
+split (3 target-below). What the pilot changed: nothing.
+
+n=100 outcome, four seeds (`results/seed{0,1,2,3}/masking_leftover_n100.json`;
+every number below is in `results/gaps_reanalysis.json`, key `experiment10`,
+per seed and pooled; baseline-correct graphs 91, 96, 94, 93, pooled 374).
+Checks: the 8c cell equals `masking_n100.json` on every graph (maximum
+difference 0.0); invariance holds exactly on all 400 graphs (maximum logit
+difference 0.0); the matched off-path control keeps 1.00, 0.98, 0.99, 0.99
+right; it is short of slots on 9 graphs per seed (1 to 5 slots).
+
+| | seed 0 | seed 1 | seed 2 | seed 3 | pooled |
+|---|---|---|---|---|---|
+| right, 8c isolation (s_iso) | 0.82 [0.75, 0.90] | 0.77 [0.69, 0.85] | 0.69 [0.60, 0.79] | 0.71 [0.61, 0.80] | 0.75 [0.70, 0.79] |
+| right, cell 1 (s_1) | 0.52 [0.42, 0.62] | 0.60 [0.50, 0.70] | 0.56 [0.47, 0.66] | 0.55 [0.44, 0.65] | 0.56 [0.51, 0.61] |
+| lost / gained by cell 1 | 31 / 3 | 23 / 7 | 15 / 3 | 20 / 5 | 89 / 18 |
+| edge share E | 0.95 [0.65, 1.29] | 0.62 [0.26, 1.00] | 0.67 [0.27, 1.29] | 0.77 [0.34, 1.37] | 0.76 [0.59, 0.96] |
+| numbering share N | 0.06 [-0.03, 0.19] | 0.06 [-0.06, 0.20] | 0.08 [-0.10, 0.26] | 0.04 [-0.07, 0.19] | 0.06 [0.01, 0.12] |
+| unexplained U | -0.01 [-0.35, 0.30] | 0.33 [-0.03, 0.67] | 0.25 [-0.35, 0.65] | 0.19 [-0.41, 0.62] | 0.18 [-0.01, 0.35] |
+| G (answer = higher id) | 0.64 [0.54, 0.74] | 0.66 [0.56, 0.75] | 0.65 [0.55, 0.74] | 0.59 [0.49, 0.69] | 0.63 [0.59, 0.68] |
+| cell 1 right, target id above / below | 0.63 / 0.36 | 0.74 / 0.44 | 0.69 / 0.40 | 0.63 / 0.45 | 0.67 / 0.42 |
+| id-order gap, 8c / cell 1 | 0.14 / 0.28 | 0.13 / 0.29 | 0.35 / 0.29 | 0.38 / 0.18 | 0.25 / 0.26 |
+| escapes among cell-1 wrong | 1 of 44 | 1 of 38 | 1 of 41 | 4 of 42 | 7 of 165 |
+
+- Decoy's edges alone (graphs whose target has no incoming edge outside its
+  parents; 73, 78, 75, 74 baseline-correct): cell 1 lowers survival by 0.33
+  [0.22, 0.45], 0.19 [0.08, 0.31], 0.11 [0.03, 0.20], 0.16 [0.05, 0.27];
+  E 0.98, 0.65, 0.55, 0.71; pooled 0.75 [0.57, 0.95] (300 graphs). The
+  other 74 pooled graphs: E 0.86 [0.25, 1.71].
+- T under cell 1, baseline-correct, pooled: 105 graphs below 20, 156 above
+  80, 0.30 [0.25, 0.34] between 20 and 80 (8c isolation: 0.11 to 0.25 per
+  seed over all graphs). Mostly committed, less so than under 8c.
+- Question order: right 0.59 [0.52, 0.65] with the target first, 0.52
+  [0.45, 0.60] second; intervals overlap.
+Against the predictions: s_1 in 0.45-0.65 on every seed, holds. E at or
+above 0.5 on every seed (point), holds, with wide per-seed intervals; the
+pooled interval reaches 0.9 (0.96), holds. Escapes at most 0.05, holds (seed
+3 at 0.04). G in 0.6-0.8, holds pooled and on seeds 0-2; seed 3 is 0.59 with
+the interval touching 0.5. U at or below 0.1: not decided, pooled 0.18 with
+an interval from -0.01 to 0.35. The id-order gap larger under cell 1 than
+under 8c: holds on seeds 0 and 1, fails on seeds 2 and 3 and pooled (0.25
+vs 0.26). Decoy's edges positive on seeds 0, 1, 3 and smaller on seed 2:
+positive on all four, seed 2 the smallest (0.11, interval above zero),
+unlike 6b where seed 2 showed nothing under the removal. Controls hold.
+Reading, by the ranges written above. The candidates' incoming edges carry
+most of the leftover: E 0.76 [0.59, 0.96] pooled, in the 0.5-0.9 range and
+crossing the 0.9 line. Most of that is the decoy's own incoming edges: on
+the 300 graphs where cell 1 adds only those, E is 0.75. E is a net figure:
+89 graphs lost and 18 gained (gained graphs, like pilot graph 401, go wrong
+under path isolation and right once the decoy's edges are hidden too). With
+every candidate edge hidden, the answer goes with the id order (G 0.63
+[0.59, 0.68]; 0.67 right when the target's id is the higher one, 0.42 when
+lower), a correlation only. Because the target's id is the higher one on
+only 208 of 374 graphs, that order can account for N = 0.06 of the leftover
+at most at this gap; what neither the edges nor the id order account for is
+U = 0.18 [-0.01, 0.35], which crosses the 0.1 line, so "unexplained" is
+neither shown nor excluded. Since invariance holds exactly, that remainder
+reads no edge; the only candidates left are the question tokens' ids
+against the visible nodes' ids (a finer id cue) or noise. The id-order gap
+is already 0.25 under 8c isolation and does not grow under cell 1: the id
+order goes with the choice once the path is hidden, before the candidate
+edges are.
+For the paper: with the path edges isolated, about three quarters of the
+graphs still right above chance are right because of the candidates'
+incoming edges, mainly the decoy's; with those hidden too, survival is 0.56,
+the level of a "higher id wins" rule (0.556 on these graphs), and the
+choice goes with the id order.
 
 ## Next run
 

@@ -1,0 +1,13 @@
+head sets: {'latents': {0: [3, 4, 6, 7]}, 'answer': {0: [2, 5, 6], 1: [0, 1, 2, 5, 6, 7]}}
+graph 400: base T 100.0  slots path 2 cand 6 matched 6  isolation/path/alone T 0.4/e0.00  isolation/path_cand/alone T 0.3/e0.00  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+graph 401: base T 97.0  slots path 6 cand 7 matched 7  isolation/path/alone T 1.5/e0.00  isolation/path_cand/alone T 81.6/e0.00  isolation/offpath_matched/alone T 99.7/e0.00  invariance 0.0e+00
+graph 402: base T 100.0  slots path 3 cand 5 matched 5  isolation/path/alone T 100.0/e0.01  isolation/path_cand/alone T 99.3/e0.05  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+graph 403: base T 100.0  slots path 2 cand 8 matched 8  isolation/path/alone T 89.3/e0.01  isolation/path_cand/alone T 14.7/e0.01  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+graph 404: base T 88.4  slots path 3 cand 5 matched 5  isolation/path/alone T 89.3/e0.00  isolation/path_cand/alone T 83.1/e0.00  isolation/offpath_matched/alone T 82.6/e0.00  invariance 0.0e+00
+graph 405: base T 100.0  slots path 3 cand 6 matched 6  isolation/path/alone T 98.0/e0.00  isolation/path_cand/alone T 100.0/e0.00  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+graph 406: base T 100.0  slots path 3 cand 5 matched 5  isolation/path/alone T 93.2/e0.01  isolation/path_cand/alone T 95.9/e0.00  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+graph 407: base T 100.0  slots path 5 cand 8 matched 8  isolation/path/alone T 99.6/e0.01  isolation/path_cand/alone T 57.7/e0.01  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+graph 408: base T 81.1  slots path 2 cand 5 matched 5  isolation/path/alone T 60.5/e0.02  isolation/path_cand/alone T 12.9/e0.01  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+graph 409: base T 100.0  slots path 3 cand 4 matched 4  isolation/path/alone T 100.0/e0.00  isolation/path_cand/alone T 100.0/e0.00  isolation/offpath_matched/alone T 100.0/e0.00  invariance 0.0e+00
+written: /Users/ecaterina/Developer/phoenix/results/seed0/masking_leftover_pilot.json
+.venv/bin/python src/phoenix/masking.py --run-name seed0 --device cpu --mode   13.94s user 1.99s system 259% cpu 6.144 total

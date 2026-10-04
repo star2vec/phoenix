@@ -20,8 +20,15 @@ heldout mode (test graphs 100-399) runs only the removal, its random control
 and the layer-2 mask, with no donors: the held-out check of two predictors
 found on test graphs 0-99.
 
+Experiment 10 (`--part leftover`, file masking_leftover_<mode>.json): 8c's
+path isolation rerun; isolation of the path slots plus every incoming edge of
+both candidates; a count-matched off-path isolation; and the invariance check
+(the candidates' labels swapped inside the isolated slots must leave the
+answer logits unchanged).
+
     python src/phoenix/masking.py --run-name seed0 --device cpu --mode pilot
     python src/phoenix/masking.py --run-name seed0 --device cpu --mode heldout
+    python src/phoenix/masking.py --run-name seed0 --device cpu --mode n100 --part leftover
 """
 
 import json
@@ -43,6 +50,9 @@ from edits import rand_orthonormal  # noqa: E402
 from sets import ROOT, require_file, test_pin  # noqa: E402
 
 EDGE_HEAD_CUT = 0.5  # protects "this head reads edges" (stricter than experiment 2's 0.2 scoring cutoff)
+INVARIANCE_TOL = 1e-6  # protects "no query reads the isolated slots" (the self-transplant tolerance)
+LEFTOVER_CELLS = ("reserialized", "self_transplant", "isolation/path/alone", "isolation/path_cand/alone",
+                  "isolation/offpath_matched/alone")
 HELDOUT_CELLS = ("reserialized", "self_transplant", "qk_removal", "qk_random",
                  "l2_latents_mask/path/alone", "l2_latents_mask/offpath/alone")
 
@@ -110,6 +120,76 @@ def apply_masks(hooks, sets, which, L, K, slots):
             own = slot_tokens(L["slots"][j])
             qs = [q for q in range(max(own) + 1, L["n"]) if q not in own]
             hooks.add_mask([0, 1], qs, own)
+
+
+def leftover_slots(pr, G, path):
+    """Experiment 10. Cell 1's slots: the path slots plus every incoming edge
+    of both candidates (all depths). The control: the same count of the most
+    attended edges (summed over the latent queries) whose source is reachable
+    at depth 1 or more, outside cell 1's slots and not into a candidate."""
+    d, L = pr.depths(), pr.layout()
+    cands = (pr.target, pr.decoy)
+    cand = list(path) + [j for j, (s_, t) in enumerate(pr.edges) if t in cands and j not in path]
+    pool = [j for j, (s_, t) in enumerate(pr.edges)
+            if d.get(s_) is not None and d[s_] >= 1 and j not in cand and t not in cands]
+    pool = sorted(pool, key=lambda j: -sum(G.total_attention(q, j) for q in L["latents"]))
+    return cand, pool[:len(cand)]
+
+
+def swap_candidates_in(pr, slots):
+    """The prompt with the target and decoy labels exchanged inside the given
+    slots only (everything else, the question line included, unchanged)."""
+    sw = {pr.target: pr.decoy, pr.decoy: pr.target}
+    edges = [[sw.get(s_, s_), sw.get(t, t)] if j in slots else [s_, t] for j, (s_, t) in enumerate(pr.edges)]
+    return pr.with_edges(edges)
+
+
+def run_leftover(runner, recips, sets, base_seed=0):
+    """Experiment 10's cells; predictions in NOTES.md."""
+    rows = []
+    for gi, sample, pr in recips:
+        K, L = pr.K, pr.layout()
+        ids = pr.ids(runner.tok)
+        G = _Geometry(runner, pr, ids)
+        base = G.base_split
+        own = capture(runner, ids, attn_eager=True)
+        path, _ = path_and_offpath_slots(pr, G)
+        cand, matched = leftover_slots(pr, G, path)
+        target_in = [j for j, (s_, t) in enumerate(pr.edges) if t == pr.target]
+        meta = {"path_slots": path, "cand_slots": cand, "matched_slots": matched,
+                "matched_shortfall": len(cand) - len(matched),
+                "target_extra_in_edges": [j for j in target_in if j not in path],
+                "decoy_in_edges": [j for j, (s_, t) in enumerate(pr.edges) if t == pr.decoy],
+                "target_id": pr.target, "decoy_id": pr.decoy}
+        cells = {}
+
+        def logits_with(slots, ids_=ids, thought_edit=None):
+            with AttnHooks(runner.model.base_causallm) as h:
+                if slots:
+                    apply_masks(h, sets, ("isolation",), L, K, slots)
+                return run_ids(runner, ids_, thought_edit, attn_eager=True)
+
+        def cell(name, logits):
+            cells[name] = with_delta(answer_split(logits, pr.target, pr.decoy), base["T"])
+
+        cell("reserialized", run_ids(runner, Prompt.from_sample(sample, test_pin(gi, base_seed, True)).ids(runner.tok), attn_eager=True))
+        cell("self_transplant", logits_with([], thought_edit=fixed(own, all_passes(K))))
+        assert abs(cells["self_transplant"]["dT"]) < 1e-6
+        cell("isolation/path/alone", logits_with(path))
+        lc = logits_with(cand)
+        cell("isolation/path_cand/alone", lc)
+        cell("isolation/offpath_matched/alone", logits_with(matched))
+        ids_sw = swap_candidates_in(pr, set(cand)).ids(runner.tok)
+        assert len(ids_sw) == len(ids) and ids_sw != ids
+        diff = float((logits_with(cand, ids_=ids_sw) - lc).abs().max())
+        meta["invariance_max_abs_logit_diff"] = diff
+        assert diff < INVARIANCE_TOL, (gi, diff)
+
+        rows.append({"gi": gi, "K": K, "cov": covariates(pr), "baseline": base, "meta": meta, "cells": cells})
+        print(f"graph {gi}: base T {base['T']:.1f}  slots path {len(path)} cand {len(cand)} matched {len(matched)}  " + "  ".join(
+            f"{n} T {cells[n]['T']:.1f}/e{cells[n]['e']:.2f}" for n in LEFTOVER_CELLS[2:]) + f"  invariance {diff:.1e}")
+    return {"rows": rows, "summary": summarize(rows, list(LEFTOVER_CELLS)), "cells": list(LEFTOVER_CELLS),
+            "invariance_tol": INVARIANCE_TOL, "cells_mode": "leftover"}
 
 
 def run(runner, recips, train, sets, base_seed=0, cells="all"):
@@ -224,10 +304,19 @@ def run(runner, recips, train, sets, base_seed=0, cells="all"):
 
 
 def main():
-    args = make_parser(__doc__.split("\n")[0]).parse_args()
+    parser = make_parser(__doc__.split("\n")[0])
+    parser.add_argument("--part", choices=("all", "leftover"), default="all",
+                        help="leftover = experiment 10's cells only (file masking_leftover_<mode>.json)")
+    args = parser.parse_args()
     runner = load_runner(args)
     sets = head_sets(args.run_name)
     print("head sets:", sets)
+    if args.part == "leftover":
+        assert args.mode in ("pilot", "n100"), args.mode
+        result = header(args, "masking_leftover")
+        result.update(run_leftover(runner, recipient_prompts(args.mode, args.seed), sets, args.seed))
+        finish(args, "masking_leftover", result)
+        return
     train = load_train()
     recips = recipient_prompts(args.mode, args.seed)
     result = header(args, "masking")

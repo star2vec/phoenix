@@ -26,7 +26,8 @@ from thoughts import find_donor  # noqa: E402
 
 SPLIT_COVARIATES = ["K", "n_branches", "first_parent_slot", "first_parent_slot_frac",
                     "n_parent_edges", "n_edges", "target_first",
-                    "parent_out_degree", "decoy_in_degree", "target_in_degree"]
+                    "parent_out_degree", "decoy_in_degree", "target_in_degree",
+                    "target_id_below_decoy"]
 
 
 def make_parser(desc):

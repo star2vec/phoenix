@@ -441,4 +441,6 @@ def covariates(prompt):
         "parent_out_degree": (sum(out_degree[p] for p in parent_nodes) / len(parent_nodes)) if parent_nodes else None,
         "decoy_in_degree": sum(1 for s, t in prompt.edges if t == prompt.decoy),
         "target_in_degree": sum(1 for s, t in prompt.edges if t == prompt.target),
+        # experiment 10: the label-id order of the two candidates
+        "target_id_below_decoy": prompt.target < prompt.decoy,
     }

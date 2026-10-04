@@ -116,6 +116,18 @@ def main():
     res_h = masking.run(runner, recips, train, sets, cells="heldout")
     assert set(res_h["cells"]) == set(masking.HELDOUT_CELLS), res_h["cells"]
     assert res_h["rows"][0]["same_answer_donor_gi"] is None and res_h["cells_mode"] == "heldout"
+    print("masking (experiment 10 leftover cells; the invariance check asserts inside)")
+    res_l = masking.run_leftover(runner, recips, sets)
+    assert res_l["cells"] == list(masking.LEFTOVER_CELLS)
+    for r in res_l["rows"]:
+        m = r["meta"]
+        assert set(m["path_slots"]) <= set(m["cand_slots"]) and m["invariance_max_abs_logit_diff"] < masking.INVARIANCE_TOL
+        assert not set(m["matched_slots"]) & set(m["cand_slots"])
+        assert set(m["decoy_in_edges"]) <= set(m["cand_slots"]) and "target_id_below_decoy" in r["cov"]
+    # the 8c cell is recomputed identically by the leftover part
+    for a, b in zip(res["rows"], res_l["rows"]):
+        assert a["cells"]["isolation/path/alone"]["T"] == b["cells"]["isolation/path/alone"]["T"]
+    dump("masking_leftover", res_l)
     from sets import recipients
     held = recipients("heldout")
     assert len(held) == 300 and held[0][0] == 100 and held[-1][0] == 399

@@ -38,6 +38,7 @@ RES = ROOT / "results"
 SEEDS = ("seed0", "seed1", "seed2", "seed3")
 CORRECT_T = 50.0  # protects "the baseline answer was the target"
 BUCKETS = ((1, 1), (2, 2), (3, 3), (4, 99))
+TEST = None  # the test split, set in main
 
 
 def load(run, name):
@@ -265,8 +266,144 @@ def pooled_restore(blocks):
     return out
 
 
+def experiment10_zero_cost(run):
+    """The two reads experiment 10 cites before it ran: "target id below the
+    decoy's" as a predictor of a wrong answer under 6b's both-candidates mask,
+    and survival under 8c's path isolation split by id order."""
+    out = {}
+    rc = load(run, "recovery_n100.json")
+    if rc is not None:
+        out["auc_target_id_below_for_wrong"] = {}
+        for c in ("allq_both_cand_edges/path/alone", "allq_both_cand_edges/path/plus_removal"):
+            rows = [r for r in rc["rows"] if not r["cells"][c].get("skipped")]
+            below = [float(r["cov"].get("target_id_below_decoy", TEST[r["gi"]]["target"] < TEST[r["gi"]]["neg_target"])) for r in rows]
+            wrong = [r["cells"][c]["T"] <= 50 for r in rows]
+            ok = [r["baseline"]["T"] >= CORRECT_T for r in rows]
+            out["auc_target_id_below_for_wrong"][c] = {
+                "all": auc_boot(below, wrong),
+                "baseline_correct": auc_boot([b for b, o in zip(below, ok) if o], [w for w, o in zip(wrong, ok) if o])}
+    mk = load(run, "masking_n100.json")
+    if mk is not None:
+        bc = [r for r in mk["rows"] if r["baseline"]["T"] >= CORRECT_T]
+        below = lambda r: TEST[r["gi"]]["target"] < TEST[r["gi"]]["neg_target"]  # noqa: E731
+        right = lambda r: r["cells"]["isolation/path/alone"]["T"] > 50  # noqa: E731
+        out["isolation_path_survival_by_id_order"] = {
+            "all_baseline_correct": frac([right(r) for r in bc]),
+            "target_id_above": frac([right(r) for r in bc if not below(r)]),
+            "target_id_below": frac([right(r) for r in bc if below(r)]),
+            "n_above": sum(1 for r in bc if not below(r)), "n_below": sum(1 for r in bc if below(r))}
+    return out
+
+
+E10_ISO, E10_CAND, E10_OFF = "isolation/path/alone", "isolation/path_cand/alone", "isolation/offpath_matched/alone"
+
+
+def e10_units(run):
+    """One record per baseline-correct graph of masking_leftover_n100.json."""
+    ml = load(run, "masking_leftover_n100.json")
+    if ml is None:
+        return None, None
+    mk = load(run, "masking_n100.json")
+    old = {r["gi"]: r["cells"]["isolation/path/alone"]["T"] for r in mk["rows"]}
+    rerun_diff = max(abs(old[r["gi"]] - r["cells"][E10_ISO]["T"]) for r in ml["rows"])
+    units = []
+    for r in ml["rows"]:
+        if r["baseline"]["T"] < CORRECT_T:
+            continue
+        c = r["cells"]
+        units.append({"run": run, "gi": r["gi"], "K": r["K"], "below": bool(r["cov"]["target_id_below_decoy"]),
+                      "target_first": bool(r["cov"]["target_first"]),
+                      "decoy_only": not r["meta"]["target_extra_in_edges"],
+                      "iso": c[E10_ISO]["T"] > 50, "cand": c[E10_CAND]["T"] > 50, "off": c[E10_OFF]["T"] > 50,
+                      "e": {k: c[n]["e"] for k, n in (("iso", E10_ISO), ("cand", E10_CAND), ("off", E10_OFF))},
+                      "T": {k: c[n]["T"] for k, n in (("iso", E10_ISO), ("cand", E10_CAND))}})
+    meta = {"rerun_max_abs_dT_vs_masking_n100": rerun_diff,
+            "invariance_max_abs_logit_diff": max(r["meta"]["invariance_max_abs_logit_diff"] for r in ml["rows"]),
+            "matched_shortfall_graphs": sum(1 for r in ml["rows"] if r["meta"]["matched_shortfall"] > 0),
+            "T_distribution_all_graphs": {k: t_distribution([r["cells"][n]["T"] for r in ml["rows"]]) for k, n in (("isolation_path", E10_ISO), ("path_cand", E10_CAND))},
+            "n_graphs": len(ml["rows"])}
+    return units, meta
+
+
+def t_distribution(T):
+    T = np.asarray(T, float)
+    return {"n": int(len(T)), "median_T": bootstrap(T, np.median), "mean_T": bootstrap(T, np.mean),
+            "frac_T_between_20_and_80": frac([20 <= t <= 80 for t in T]),
+            "histogram_20pt_bins": {f"{lo}-{lo + 20}": int(((T >= lo) & ((T < lo + 20) if lo < 80 else (T <= 100))).sum()) for lo in range(0, 100, 20)}}
+
+
+def e10_stats(u):
+    """Survivals, the decomposition E + N + U = 1, G and the id-order gaps on
+    one set of units (any field may be None where a group is empty)."""
+    a = lambda k, sel=lambda x: True: (lambda v: float(np.mean(v)) if v else None)([x[k] for x in u if sel(x)])  # noqa: E731
+    s_iso, s_1, s_off = a("iso"), a("cand"), a("off")
+    s_a, s_b = a("cand", lambda x: not x["below"]), a("cand", lambda x: x["below"])
+    i_a, i_b = a("iso", lambda x: not x["below"]), a("iso", lambda x: x["below"])
+    out = {"s_iso": s_iso, "s_1": s_1, "s_offpath_matched": s_off, "s_above": s_a, "s_below": s_b,
+           "G": float(np.mean([x["cand"] == (not x["below"]) for x in u])) if u else None,
+           "gap_cell1": None if s_a is None or s_b is None else s_a - s_b,
+           "gap_isolation_path": None if i_a is None or i_b is None else i_a - i_b,
+           "s1_minus_s_iso": None if s_1 is None else s_1 - s_iso}
+    left = None if s_iso is None else s_iso - 0.5
+    if left and left > 0:
+        out["E"] = (s_iso - s_1) / left
+        if s_a is not None and s_b is not None:
+            s_bal = (s_a + s_b) / 2
+            out["N"], out["U"] = (s_1 - s_bal) / left, (s_bal - 0.5) / left
+    return out
+
+
+def e10_block(u, n_boot=2000, seed=0):
+    """Point values and paired bootstrap intervals over graphs."""
+    point = e10_stats(u)
+    rng = np.random.default_rng(seed)
+    draws = {k: [] for k in point}
+    for _ in range(n_boot):
+        st = e10_stats([u[i] for i in rng.integers(0, len(u), len(u))])
+        for k in draws:
+            if st.get(k) is not None:
+                draws[k].append(st[k])
+    out = {}
+    for k, v in point.items():
+        out[k] = {"point": v, "lo": float(np.percentile(draws[k], 2.5)) if draws[k] else None,
+                  "hi": float(np.percentile(draws[k], 97.5)) if draws[k] else None}
+    wrong = [x for x in u if not x["cand"]]
+    out["n_baseline_correct"] = len(u)
+    out["n_target_id_below"] = sum(x["below"] for x in u)
+    for k in ("iso", "cand", "off"):
+        w = [x for x in u if not x[k]]
+        out[f"wrong_{k}"] = {"n": len(w), "escape": sum(x["e"][k] >= ESCAPE_CUT for x in w), "switch": sum(x["e"][k] < ESCAPE_CUT for x in w)}
+    out["escape_share_cell1"] = frac([(not x["cand"]) and x["e"]["cand"] >= ESCAPE_CUT for x in u])
+    out["cell1_by_target_first"] = {"target_first": frac([x["cand"] for x in u if x["target_first"]]),
+                                    "target_second": frac([x["cand"] for x in u if not x["target_first"]])}
+    out["cell1_T_distribution_baseline_correct"] = t_distribution([x["T"]["cand"] for x in u])
+    out["n_cell1_wrong"] = len(wrong)
+    out["cell1_lost"] = sum(x["iso"] and not x["cand"] for x in u)  # right under 8c isolation, wrong under cell 1
+    out["cell1_gained"] = sum((not x["iso"]) and x["cand"] for x in u)
+    return out
+
+
+def experiment10():
+    out, allu = {"seeds": {}}, []
+    for run in SEEDS:
+        u, meta = e10_units(run)
+        if u is None:
+            continue
+        allu += u
+        out["seeds"][run] = {"checks": meta, "all": e10_block(u),
+                             "decoy_only_graphs": {"n": sum(x["decoy_only"] for x in u)}}
+    if allu:
+        out["pooled"] = {"all": e10_block(allu), "decoy_only_graphs": e10_block([x for x in allu if x["decoy_only"]]),
+                         "target_extra_in_edge_graphs": e10_block([x for x in allu if not x["decoy_only"]])}
+        for run in out["seeds"]:
+            out["seeds"][run]["decoy_only_graphs"] = e10_block([x for x in allu if x["run"] == run and x["decoy_only"]])
+    return out
+
+
 def main():
+    global TEST
     test, train = load_test(), load_train()
+    TEST = test
     result = {"cutoffs": {"flip_dT": FLIP_CUT, "escape_e": ESCAPE_CUT, "baseline_correct_T": CORRECT_T}, "seeds": {}, "heldout": {}}
     rem_sets, don_sets = [], []
     for run in SEEDS:
@@ -289,6 +426,8 @@ def main():
         counts.append(sum(1 for d in train if d["target"] == g["target"] and d["neg_target"] == g["neg_target"] and len(d["steps"]) == len(g["steps"])))
     result["same_answer_donors_available_per_recipient"] = {"min": int(min(counts)), "median": float(np.median(counts)), "max": int(max(counts)),
                                                             "n_zero": int(sum(c == 0 for c in counts)), "n_below_5": int(sum(c < 5 for c in counts))}
+    result["experiment10_zero_cost"] = {run: experiment10_zero_cost(run) for run in SEEDS}
+    result["experiment10"] = experiment10()
     out = RES / "gaps_reanalysis.json"
     json.dump(result, open(out, "w"), indent=1)
     print(f"written: {out}")
