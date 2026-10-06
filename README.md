@@ -10,7 +10,7 @@ Python 3.12 with pinned packages, and the reference implementation cloned into
 ```bash
 git clone --depth 1 https://github.com/Ber666/reasoning-by-superposition.git vendor/reasoning-by-superposition
 uv venv --python 3.12 .venv
-uv pip install --python .venv/bin/python torch==2.5.1 numpy==2.1.3 transformers==4.46.2 datasets==3.1.0 tqdm==4.67.0 pyyaml
+uv pip install --python .venv/bin/python torch==2.5.1 numpy==2.1.3 transformers==4.46.2 datasets==3.1.0 tqdm==4.67.0 pyyaml matplotlib==3.9.2
 ```
 
 For the CUDA laptop see `WINDOWS_SETUP.md`. Checkpoints go to `ckpts/<run>/`
