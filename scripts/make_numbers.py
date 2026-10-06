@@ -123,11 +123,11 @@ def build(repo: Path):
     macro("accbandlo", lambda: fmt(min(F(acc[r])["test_accuracy"] for r in SEEDS), 1, pct=True), "results/seed{0,1,2,3}/evaluation_ser0.json")
     macro("accbandhi", lambda: fmt(max(F(acc[r])["test_accuracy"] for r in SEEDS), 1, pct=True), "results/seed{0,1,2,3}/evaluation_ser0.json")
 
-    def kept(name, rel_of_seed, producer):
+    def kept(name, rel_of_seed, producer, text=False):
         """name from seed 0, nameSeedB from seed 1; producer(data) -> str."""
         for run, suf in (("seed0", ""), ("seed1", "SeedB")):
             rel = rel_of_seed(run)
-            macro(name + suf, lambda rel=rel: producer(F(rel)), rel)
+            macro(name + suf, lambda rel=rel: producer(F(rel)), rel, text)
 
     probe = lambda run: f"results/{run}/probe_basis_report.json"  # noqa: E731
     kept("aucFrontier", probe, lambda d: fmt(d["median_holdout_auc"], 4))
@@ -167,6 +167,63 @@ def build(repo: Path):
     kept("dTzeroHeld", nec, cell("zero/all"))
     kept("escZero", nec, cell("zero/all", "median_e", 2))
     macro("dTzeroSeedB", lambda: fmt(S("seed1", "necessity_n100.json")["zero/all"]["median_dT"]["point"], 1), nec("seed1"))
+
+    # INLP, amnesic probing (experiment 11): the v1 recipe on this repo's seeds 0 and 1
+    ia = lambda run: f"results/{run}/inlp_arm_n100.json"  # noqa: E731
+    ir = lambda run: f"results/{run}/inlp_basis_report_full.json"  # noqa: E731
+    kept("inlpDT", ia, cell("subtract_answer/inlp", nd=2))
+    kept("inlpTpost", ia, cell("subtract_answer/inlp", "median_T", 2))
+    kept("inlpRandDT", ia, cell("subtract_answer/inlp_random_matched", nd=2))
+    kept("inlpMedianK", ir, lambda d: fmt(d["median_k"]))
+    kept("inlpKmax", ir, lambda d: fmt(d["recipe"]["k_max"]))
+    kept("inlpAUCstop", ir, lambda d: fmt(d["recipe"]["auc_stop"], 2))
+
+    def resid_range(d):
+        last = [v["auc_trajectory"][-1] for v in d["per_node"].values() if v.get("auc_trajectory")]
+        return "%s--%s" % (fmt(min(last), 2), fmt(max(last), 2))
+    kept("inlpAUCresid", ir, resid_range, text=True)
+
+    # whole answer-path deletion at every intermediate step (experiment 12), test graphs 0-99
+    pd_ = lambda run: f"results/{run}/path_deletion_n100.json"  # noqa: E731
+    kept("dTpathNolastEmb", pd_, cell("path_mid/input_embedding", nd=2))
+    kept("dTpathNolastProbe", pd_, cell("path_mid/probe", nd=2))
+
+    for run, suf in (("seed0", "SeedA"), ("seed1", "SeedB")):
+        src = ia(run)
+        sm = lambda src=src: F(src)["summary"]  # noqa: E731
+        macro(f"inlpN{suf}", lambda src=src: fmt(len(F(src)["rows"])), src)
+        for c, nm in (("subtract_answer/inlp", "Inlp"), ("subtract_answer/inlp_random_matched", "InlpRand"),
+                      ("subtract_answer/inlp_random_sizematched", "InlpSize"),
+                      ("subtract_answer/inlp_first", "InlpFirst"), ("subtract_answer/probe", "InlpProbe")):
+            trio(f"amn{nm}Flips", suf, lambda sm=sm, c=c: sm()[c]["frac_flipped"], src)
+            trio(f"amn{nm}Beyond", suf, lambda sm=sm, c=c: sm()[c]["redirection"]["flips_beyond_reference"], src)
+            trio(f"amn{nm}Esc", suf, lambda sm=sm, c=c: sm()[c]["frac_escaped"], src)
+            macro(f"amn{nm}DT{suf}", lambda sm=sm, c=c: fmt(sm()[c]["median_dT"]["point"], 2), src)
+        trio("amnSameAnswerFlips", suf, lambda sm=sm: sm()["same_answer_donor/intermediates"]["frac_flipped"], src)
+        trio("amnInlpVsRand", suf, lambda src=src: paired_flips(F(src)["rows"], "subtract_answer/inlp", "subtract_answer/inlp_random_matched"), src)
+        trio("amnInlpVsSize", suf, lambda src=src: paired_flips(F(src)["rows"], "subtract_answer/inlp", "subtract_answer/inlp_random_sizematched"), src)
+        trio("amnSizeVsRand", suf, lambda src=src: paired_flips(F(src)["rows"], "subtract_answer/inlp_random_sizematched", "subtract_answer/inlp_random_matched"), src)
+        macro(f"amnShareMismatchMax{suf}", lambda src=src: "%.0e" % max(abs(r["removed_share"]["inlp"] - r["removed_share"]["random_sizematched"]) for r in F(src)["rows"]), src, text=True)
+        for k, nm in (("inlp", "Inlp"), ("random_matched", "Rand"), ("random_sizematched", "Size"), ("probe", "Probe")):
+            macro(f"amnRemovedShare{nm}{suf}", lambda src=src, k=k: fmt(statistics.median(r["removed_share"][k] for r in F(src)["rows"]), 2), src)
+        src = pd_(run)
+        sm = lambda src=src: F(src)["summary"]  # noqa: E731
+        macro(f"pathNolastRandDT{suf}", lambda sm=sm: fmt(sm()["path_mid/random_matched"]["median_dT"]["point"], 2), src)
+        for c, nm in (("path_mid/input_embedding", "Emb"), ("path_mid/probe", "Probe"), ("path_mid/random_matched", "Rand")):
+            trio(f"pathNolast{nm}Flips", suf, lambda sm=sm, c=c: sm()[c]["frac_flipped"], src)
+            trio(f"pathNolast{nm}Beyond", suf, lambda sm=sm, c=c: sm()[c]["redirection"]["flips_beyond_reference"], src)
+            trio(f"pathNolast{nm}Esc", suf, lambda sm=sm, c=c: sm()[c]["frac_escaped"], src)
+        trio("pathNolastSameAnswerFlips", suf, lambda sm=sm: sm()["same_answer_donor/intermediates"]["frac_flipped"], src)
+        for c, nm in (("path_mid/input_embedding", "Emb"), ("path_mid/probe", "Probe")):
+            trio(f"pathNolast{nm}VsRand", suf, lambda src=src, c=c: paired_flips(F(src)["rows"], c, "path_mid/random_matched"), src)
+        # the label-swap donors on their own prompts: T for the swapped answer
+        # (the candidate swap keeps the recipient's target, so it is 100 - T)
+        src = tr(run)
+        sw_t = lambda src=src: [100 - r["info"]["label_swap"]["donor_T_on_own_prompt"]  # noqa: E731
+                                for r in F(src)["rows"] if "label_swap" in r["info"]]
+        macro(f"labelSwapDonorT{suf}", lambda f=sw_t: fmt(statistics.median(f()), 1), src)
+        macro(f"labelSwapDonorFrac{suf}", lambda f=sw_t: fmt(sum(t > 50 for t in f()) / len(f()), 0, pct=True) + r"\%", src, text=True)
+        macro(f"labelSwapDonorN{suf}", lambda f=sw_t: fmt(len(f())), src)
 
     # ==== 3. Experiments 0 to 10, per seed and pooled ========================
     for run, suf in SEEDS.items():

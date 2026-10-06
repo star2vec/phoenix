@@ -36,6 +36,13 @@ the original checkpoints is needed.
 
 ## Status
 
+- Experiments 11 and 12 (2026-10-06): the v1 INLP arm and whole-path
+  deletion, rerun on seeds 0 and 1. Full INLP removal at step 1 keeps the
+  median (-0.06, -0.28) but flips 0.15 and 0.19 of graphs to the decoy, where
+  rank-matched and size-matched random spans flip none (INLP minus
+  size-matched +0.15 [+0.07, +0.24], +0.19 [+0.10, +0.29]); the flips stay at
+  the fallback rate. Whole answer-path deletion at every intermediate step:
+  medians -0.01 to -0.06, flips 0.04 to 0.12, below the fallback rate.
 - Experiment 10 (2026-10-05): the leftover under 8c's isolation mask. Of
   the share still right above chance, the candidates' incoming edges carry
   0.76 [0.59, 0.96] pooled over four seeds, mostly the decoy's own; with
@@ -2444,6 +2451,223 @@ graphs still right above chance are right because of the candidates'
 incoming edges, mainly the decoy's; with those hidden too, survival is 0.56,
 the level of a "higher id wins" rule (0.556 on these graphs), and the
 choice goes with the id order.
+
+## Experiment 11: the INLP (amnesic probing) arm on this repo's seeds (written 2026-10-06, before any run)
+
+Why. The paper cites the v1 INLP arm (RRR repository, DECISIONS #014 and its
+addenda), which ran on the v1 checkpoint only; this repo never ran it. Same
+recipe, seeds 0 and 1, analysis only.
+
+Fit (`fit_inlp.py --k-max 40 --lbfgs-iters 50 --tag _full`, the v1 "full"
+recipe): per node, the step-1 depth-1 probe (logistic, L2 1e-3, last 500
+training graphs held out, at least 50 positives) is refit on the residual and
+its direction projected out until a fresh probe's held-out AUC is at or below
+0.55 (protects "no linear signal left": about chance) or 40 directions are
+removed. Files `results/<run>/inlp_basis_full.pt`, `inlp_basis_report_full.json`.
+
+Arm (`inlp_arm.py`, file `results/<run>/inlp_arm_<mode>.json`): the recipients
+and edit of this repo's subtraction cell (test graphs whose target has a unique
+depth-1 ancestor; that ancestor's identity removed from the step-1 thought,
+norm preserved), under four deletions: the probe direction (must reproduce
+`baseline_subtraction_n100.json`, subtract_answer/probe, to the last digit);
+the first INLP direction; the full INLP span; the same number of random
+orthonormal directions (rank-matched control, Elazar et al.). Standing
+controls reserialized and self-transplant.
+
+What the structure forces. At step 1 the winner is not yet in the thought
+(learned probe AUC 0.67 and 0.71, `winner_probe.json`), and the step-1 thought
+is read by layer 2 to match the next edges, a match that experiment 3 showed
+can be removed outright with the answer kept at the fallback rate. So removing
+one node's identity from the first thought should not move the answer.
+Predictions: median k at or near the cap of 40 on most nodes (v1: 40) with the
+residual AUC after the last direction between 0.5 and 0.7 (v1: 0.50 to 0.67);
+full INLP removal median change in T within 1 point of zero and flips no more
+than the rank-matched control's plus 0.05 (v1: -0.0, T after 99.99, random
+0.0); the first INLP direction equals the probe cell. If the INLP removal
+flips beyond the random control with the interval above zero, the identity in
+the first thought is causal after all and the paper's null was a basis problem.
+
+Order: fit on seeds 0 and 1; pilot of the arm on seed 0, test graphs 400-409;
+n=100 on both seeds.
+
+Fit outcome (`results/seed{0,1}/inlp_basis_report_full.json`, about 8.5
+minutes per seed on CPU): 23 nodes each; median k 40 (the cap) on both
+seeds, 13 and 12 nodes at the cap.
+Pilot outcome (seed 0, test graphs 400-409, 9 with a unique ancestor;
+`results/seed0/inlp_arm_pilot.json`): the probe cell reproduces
+`baseline_subtraction_pilot.json` to 5e-5 in T (that file was made on MPS,
+this run on CPU; the baselines differ by the same amount). The probe and the
+first INLP direction do nothing, as in experiment 0. The full INLP span does:
+graphs 400, 402 and 403 fall by 80, 83 and 99 points (mass on the decoy 0.79,
+0.42 with escape 0.49, 0.99), 405 and 406 by 3 and 2; the rank-matched random
+span moves nothing (at most 3 points, on a low-confidence graph). Against the
+prediction ("within 1 point of zero, flips at the random control's level"):
+fails on the pilot, 3 of 9 flips against 0. Unlike v1.
+What the pilot changed: one record added, no cell changed. A rank-matched
+random span removes far less of the thought than INLP directions, which follow
+the data's high-variance directions, so each row now records the share of the
+step-1 thought's squared norm inside the INLP span, the random span and the
+probe direction (`removed_share`). The reading of the n=100 INLP cell is made
+against that: if INLP flips beyond the random control, the question is whether
+it is the identity or the size of the removal, and the removed shares are the
+first evidence on it.
+n=100 outcome, seeds 0 and 1 (`results/seed{0,1}/inlp_arm_n100.json`; 68
+graphs each with a unique ancestor; numbers in `paper/numbers_table.md`,
+macros inlp*):
+- Fit: median k 40 on both seeds; residual AUC of the last fresh probe 0.48 to
+  0.67 (seed 0) and 0.44 to 0.71 (seed 1) over the 23 nodes.
+- Probe direction and first INLP direction: median change -0.00, flips 0.03
+  and 0.04, as in experiment 0 (the probe cell equals
+  `baseline_subtraction_n100.json` to 4e-4 in T).
+- Full INLP span: median change -0.06 [-0.55, -0.00] and -0.28 [-0.76, -0.06],
+  median T after 99.4 on both; flips 0.15 [0.07, 0.24] and 0.19 [0.10, 0.29],
+  to the decoy (mean p_decoy on flipped graphs 0.83 and 0.80), escape 0.01.
+  Rank-matched random span: median 0.00, flips 0.00 on both seeds. INLP minus
+  random, paired: +0.15 [+0.07, +0.24] and +0.19 [+0.10, +0.29]. Against the
+  same-answer reference (0.19 and 0.28): -0.04 [-0.16, +0.06] and -0.09
+  [-0.22, +0.04].
+- Removed share of the step-1 thought's squared norm, median: INLP 0.19 and
+  0.20, random 0.05 and 0.05, probe 0.05 and 0.04; on the flipped graphs the
+  INLP share is 0.24 and 0.25 against 0.19 on the rest.
+Against the predictions: median k at the cap, holds; residual AUC 0.5 to 0.7,
+holds on seed 0, seed 1 reaches 0.71; median change within 1 point, holds;
+flips no more than the random control plus 0.05, fails on both seeds. The
+line written for that case ("the identity in the first thought is causal
+after all and the paper's null was a basis problem") is met as written: INLP
+flips beyond its rank-matched control with the interval above zero. Two
+things qualify it. The flips stay at the fallback rate (no excess over the
+same-answer reference) and go to the decoy, the signature of a broken search,
+not of a redirected one. And the rank-matched control is not size-matched: the
+INLP span holds about 3.6 times the random span's share of the thought, and
+flipped graphs lost more. These cells do not separate "the node's identity is
+used" from "removing a fifth of the first thought breaks the search"; a
+random span matched in removed norm (from the data's high-variance directions)
+would. Not run. v1's INLP null (median -0.0, no flip reported) does not
+replicate as a flip count on these seeds; it does as a median.
+
+Size-matched control (written 2026-10-06, before the run; user's request).
+Cell `subtract_answer/inlp_random_sizematched`, same graphs, same edit (pass
+0, norm preserved), same rank k. Per graph, with t the step-1 thought and s
+the INLP span's share of its squared norm: one direction u = sqrt(s) t/|t| +
+sqrt(1-s) r, r a random unit vector orthogonal to t; the other k-1 directions
+random and orthogonal to both t and r. The span then holds exactly the share
+s of t's squared norm (recorded per graph as `removed_share.random_sizematched`
+and checked against s), so the edit moves the thought by the same angle as the
+INLP removal, in a random direction. The rank-matched control stays.
+Reading, written now:
+- Size line (the flips come from how much of the thought is removed): the
+  size-matched control flips about as often as INLP, paired difference INLP
+  minus size-matched with the interval covering zero.
+- Identity line (the flips come from what INLP removes): the size-matched
+  control flips at the rank-matched control's level (near 0), and INLP minus
+  size-matched has the interval above zero.
+- In between (both intervals exclude zero): part of each; reported as the two
+  paired differences.
+Reported side by side for INLP, rank-matched and size-matched: flips, flips
+beyond the same-answer reference with intervals, escapes. The same columns
+are added for the path-deletion cells (experiment 12). Pilot on seed 0, test
+graphs 400-409 (checks the share match and that every other cell reproduces
+`inlp_arm_pilot.json`), then n=100 on seeds 0 and 1; the n=100 files are
+rewritten with every earlier cell unchanged.
+Pilot outcome (seed 0, test graphs 400-409, `results/seed0/inlp_arm_pilot.json`):
+every earlier cell reproduces the previous pilot file exactly (maximum
+difference in T 0.0); the size-matched span holds the INLP span's share to
+four decimals on all nine graphs (0.12 to 0.36; rank-matched 0.03 to 0.07).
+On the three graphs INLP flips (400, 402, 403: -80, -83, -99) the size-matched
+control moves T by 0.0 to -0.1. What the pilot changed: nothing.
+n=100 outcome, seeds 0 and 1 (`results/seed{0,1}/inlp_arm_n100.json`, 68
+graphs each; every earlier cell reproduces the previous n=100 file exactly;
+the size-matched span's share equals the INLP span's to 4e-7 on every graph;
+macros amn*):
+
+| seed | cell | flips | beyond the same-answer reference | escapes |
+|---|---|---|---|---|
+| 0 | INLP span | 0.15 [0.07, 0.24] | -0.04 [-0.16, +0.06] | 0.01 [0.00, 0.04] |
+| 0 | rank-matched random | 0.00 [0.00, 0.00] | -0.19 [-0.30, -0.10] | 0.00 |
+| 0 | size-matched random | 0.00 [0.00, 0.00] | -0.19 [-0.30, -0.10] | 0.00 |
+| 1 | INLP span | 0.19 [0.10, 0.29] | -0.09 [-0.22, +0.04] | 0.01 [0.00, 0.04] |
+| 1 | rank-matched random | 0.00 [0.00, 0.00] | -0.28 [-0.40, -0.18] | 0.00 |
+| 1 | size-matched random | 0.00 [0.00, 0.00] | -0.28 [-0.40, -0.18] | 0.00 |
+
+Same-answer reference 0.19 and 0.28. Paired, INLP minus size-matched: +0.15
+[+0.07, +0.24] and +0.19 [+0.10, +0.29]; size-matched minus rank-matched 0.00
+on both. Reading, by the lines written above: the identity line. Moving the
+step-1 thought by the same angle in a random direction changes nothing on any
+graph; moving it out of the answer-branch node's INLP span flips 15 to 19
+percent, to the decoy. So the size of the removal is not the cause, and the
+v1 conclusion "the identity in the first thought is causally inert" does not
+hold once the whole linearly decodable identity subspace is removed. What it
+does when removed is break the search on some graphs, at the fallback rate
+(no excess over the same-answer reference on either seed), not redirect it.
+
+Path deletion (experiment 12), the same columns (`path_deletion_n100.json`):
+
+| seed | cell | flips | beyond the same-answer reference | escapes |
+|---|---|---|---|---|
+| 0 | input embedding | 0.06 [0.02, 0.11] | -0.13 [-0.21, -0.05] | 0.01 [0.00, 0.03] |
+| 0 | probe | 0.04 [0.01, 0.08] | -0.15 [-0.23, -0.08] | 0.01 [0.00, 0.03] |
+| 0 | random, rank-matched | 0.00 | -0.19 [-0.28, -0.12] | 0.00 |
+| 1 | input embedding | 0.12 [0.06, 0.19] | -0.13 [-0.23, -0.04] | 0.01 [0.00, 0.03] |
+| 1 | probe | 0.05 [0.01, 0.10] | -0.20 [-0.31, -0.11] | 0.00 |
+| 1 | random, rank-matched | 0.00 | -0.26 [-0.35, -0.17] | 0.00 |
+
+Same-answer reference 0.19 and 0.26. The path-deletion control is rank-matched
+only; a size-matched one was not asked for here and was not run.
+
+## Experiment 12: whole answer-path deletion at every intermediate step (written 2026-10-06, before any run)
+
+Why. The paper cites v1's cell perstep_sub_path_nolast (RRR,
+`explore_perstep_*.json`, v1 checkpoint, training graphs 0-99); this repo never
+ran it. Ported (`path_deletion.py`, file `results/<run>/path_deletion_<mode>.json`)
+on test graphs 0-99 like the rest of the paper's cells (user's decision,
+2026-10-06), seeds 0 and 1.
+
+Cell. At each intermediate pass k = 0..K-2 the thought loses the span of the
+identity directions of every node on a shortest path to the target at depth
+k+1 (ProsQA's neighbor_k, checked equal to the on-path nodes on all 356 steps
+of test graphs 0-99), norm preserved. Bases: input embeddings; the step-1
+probe basis (nodes without a direction left out and counted). Control: as many
+random orthonormal directions at the same passes. Standing controls
+reserialized, self-transplant, same-answer donor, random donor.
+
+What the structure forces. The answer is not read from the intermediate
+thoughts' identity directions: experiment 0's subtractions are null in both
+bases, and experiment 3 showed that even removing the thought's layer-2 match
+to the path at every step flips only at the fallback rate. Removing the
+identity span of all path nodes at every intermediate step is a larger edit
+than either, so a fallback-rate effect is possible; a redirection is not
+forced by either story. Predictions: median change in T within 1 point of
+zero in both bases (v1: -0.01 embedding, -0.0 probe); flips in each basis not
+above the same-answer reference by more than 0.05 (interval covering zero);
+the random control the same. A basis whose flips exceed the reference with the
+interval above zero would mean the identity of the path nodes is read at the
+intermediate steps after all.
+
+Order: pilot on seed 0, test graphs 400-409; n=100 on seeds 0 and 1.
+
+Pilot outcome (seed 0, test graphs 400-409, `results/seed0/path_deletion_pilot.json`):
+input-embedding basis, 2 of 10 flip (401: T 0.3; 402: T 1.6, both to the
+decoy), median -0.2; probe basis 0 flips (401 falls 31 points); random
+control nothing. The same-answer reference flips 2 of 10. Read at n=100 against
+that reference. What the pilot changed: nothing.
+n=100 outcome, seeds 0 and 1 (`results/seed{0,1}/path_deletion_n100.json`;
+macros dTpathNolast*, pathNolast*):
+- Input-embedding basis: median change -0.01 [-0.05, -0.00] and -0.06
+  [-0.35, -0.01]; flips 0.06 [0.02, 0.11] and 0.12 [0.06, 0.19], escape 0.01;
+  against the same-answer reference (0.19 and 0.26) -0.13 [-0.21, -0.05] and
+  -0.13 [-0.23, -0.04].
+- Probe basis: median -0.00 and -0.02; flips 0.04 and 0.05; against the
+  reference -0.15 and -0.20, intervals below zero.
+- Random control: median 0.00, flips 0.00 on both seeds. Paired against it:
+  embedding +0.06 [+0.02, +0.11] and +0.12 [+0.06, +0.19]; probe +0.04
+  [+0.01, +0.08] and +0.05 [+0.01, +0.10].
+Against the predictions: median within 1 point of zero, holds in both bases
+on both seeds; flips not above the same-answer reference by more than 0.05,
+holds (below it, intervals under zero); the random control the same, fails
+by a few graphs (4 to 12 flips against none). Reading: deleting the identity
+span of every answer-path node at every intermediate step leaves the answer in
+place on 88 to 96 percent of graphs, below the fallback rate a same-answer
+donor's thoughts produce; v1's null (-0.01, -0.0) replicates on the median.
 
 ## Next run
 

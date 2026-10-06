@@ -198,6 +198,20 @@ def main():
     res = baseline.run_swap(runner, list(enumerate(train))[:2], jb)
     assert "swap_final" in res["cells"]
     dump("baseline", res)
+
+    print("inlp_arm and path_deletion (random bases)")
+    import inlp_arm, path_deletion
+    basis = {v: torch.linalg.qr(torch.randn(768, 5))[0] for v in range(40)}
+    report = {"recipe": {"k_max": 5}, "per_node": {str(v): {"auc_trajectory": [0.9, 0.5]} for v in range(40)}}
+    res = inlp_arm.run(runner, recips, train, probe, basis, report)
+    assert res["rows"] or res["skipped"]["no_unique_ancestor"]
+    for r in res["rows"]:
+        assert {"subtract_answer/inlp", "subtract_answer/inlp_random_matched"} <= set(r["cells"])
+        assert 0.0 <= r["removed_share"]["random_matched"] <= 1.0
+    dump("inlp_arm", res)
+    res = path_deletion.run(runner, recips, train, probe)
+    assert {"path_mid/input_embedding", "path_mid/probe", "path_mid/random_matched"} <= set(res["cells"])
+    dump("path_deletion", res)
     print("SMOKE: PASS")
 
 
